@@ -1,5 +1,5 @@
 import jwt
-from fastapi import HTTPException, Response, status
+from fastapi import HTTPException, Response, Request,status
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 
@@ -50,8 +50,33 @@ class AuthService:
 
         return Token(access_token=access_token)
 
+    def refresh_access_token(self, request: Request):
+        
+        refresh_token = request.cookies.get("refresh_token")
+
+        if not refresh_token:
+            raise HTTPException(status_code=401, detail="Refresh token missing")
+
+        try:
+        
+            payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=["HS256"])
+            email = payload.get("sub")
+            
+            if not email:
+                raise HTTPException(status_code=401, detail="Invalid token")
+
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Refresh token expired")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+        access_token = self._generate_jwt(email, days=1)
+
+        return Token(access_token=access_token)
+
     # 🔹 Генерация JWT токенов
     def _generate_jwt(self, email: str, minutes: int = 0, days: int = 0):
         expire = datetime.utcnow() + timedelta(minutes=minutes, days=days)
         payload = {"sub": email, "exp": expire}
         return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+    
