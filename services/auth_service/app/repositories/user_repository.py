@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.user import User  
-from app.schemas.auth import RegisterRequest
+from app.models.user import User
 from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
 
