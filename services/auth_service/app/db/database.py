@@ -1,15 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# Загружаем переменные окружения
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/db_name")
+from app.core.config import settings
 
 # Создаем движок SQLAlchemy
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(settings.DATABASE_URL, echo=True)
 
 # Создаем сессию
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
