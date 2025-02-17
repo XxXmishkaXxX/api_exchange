@@ -35,7 +35,7 @@ class AuthService:
         return self._generate_tokens(user.email, response)
 
     def oauth_authenticate(self, user_info: dict, provider: str, db, response: Response):
-        oauth_id, email = str(user_info.get("id")), user_info.get("email")
+        oauth_id, email = str(user_info.get("sub")), user_info.get("email")
         user = db.query(User).filter(
             (User.oauth_id == oauth_id) & (User.oauth_provider == provider)
         ).first() or (db.query(User).filter(User.email == email).first() if email else None)
