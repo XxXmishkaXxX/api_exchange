@@ -55,7 +55,7 @@ async def auth_google(request: Request, response: Response, service: AuthService
 #     return await oauth.vk.authorize_redirect(request, redirect_uri)
 
 
-# @router.get("/auth/vk")
+# @router.get("/vk/callback")
 # async def auth_vk(request: Request, service: AuthService = Depends(), db: Session = Depends(get_db)):
 #     token = await oauth.vk.authorize_access_token(request)
     
