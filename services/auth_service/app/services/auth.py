@@ -49,6 +49,41 @@ class AuthService:
         )
 
         return Token(access_token=access_token)
+    
+    def oauth_authenticate(self, user_info: dict, provider: str, db, response):
+        oauth_id = str(user_info.get("id"))  # ID из Google или VK
+        email = user_info.get("email")  # Может быть None
+
+        # Ищем пользователя по oauth_id
+        user = db.query(User).filter(User.oauth_id == oauth_id, User.oauth_provider == provider).first()
+
+        if not user and email:
+            # Если пользователя нет, но есть email, проверяем email
+            user = db.query(User).filter(User.email == email).first()
+
+        if not user:
+            # Создаём нового пользователя
+            user = User(
+                email=email,
+                name=user_info.get("name", "No Name"),
+                oauth_provider=provider,
+                oauth_id=oauth_id
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+
+        access_token = self._generate_jwt(user.email, days=1)
+        refresh_token = self._generate_jwt(user.email, days=100)
+
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            samesite="Lax",
+            max_age=100 * 24 * 60 * 60  # 100 дней
+        )
+
+        return Token(access_token=access_token)
 
     def refresh_access_token(self, request: Request):
         
