@@ -13,12 +13,12 @@ class Settings(BaseSettings):
     # Секретный ключ для подписания JWT токенов
     SECRET_KEY: str 
     SESSION_KEY: str
-    # # Конфигурация для отправки email (например, SMTP сервер)
-    # SMTP_SERVER: str
-    # SMTP_PORT: int
-    # SMTP_USER: str
-    # SMTP_PASSWORD: str
-    
+    # # Конфигурация для отправки email
+    EMAIL_HOST: str
+    EMAIL_HOST_USER: str
+    EMAIL_HOST_PASSWORD: str
+    EMAIL_PORT: int
+
     # Логирование
     LOG_LEVEL: str = "INFO"
 
