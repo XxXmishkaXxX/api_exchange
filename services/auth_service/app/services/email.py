@@ -46,18 +46,28 @@ class VerificationEmailService:
 
         return {"message": "Email verified successfully"}
 
-    async def send_verification_email(self, user_id: int, verification_code: str):
+    async def send_verification_email(self, user_id: int):
         # Получаем данные пользователя
         user = await self.user_repo.get_user_by_id(user_id)
 
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
+        code = self.generate_new_code()
+
+        verification = EmailVerification(
+            user_id=user_id,
+            verification_code=code,
+            expires_at=datetime.utcnow() + timedelta(minutes=5)  # Код истекает через 1 час
+        )
+
+        await self.email_repo.add_verification(verification)
+
         # Формируем сообщение
         message = MessageSchema(
             subject="Email Verification",
             recipients=[user.email],
-            body=f"Your verification code is: {verification_code}",
+            body=f"Your verification code is: {code}",
             subtype="plain"
         )
 
