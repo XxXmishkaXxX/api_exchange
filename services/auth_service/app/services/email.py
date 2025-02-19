@@ -7,6 +7,8 @@ from app.models.email import EmailVerification
 from app.repositories.user_repository import UserRepository
 from app.repositories.email_repository import EmailRepository
 from app.core.config import settings
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.schemas.email import VerificationRequest
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.EMAIL_HOST_USER,
@@ -14,21 +16,21 @@ conf = ConnectionConfig(
     MAIL_FROM=settings.EMAIL_HOST_USER,
     MAIL_PORT=settings.EMAIL_PORT,
     MAIL_SERVER=settings.EMAIL_HOST,
-    MAIL_TLS=True,
-    MAIL_SSL=False,
+    MAIL_STARTTLS=True,
+    MAIL_SSL_TLS=False,
 )
 
 mail = FastMail(conf)
 
 class VerificationEmailService:
 
-    def __init__(self, user_repo: UserRepository, email_repo: EmailRepository):
-        self.user_repo = user_repo
-        self.emai_repo = email_repo
+    def __init__(self, db: AsyncSession):
+        self.user_repo = UserRepository(db)
+        self.email_repo = EmailRepository(db)
 
-    async def verify_email_code(self, verification_code: str):
-        # Получаем запись о верификации по коду
-        verification = await self.email_repo.get_verification_by_code(verification_code)
+    async def verify_email_code(self, data: VerificationRequest):
+        
+        verification = await self.email_repo.get_verification_by_user_email(data['email'])
 
         if not verification:
             raise HTTPException(status_code=400, detail="Invalid verification code")
@@ -42,12 +44,11 @@ class VerificationEmailService:
             raise HTTPException(status_code=404, detail="User not found")
 
         user.is_verified = True
-        await self.user_repo.update_user(user)
+        await self.user_repo.update_user(user.id)
 
         return {"message": "Email verified successfully"}
 
-    async def send_verification_email(self, user_id: int):
-        # Получаем данные пользователя
+    async def send_verification_email(self, user_id: int, user_email: str):
         user = await self.user_repo.get_user_by_id(user_id)
 
         if not user:
@@ -57,13 +58,13 @@ class VerificationEmailService:
 
         verification = EmailVerification(
             user_id=user_id,
+            user_email=user_email,
             verification_code=code,
-            expires_at=datetime.utcnow() + timedelta(minutes=5)  # Код истекает через 1 час
+            expires_at=datetime.utcnow() + timedelta(minutes=50)
         )
 
         await self.email_repo.add_verification(verification)
 
-        # Формируем сообщение
         message = MessageSchema(
             subject="Email Verification",
             recipients=[user.email],
@@ -71,30 +72,24 @@ class VerificationEmailService:
             subtype="plain"
         )
 
-        # Отправляем письмо
         await mail.send_message(message)
 
     async def resend_verification_email_code(self, user_id: int):
-        # Проверяем существующую запись и удаляем если код истек
         verification = await self.email_repo.get_verification_by_user_id(user_id)
 
         if verification:
-            # Удаляем истекший код
             await self.user_repo.delete_verification(verification)
 
-        # Генерируем новый код
         new_verification_code = self.generate_new_code()
 
-        # Создаем новый код подтверждения
         new_verification = EmailVerification(
             user_id=user_id,
             verification_code=new_verification_code,
-            expires_at=datetime.utcnow() + timedelta(hours=1)  # Код истекает через 1 час
+            expires_at=datetime.utcnow() + timedelta(hours=1)
         )
         await self.email_repo.add_verification(new_verification)
 
-        # Отправляем новый код на почту
-        await self.send_verification_email(user_id, new_verification_code)
+        await self.send_verification_email(user_id)
 
         return {"message": "New verification code sent"}
 
