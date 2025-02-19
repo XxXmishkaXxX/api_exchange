@@ -12,8 +12,8 @@ class EmailRepository:
         result = await self.db.execute(select(EmailVerification).filter(EmailVerification.verification_code == verification_code))
         return result.scalars().first()
 
-    async def get_verification_by_user_email(self, user_id):
-        result = await self.db.execute(select(EmailVerification).filter(EmailVerification.user_id == user_id))
+    async def get_verification_by_user_email(self, email):
+        result = await self.db.execute(select(EmailVerification).filter(EmailVerification.user_email == email))
         return result.scalars().first()
 
     async def add_verification(self, verification: EmailVerification):
