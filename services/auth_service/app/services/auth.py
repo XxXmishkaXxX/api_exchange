@@ -27,14 +27,19 @@ class AuthService:
             password=self.pwd_context.hash(data.password),
         )
         await user_repo.create(user)
-        return {"message": "User created successfully"}, status.HTTP_201_CREATED
+        return {"message": "User created successfully", 
+                "detail":"verify email"}, status.HTTP_201_CREATED
 
     async def authenticate(self, data: LoginRequest, db, response: Response):
         user_repo = self._get_user_repo(db)
         user = await user_repo.get_user_by_email(data.email)
+        
         if not user or not user_repo.verify_password(data.password, user.password):
             raise HTTPException(status_code=401, detail="Invalid credentials")
-
+        
+        if not user.is_verified:
+            raise HTTPException(status_code=403, detail="User is not verified")
+        
         return await self._generate_tokens(user.email, response)
 
     async def oauth_authenticate(self, user_info: dict, provider: str, db, response: Response):
@@ -49,6 +54,7 @@ class AuthService:
                 name=user_info.get("name", "No Name"),
                 oauth_provider=provider,
                 oauth_id=oauth_id,
+                is_verified=True
             )
             await user_repo.create(user)
 
