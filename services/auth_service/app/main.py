@@ -6,8 +6,16 @@ from app.core.config import settings
 
 app = FastAPI(title="Auth Service")
 
-# Создаем таблицы, если их нет
-Base.metadata.create_all(bind=engine)
+# Асинхронная функция для создания таблиц
+async def create_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+# Запуск создания таблиц
+@app.on_event("startup")
+async def on_startup():
+    await create_tables()
+
 app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_KEY)
 
 # Подключаем маршруты
