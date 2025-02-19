@@ -36,7 +36,7 @@ class AuthService:
             tuple[dict[str, str], int]: Сообщение о создании пользователя и HTTP статус.
         """
         user_repo = self._get_user_repo(db)
-        email_service = self._get_email_service()
+        email_service = self._get_email_service(db)
         
         if await user_repo.get_user_by_email(data.email):
             raise HTTPException(status_code=400, detail="User already exists")
