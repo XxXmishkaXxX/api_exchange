@@ -29,19 +29,18 @@ class VerificationEmailService:
         self.email_repo = EmailRepository(db)
 
     async def verify_email_code(self, data: VerificationRequest):
-        
-        verification = await self.email_repo.get_verification_by_user_email(data['email'])
+        verification = await self.email_repo.get_verification_by_user_email(data.email)
 
         if not verification:
-            raise HTTPException(status_code=400, detail="Invalid verification code")
+            return {"error": "Invalid verification code"}
 
         if verification.expires_at < datetime.utcnow():
-            raise HTTPException(status_code=400, detail="Verification code has expired")
+            return {"error": "Verification code has expired"}
 
         user = await self.user_repo.get_user_by_id(verification.user_id)
 
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            return {"error": "User not found"}
 
         user.is_verified = True
         await self.user_repo.update_user(user.id)
