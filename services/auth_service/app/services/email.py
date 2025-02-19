@@ -72,6 +72,7 @@ class VerificationEmailService:
 
         user.is_verified = True
         await self.user_repo.update_user(user.id)
+        await self.email_repo.delete_verification(verification)
 
         return {"message": "Электронная почта успешно подтверждена"}
 
