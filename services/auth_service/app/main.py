@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import auth, oauth2
+from app.routers import auth, oauth2, email
 from app.db.database import engine, Base
 from starlette.middleware.sessions import SessionMiddleware
 from app.core.config import settings
@@ -21,6 +21,7 @@ app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_KEY)
 # Подключаем маршруты
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(oauth2.router, prefix="/api/v1/oauth", tags=["oauth"])
+app.include_router(email.router, prefix="/api/v1/mail", tags=["mail"])
 
 if __name__ == "__main__":
     import uvicorn
