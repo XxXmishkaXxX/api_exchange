@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from app.models.user import User
 from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
@@ -7,44 +8,46 @@ from passlib.context import CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
-    def create(self, user: User):
-
+    async def create(self, user: User):
         try:
             self.db.add(user)
-            self.db.commit()
-            self.db.refresh(user)
+            await self.db.commit()
+            await self.db.refresh(user)
             return user
         except IntegrityError:
-            self.db.rollback()
+            await self.db.rollback()
             raise ValueError(f"User with email {user.email} already exists.")
-    
-    def get_user_by_email(self, email: str):
-        # Получаем пользователя по email
-        return self.db.query(User).filter(User.email == email).first()
 
-    def verify_password(self, provided_password: str, stored_password: str) -> bool:
+    async def get_user_by_email(self, email: str):
+        # Получаем пользователя по email
+        result = await self.db.execute(select(User).filter(User.email == email))
+        return result.scalars().first()
+
+    async def verify_password(self, provided_password: str, stored_password: str) -> bool:
         # Проверяем пароль
         return pwd_context.verify(provided_password, stored_password)
 
-    def update_user(self, user_id: int, name: str = None, password: str = None):
+    async def update_user(self, user_id: int, name: str = None, password: str = None):
         # Обновление пользователя
-        db_user = self.db.query(User).filter(User.id == user_id).first()
+        result = await self.db.execute(select(User).filter(User.id == user_id))
+        db_user = result.scalars().first()
         if db_user:
             if name:
                 db_user.name = name
             if password:
                 db_user.password = pwd_context.hash(password)
-            self.db.commit()
-            self.db.refresh(db_user)
+            await self.db.commit()
+            await self.db.refresh(db_user)
         return db_user
 
-    def delete_user(self, user_id: int):
+    async def delete_user(self, user_id: int):
         # Удаление пользователя
-        db_user = self.db.query(User).filter(User.id == user_id).first()
+        result = await self.db.execute(select(User).filter(User.id == user_id))
+        db_user = result.scalars().first()
         if db_user:
-            self.db.delete(db_user)
-            self.db.commit()
+            await self.db.delete(db_user)
+            await self.db.commit()
         return db_user

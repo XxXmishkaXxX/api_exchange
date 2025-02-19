@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, Response, Request, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from authlib.integrations.starlette_client import OAuth
-from starlette.middleware.sessions import SessionMiddleware
 from app.services.auth import AuthService
 from app.db.database import get_db
 from app.core.config import settings
@@ -38,14 +37,16 @@ async def login_google(request: Request):
 
 
 @router.get("/google/callback")
-async def auth_google(request: Request, response: Response, service: AuthService = Depends(), db: Session = Depends(get_db)):
+async def auth_google(request: Request, response: Response, service: AuthService = Depends(), db: AsyncSession = Depends(get_db)):
     token = await oauth.google.authorize_access_token(request)
     user_info = token['userinfo']
 
     if not user_info:
         raise HTTPException(status_code=400, detail="Ошибка авторизации Google")
+    
+    user = await service.oauth_authenticate(user_info=user_info, provider="google", db=db, response=response)
 
-    return service.oauth_authenticate(user_info=user_info, provider="google", db=db, response=response)
+    return user
 
 
 # # === VK OAuth ===
