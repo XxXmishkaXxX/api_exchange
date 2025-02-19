@@ -4,7 +4,6 @@ from app.models.user import User
 from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
 
-# Инициализация контекста для хэширования паролей
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserRepository:
@@ -21,17 +20,18 @@ class UserRepository:
             await self.db.rollback()
             raise ValueError(f"User with email {user.email} already exists.")
 
+    async def get_user_by_id(self, user_id: int):
+        result = await self.db.execute(select(User).filter(User.id == user_id))
+        return result.scalars().first()
+
     async def get_user_by_email(self, email: str):
-        # Получаем пользователя по email
         result = await self.db.execute(select(User).filter(User.email == email))
         return result.scalars().first()
 
     async def verify_password(self, provided_password: str, stored_password: str) -> bool:
-        # Проверяем пароль
         return pwd_context.verify(provided_password, stored_password)
 
     async def update_user(self, user_id: int, name: str = None, password: str = None):
-        # Обновление пользователя
         result = await self.db.execute(select(User).filter(User.id == user_id))
         db_user = result.scalars().first()
         if db_user:
@@ -44,7 +44,6 @@ class UserRepository:
         return db_user
 
     async def delete_user(self, user_id: int):
-        # Удаление пользователя
         result = await self.db.execute(select(User).filter(User.id == user_id))
         db_user = result.scalars().first()
         if db_user:
