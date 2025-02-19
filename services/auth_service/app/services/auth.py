@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
+from app.services.email import VerificationEmailService
 from app.schemas.auth import LoginRequest, RegisterRequest, Token
 from app.core.config import settings
 
@@ -20,6 +21,9 @@ class AuthService:
     def _get_user_repo(self, db: AsyncSession) -> UserRepository:
         """Возвращает экземпляр репозитория пользователей."""
         return UserRepository(db)
+    
+    def _get_email_service(self, db: AsyncSession):
+        return VerificationEmailService(db)
 
     async def register_user(self, data: RegisterRequest, db: AsyncSession) -> tuple[dict[str, str], int]:
         """Регистрирует нового пользователя.
@@ -32,6 +36,8 @@ class AuthService:
             tuple[dict[str, str], int]: Сообщение о создании пользователя и HTTP статус.
         """
         user_repo = self._get_user_repo(db)
+        email_service = self._get_email_service()
+        
         if await user_repo.get_user_by_email(data.email):
             raise HTTPException(status_code=400, detail="User already exists")
 
@@ -40,7 +46,10 @@ class AuthService:
             name=data.name,
             password=self.pwd_context.hash(data.password),
         )
-        await user_repo.create(user)
+        
+        user = await user_repo.create(user)
+        await email_service.send_verification_email(user.id, user.email)
+
         return {"message": "User created successfully", "detail": "verify email"}, status.HTTP_201_CREATED
 
     async def authenticate(self, data: LoginRequest, db: AsyncSession, response: Response) -> Token:
