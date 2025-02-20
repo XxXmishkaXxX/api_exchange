@@ -10,10 +10,7 @@ router = APIRouter()
 async def verify_email(data: VerificationRequest, db: AsyncSession = Depends(get_db)):
     service = VerificationEmailService(db)
     result = await service.verify_email_code(data)
-    if not result:
-        raise HTTPException(status_code=400, detail="Invalid verification code")
-    return {"message": "Verification successful"}
-
+    return result
 
 @router.post("/resend_verification_code", response_model=dict)
 async def resend_verification_code(data: ResendVerificationRequest, db: AsyncSession = Depends(get_db)):

@@ -60,15 +60,15 @@ class VerificationEmailService:
         verification = await self.email_repo.get_verification_by_user_email(data.email)
 
         if not verification:
-            return {"error": "Неверный код подтверждения"}
+            raise HTTPException(status_code=400, detail="Неверный код подтверждения")
 
         if verification.expires_at < datetime.utcnow():
-            return {"error": "Код подтверждения истек"}
+            raise HTTPException(status_code=400, detail="Код подтверждения истек")
 
         user = await self.user_repo.get_user_by_id(verification.user_id)
 
         if not user:
-            return {"error": "Пользователь не найден"}
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
 
         user.is_verified = True
         await self.user_repo.update_user(user.id)
