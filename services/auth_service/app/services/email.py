@@ -10,7 +10,7 @@ from app.models.email import EmailVerification
 from app.repositories.user_repository import UserRepository
 from app.repositories.email_repository import EmailRepository
 from app.core.config import settings
-from app.schemas.email import VerificationRequest
+from app.schemas.email import VerificationRequest, ResendVerificationRequest
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.EMAIL_HOST_USER,
@@ -112,31 +112,26 @@ class VerificationEmailService:
 
         await mail.send_message(message)
 
-    async def resend_verification_email_code(self, user_id: int) -> dict:
+    async def resend_verification_email_code(self, data: ResendVerificationRequest) -> dict:
         """
         Отправляет новый код подтверждения на электронную почту пользователя.
 
         Аргументы:
-            user_id (int): Идентификатор пользователя.
+            data (ResendVerificationRequest): Данные запроса, содержащие email пользователя.
 
         Возвращает:
-            dict: Сообщение об успешной отправке нового кода подтверждения.
+            dict: Сообщение, указывающее на успешность или неудачу отправки кода подтверждения.
         """
-        verification = await self.email_repo.get_verification_by_user_id(user_id)
+        verification = await self.email_repo.get_verification_by_user_email(data.email)
 
-        if verification:
-            await self.user_repo.delete_verification(verification)
+        if not verification:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
 
-        new_verification_code = self.generate_new_code()
+        user_id = verification.user_id
+        
+        await self.email_repo.delete_verification(verification)
 
-        new_verification = EmailVerification(
-            user_id=user_id,
-            verification_code=new_verification_code,
-            expires_at=datetime.utcnow() + timedelta(hours=1)
-        )
-        await self.email_repo.add_verification(new_verification)
-
-        await self.send_verification_email(user_id)
+        await self.send_verification_email(user_id, data.email)
 
         return {"message": "Новый код подтверждения отправлен"}
 
