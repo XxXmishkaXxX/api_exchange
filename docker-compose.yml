@@ -47,29 +47,38 @@ services:
     networks:
       - exchange
 
-    redis_celery:
-      image: redis:alpine
-      container_name: redis_celery
-      restart: always
-      ports:
-        - "6379:6379"
-    
-    celery_worker:
-    build: .
-    command: celery -A celery_worker worker --loglevel=info
+  redis_celery:
+    image: redis:alpine
+    container_name: redis_celery
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - exchange
+  
+  celery_worker:
+    build:
+      context: ./services/auth_service
+    command: celery -A app.tasks.worker_config worker --loglevel=info
     depends_on:
       - redis_celery
-      - auth_service
     env_file:
       - .env
+    volumes:
+      - ./services/auth_service:/auth_service
+    networks:
+      - exchange
 
   celery_beat:
-    build: .
-    command: celery -A celery_worker beat --loglevel=info
+    build:
+      context: ./services/auth_service
+    command: celery -A app.tasks.worker_config beat --loglevel=info
     depends_on:
       - redis_celery
-      - celery_worker
-    
+    volumes:
+      - ./services/auth_service:/auth_service
+    networks:
+      - exchange
 
 volumes:
   postgres_data:
