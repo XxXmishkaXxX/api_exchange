@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     EMAIL_HOST_PASSWORD: str
     EMAIL_PORT: int
 
+    #celery
+    CELERY_REDIS_URL: str
+    CELERY_RESULT_BACKEND: str
+
+
     # Логирование
     LOG_LEVEL: str = "INFO"
 

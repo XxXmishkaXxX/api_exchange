@@ -1,6 +1,7 @@
-from sqlalchemy import Column, String, Integer, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
 from app.db.database import Base
 from sqlalchemy.orm import relationship
+from app.models.email import EmailVerification
 
 
 class User(Base):
@@ -13,5 +14,6 @@ class User(Base):
     oauth_provider = Column(String, nullable=True)  
     oauth_id = Column(String, nullable=True, unique=True)
     is_verified = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=func.now())
 
     email_verifications = relationship("EmailVerification", back_populates="user")
