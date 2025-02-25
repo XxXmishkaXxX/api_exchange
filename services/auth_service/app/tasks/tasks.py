@@ -1,9 +1,9 @@
 # tasks.py
 import asyncio
-from worker_config import app
+from app.tasks.worker_config import app
 from sqlalchemy.future import select
 from app.models.user import User
-from db import get_db
+from app.db.database import get_db
 from datetime import datetime, timedelta
 
 @app.task
@@ -12,7 +12,7 @@ def delete_inactive_users():
     loop.run_until_complete(run_delete_inactive_users())
 
 async def run_delete_inactive_users():
-    async with get_db() as session:
+    async for session in get_db():
         now = datetime.utcnow()
         inactive_threshold = now - timedelta(days=1)
 

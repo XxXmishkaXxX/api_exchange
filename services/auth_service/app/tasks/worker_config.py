@@ -1,12 +1,12 @@
 from celery import Celery
-from core.config import settings
+from app.core.config import settings
 from datetime import timedelta
 
 app  = Celery(
-    "auth_service",
+    "auth_service_worker",
     broker=settings.CELERY_REDIS_URL,
     backend=settings.CELERY_RESULT_BACKEND,
-    include=["app.tasks"]
+    include=["app.tasks.tasks"]
 )
 
 app.conf.update(
@@ -19,7 +19,7 @@ app.conf.update(
 
 app.conf.beat_schedule = {
     'delete_inactive_users_daily': {
-        'task': 'tasks.delete_inactive_users',
+        'task': 'app.tasks.tasks.delete_inactive_users',
         'schedule': timedelta(days=1),
     },
 }
