@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
 from app.db.database import Base
 from sqlalchemy.orm import relationship
 from app.models.email import EmailVerification
+from app.models.password_reset import PasswordResetCode
 
 
 class User(Base):
@@ -17,3 +18,4 @@ class User(Base):
     created_at = Column(DateTime, default=func.now())
 
     email_verifications = relationship("EmailVerification", back_populates="user")
+    reset_codes = relationship("PasswordResetCode", back_populates="user")
