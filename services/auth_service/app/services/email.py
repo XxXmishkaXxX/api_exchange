@@ -134,6 +134,17 @@ class VerificationEmailService:
         await self.send_verification_email(user_id, data.email)
 
         return {"message": "Новый код подтверждения отправлен"}
+    
+    async def send_reset_email(self, user_email: str, reset_code: str) -> None:
+
+        message = MessageSchema(
+            subject="Сброс пароля",
+            recipients=[user_email],
+            body=f"Ваш код подтверждения: {reset_code}",
+            subtype="plain"
+        )
+
+        await mail.send_message(message)
 
     @staticmethod
     def generate_new_code(length: int = 6) -> str:

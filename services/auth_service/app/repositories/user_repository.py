@@ -4,6 +4,8 @@ from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
 from typing import Optional
 from app.models.user import User
+from app.models.password_reset import PasswordResetCode
+from datetime import datetime, timedelta
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -112,3 +114,53 @@ class UserRepository:
             await self.db.delete(db_user)
             await self.db.commit()
         return db_user
+
+    
+    async def create_reset_code(self, user_id: int, reset_code: str, expires_at: datetime) -> PasswordResetCode:
+        """Создаёт код сброса пароля и сохраняет его в базе данных.
+
+        Args:
+            user_id (int): Идентификатор пользователя.
+            reset_code (str): Код сброса пароля.
+            expires_at (datetime): Время истечения срока действия кода.
+
+        Returns:
+            PasswordResetCode: Созданный код сброса пароля.
+        """
+        reset_code_entry = PasswordResetCode(
+            user_id=user_id,
+            reset_code=reset_code,
+            expires_at=expires_at
+        )
+        self.db.add(reset_code_entry)
+        await self.db.commit()
+        await self.db.refresh(reset_code_entry)
+        return reset_code_entry
+
+    async def get_reset_code(self, reset_code: str) -> Optional[PasswordResetCode]:
+        """Ищет код сброса по значению кода.
+
+        Args:
+            reset_code (str): Код сброса пароля.
+
+        Returns:
+            Optional[PasswordResetCode]: Найденный код или None, если не найден.
+        """
+        result = await self.db.execute(select(PasswordResetCode).filter(PasswordResetCode.reset_code == reset_code))
+        return result.scalars().first()
+
+    async def delete_reset_code(self, reset_code: str) -> Optional[PasswordResetCode]:
+        """Удаляет код сброса из базы данных.
+
+        Args:
+            reset_code (str): Код сброса пароля.
+
+        Returns:
+            Optional[PasswordResetCode]: Удалённый код сброса или None, если код не найден.
+        """
+        result = await self.db.execute(select(PasswordResetCode).filter(PasswordResetCode.reset_code == reset_code))
+        reset_code_entry = result.scalars().first()
+        if reset_code_entry:
+            await self.db.delete(reset_code_entry)
+            await self.db.commit()
+        return reset_code_entry
