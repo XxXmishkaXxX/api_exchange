@@ -3,12 +3,18 @@ from fastapi import HTTPException, Response, Request, status
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi.security import OAuth2PasswordBearer
+
 
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.services.email import VerificationEmailService
 from app.schemas.auth import LoginRequest, RegisterRequest, Token
 from app.core.config import settings
+
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
 
 class AuthService:
