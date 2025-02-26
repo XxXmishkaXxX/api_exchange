@@ -1,5 +1,5 @@
 import jwt
-from fastapi import HTTPException, Response, Request, status
+from fastapi import HTTPException, Response, Request, status, Depends
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +11,7 @@ from app.repositories.user_repository import UserRepository
 from app.services.email import VerificationEmailService
 from app.schemas.auth import LoginRequest, RegisterRequest, Token
 from app.core.config import settings
-
+from app.db.database import get_db
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
@@ -20,18 +20,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 class AuthService:
     """Сервис аутентификации и авторизации пользователей."""
 
-    def __init__(self) -> None:
+    def __init__(self, user_repo: UserRepository, email_service: VerificationEmailService) -> None:
         """Инициализация сервиса с настройками шифрования паролей."""
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        self.user_repo = user_repo
+        self.email_service = email_service
 
-    def _get_user_repo(self, db: AsyncSession) -> UserRepository:
-        """Возвращает экземпляр репозитория пользователей."""
-        return UserRepository(db)
-    
-    def _get_email_service(self, db: AsyncSession):
-        return VerificationEmailService(db)
-
-    async def register_user(self, data: RegisterRequest, db: AsyncSession) -> tuple[dict[str, str], int]:
+    async def register_user(self, data: RegisterRequest) -> tuple[dict[str, str], int]:
         """Регистрирует нового пользователя.
         
         Args:
@@ -41,10 +36,8 @@ class AuthService:
         Returns:
             tuple[dict[str, str], int]: Сообщение о создании пользователя и HTTP статус.
         """
-        user_repo = self._get_user_repo(db)
-        email_service = self._get_email_service(db)
         
-        if await user_repo.get_user_by_email(data.email):
+        if await self.user_repo.get_user_by_email(data.email):
             raise HTTPException(status_code=400, detail="User already exists")
 
         user = User(
@@ -53,12 +46,12 @@ class AuthService:
             password=self.pwd_context.hash(data.password),
         )
         
-        user = await user_repo.create(user)
-        await email_service.send_verification_email(user.id, user.email)
+        user = await self.user_repo.create(user)
+        await self.email_service.send_verification_email(user.id, user.email)
 
         return {"message": "User created successfully", "detail": "verify email"}, status.HTTP_201_CREATED
 
-    async def authenticate(self, data: LoginRequest, db: AsyncSession, response: Response) -> Token:
+    async def authenticate(self, data: LoginRequest, response: Response) -> Token:
         """Аутентифицирует пользователя по email и паролю.
         
         Args:
@@ -69,10 +62,10 @@ class AuthService:
         Returns:
             Token: Сгенерированный access token.
         """
-        user_repo = self._get_user_repo(db)
-        user = await user_repo.get_user_by_email(data.email)
 
-        if not user or not user_repo.verify_password(data.password, user.password):
+        user = await self.user_repo.get_user_by_email(data.email)
+
+        if not user or not self.user_repo.verify_password(data.password, user.password):
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
         if not user.is_verified:
@@ -80,7 +73,7 @@ class AuthService:
 
         return await self._generate_tokens(user.email, response)
 
-    async def oauth_authenticate(self, user_info: dict[str, str], provider: str, db: AsyncSession, response: Response) -> Token:
+    async def oauth_authenticate(self, user_info: dict[str, str], provider: str, response: Response) -> Token:
         """Аутентифицирует пользователя через OAuth-провайдера.
         
         Args:
@@ -94,8 +87,7 @@ class AuthService:
         """
         oauth_id, email = str(user_info.get("sub")), user_info.get("email")
 
-        user_repo = self._get_user_repo(db)
-        user = await user_repo.get_user_by_email(email)
+        user = await self.user_repo.get_user_by_email(email)
 
         if not user:
             user = User(
@@ -105,7 +97,7 @@ class AuthService:
                 oauth_id=oauth_id,
                 is_verified=True
             )
-            await user_repo.create(user)
+            await self.user_repo.create(user)
 
         return await self._generate_tokens(user.email, response)
 
@@ -181,3 +173,10 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Refresh token expired")
         except jwt.InvalidTokenError:
             raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+
+
+def get_auth_service(session: AsyncSession = Depends(get_db)) -> AuthService:
+    repository = UserRepository(session)
+    email_service = VerificationEmailService(session)
+    return AuthService(repository, email_service)
