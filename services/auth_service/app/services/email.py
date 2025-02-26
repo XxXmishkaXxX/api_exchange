@@ -2,7 +2,7 @@ import random
 import string
 from datetime import datetime, timedelta
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +11,7 @@ from app.repositories.user_repository import UserRepository
 from app.repositories.email_repository import EmailRepository
 from app.core.config import settings
 from app.schemas.email import VerificationRequest, ResendVerificationRequest
+from app.db.database import get_db
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.EMAIL_HOST_USER,
@@ -37,15 +38,16 @@ class VerificationEmailService:
         email_repo (EmailRepository): Репозиторий для работы с данными о подтверждении электронной почты.
     """
 
-    def __init__(self, db: AsyncSession):
+    def __init__(self, user_repo: UserRepository, email_repo: EmailRepository) -> None:
         """
         Инициализация сервиса для подтверждения электронной почты с использованием сессии базы данных.
 
         Аргументы:
-            db (AsyncSession): Сессия базы данных для взаимодействия с базой данных.
+            user_repo (UserRepository): Репозиторий пользователей для взаимодействия с данными пользователей.
+            email_repo (EmailRepository): Репозиторий электронной почты для работы с подтверждениями email.
         """
-        self.user_repo = UserRepository(db)
-        self.email_repo = EmailRepository(db)
+        self.user_repo = user_repo
+        self.email_repo = email_repo
 
     async def verify_email_code(self, data: VerificationRequest) -> dict:
         """
@@ -56,6 +58,9 @@ class VerificationEmailService:
 
         Возвращает:
             dict: Сообщение, указывающее на успешность или неудачу проверки.
+        
+        Исключения:
+            HTTPException: Если код подтверждения неверный или истек.
         """
         verification = await self.email_repo.get_verification_by_user_email(data.email)
 
@@ -121,6 +126,9 @@ class VerificationEmailService:
 
         Возвращает:
             dict: Сообщение, указывающее на успешность или неудачу отправки кода подтверждения.
+
+        Исключения:
+            HTTPException: Если пользователь не найден или код подтверждения не был найден.
         """
         verification = await self.email_repo.get_verification_by_user_email(data.email)
 
@@ -136,7 +144,16 @@ class VerificationEmailService:
         return {"message": "Новый код подтверждения отправлен"}
     
     async def send_reset_email(self, user_email: str, reset_code: str) -> None:
+        """
+        Отправляет письмо с кодом для сброса пароля на электронную почту пользователя.
 
+        Аргументы:
+            user_email (str): Электронная почта пользователя.
+            reset_code (str): Код для сброса пароля.
+
+        Исключения:
+            HTTPException: Если не удалось отправить письмо.
+        """
         message = MessageSchema(
             subject="Сброс пароля",
             recipients=[user_email],
@@ -158,3 +175,17 @@ class VerificationEmailService:
             str: Сгенерированный код.
         """
         return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
+
+def get_email_service(session: AsyncSession = Depends(get_db)) -> VerificationEmailService:
+    """Функция для получения экземпляра VerificationEmailService с зависимостями.
+    
+    Аргументы:
+        session (AsyncSession, optional): Сессия базы данных. Defaults to Depends(get_db).
+    
+    Возвращает:
+        VerificationEmailService: Экземпляр сервиса подтверждения электронной почты.
+    """
+    user_repo = UserRepository(session)
+    email_repo = EmailRepository(session)
+    return VerificationEmailService(user_repo, email_repo)
