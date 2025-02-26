@@ -5,14 +5,12 @@ from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordBearer
 
-
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.services.email import VerificationEmailService
 from app.schemas.auth import LoginRequest, RegisterRequest, Token
 from app.core.config import settings
 from app.db.database import get_db
-
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
@@ -31,8 +29,7 @@ class AuthService:
         
         Args:
             data (RegisterRequest): Данные для регистрации пользователя.
-            db (AsyncSession): Сессия базы данных.
-
+        
         Returns:
             tuple[dict[str, str], int]: Сообщение о создании пользователя и HTTP статус.
         """
@@ -56,13 +53,11 @@ class AuthService:
         
         Args:
             data (LoginRequest): Данные для входа (email и пароль).
-            db (AsyncSession): Сессия базы данных.
             response (Response): Объект ответа для установки cookies.
-
+        
         Returns:
             Token: Сгенерированный access token.
         """
-
         user = await self.user_repo.get_user_by_email(data.email)
 
         if not user or not self.user_repo.verify_password(data.password, user.password):
@@ -79,9 +74,8 @@ class AuthService:
         Args:
             user_info (dict[str, str]): Данные пользователя от OAuth.
             provider (str): Название провайдера.
-            db (AsyncSession): Сессия базы данных.
             response (Response): Объект ответа для установки cookies.
-
+        
         Returns:
             Token: Сгенерированный access token.
         """
@@ -106,7 +100,7 @@ class AuthService:
         
         Args:
             request (Request): Запрос с cookies.
-
+        
         Returns:
             Token: Новый access token.
         """
@@ -123,7 +117,7 @@ class AuthService:
         Args:
             email (str): Email пользователя.
             response (Response): Объект ответа для установки cookies.
-
+        
         Returns:
             Token: Сгенерированный access token.
         """
@@ -144,7 +138,7 @@ class AuthService:
             email (str): Email пользователя.
             minutes (int, optional): Количество минут до истечения токена. Defaults to 0.
             days (int, optional): Количество дней до истечения токена. Defaults to 0.
-
+        
         Returns:
             str: Сгенерированный JWT токен.
         """
@@ -156,10 +150,10 @@ class AuthService:
         
         Args:
             token (str): JWT токен.
-
+        
         Returns:
             str: Email пользователя.
-
+        
         Raises:
             HTTPException: Если токен недействителен или истек.
         """
@@ -175,8 +169,15 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Invalid refresh token")
 
 
-
 def get_auth_service(session: AsyncSession = Depends(get_db)) -> AuthService:
+    """Функция для получения экземпляра AuthService с зависимостями.
+    
+    Args:
+        session (AsyncSession, optional): Сессия базы данных. Defaults to Depends(get_db).
+    
+    Returns:
+        AuthService: Экземпляр сервиса аутентификации.
+    """
     repository = UserRepository(session)
     email_service = VerificationEmailService(session)
     return AuthService(repository, email_service)
