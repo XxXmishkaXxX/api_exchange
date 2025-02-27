@@ -10,7 +10,7 @@ from app.repositories.user_repository import UserRepository
 from app.models.user import User
 from app.core.config import settings
 from app.schemas.user import ChangePasswordRequest, ForgotPasswordRequest, ResetCodeRequest
-from app.services.email import VerificationEmailService, get_email_service
+from app.services.email import EmailService, get_email_service
 from app.db.database import get_db
 
 
@@ -19,7 +19,7 @@ class UserService:
     Сервис для работы с пользователями, включающий операции аутентификации, изменения пароля и извлечения данных о текущем пользователе.
     """
 
-    def __init__(self, user_repo: UserRepository, email_service: VerificationEmailService) -> None:
+    def __init__(self, user_repo: UserRepository, email_service: EmailService) -> None:
         """
         Инициализация сервиса пользователей.
 
