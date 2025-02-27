@@ -1,6 +1,7 @@
 import os
 from pydantic_settings import BaseSettings
 from passlib.context import CryptContext
+from fastapi_mail import ConnectionConfig
 
 
 class Settings(BaseSettings):
@@ -41,3 +42,14 @@ class Settings(BaseSettings):
 settings = Settings()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+email_conf = ConnectionConfig(
+    MAIL_USERNAME=settings.EMAIL_HOST_USER,
+    MAIL_PASSWORD=settings.EMAIL_HOST_PASSWORD,
+    MAIL_FROM=settings.EMAIL_HOST_USER,
+    MAIL_PORT=settings.EMAIL_PORT,
+    MAIL_SERVER=settings.EMAIL_HOST,
+    MAIL_STARTTLS=True,
+    MAIL_SSL_TLS=False,
+)
+
