@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     CELERY_REDIS_URL: str
     CELERY_RESULT_BACKEND: str
 
+    MAX_ATTEMPTS: int
+    BLOCK_TIME: int 
+    WINDOW_TIME: int
+
+    REDIS_HOST: str
+    REDIS_PORT: int
 
     # Логирование
     LOG_LEVEL: str = "INFO"
