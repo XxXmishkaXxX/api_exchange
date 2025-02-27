@@ -2,8 +2,7 @@ import jwt
 import random
 import string
 from datetime import datetime, timedelta
-from passlib.context import CryptContext
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError, PyJWTError
 
@@ -11,25 +10,24 @@ from app.repositories.user_repository import UserRepository
 from app.models.user import User
 from app.core.config import settings
 from app.schemas.user import ChangePasswordRequest, ForgotPasswordRequest, ResetCodeRequest
-from app.services.email import VerificationEmailService
+from app.services.email import VerificationEmailService, get_email_service
+from app.db.database import get_db
 
-
-# Инициализация контекста для работы с bcrypt
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserService:
     """
     Сервис для работы с пользователями, включающий операции аутентификации, изменения пароля и извлечения данных о текущем пользователе.
     """
 
-    def __init__(self, db: AsyncSession) -> None:
+    def __init__(self, user_repo: UserRepository, email_service: VerificationEmailService) -> None:
         """
         Инициализация сервиса пользователей.
 
-        :param db: Экземпляр асинхронной сессии SQLAlchemy для взаимодействия с базой данных.
+        :param user_repo: Репозиторий для работы с пользователями.
+        :param email_service: Сервис для работы с подтверждениями email.
         """
-        self.email_service = VerificationEmailService(db)
-        self.user_repo = UserRepository(db)
+        self.email_service = email_service
+        self.user_repo = user_repo
 
     async def get_current_user(self, token: str) -> User:
         """
@@ -37,10 +35,9 @@ class UserService:
 
         :param token: JWT токен, полученный при аутентификации.
         :return: Объект пользователя, соответствующий токену.
-        :raises HTTPException: Если токен некорректен или пользователь не найден.
+        :raises HTTPException: Если токен некорректен, истек или пользователь не найден.
         """
         try:
-            # Декодируем токен с помощью секретного ключа и алгоритма HS256
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         except ExpiredSignatureError:
             raise HTTPException(
@@ -58,19 +55,17 @@ class UserService:
                 detail="Invalid token"
             )
 
-        # Извлекаем email из декодированного токена
         email = payload.get("sub")
         if not email:
             raise HTTPException(status_code=401, detail="Invalid token")
-
-        # Получаем пользователя по email
+        
         user = await self.user_repo.get_user_by_email(email)
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
 
         return user
 
-    async def change_password(self, user_id: int, data: ChangePasswordRequest) -> User:
+    async def change_password(self, user_id: int, data: ChangePasswordRequest) -> dict:
         """
         Меняет пароль пользователя, если старый пароль верный и оба новых пароля совпадают.
 
@@ -83,60 +78,51 @@ class UserService:
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Проверка старого пароля
-        if not pwd_context.verify(data.old_password, user.password):
+        if not await self.user_repo.verify_password(data.old_password, user.password):
             raise HTTPException(status_code=400, detail="Incorrect old password")
         
         if data.new_password != data.new_password_confirm:
             raise HTTPException(status_code=400, detail="Passwords don't match")
 
-        # Хешируем новый пароль
-        hashed_password = pwd_context.hash(data.new_password)
-        
-        # Обновляем пользователя с новым паролем
-        updated_user = await self.user_repo.update_user(user_id, password=hashed_password)
+        updated_user = await self.user_repo.update_user(user_id, 
+                                                        password=self.user_repo.get_password_hash(data.new_password))
         if not updated_user:
             raise HTTPException(status_code=500, detail="Failed to update password")
         
-        return updated_user
-
+        return {"message": "Password has changed"}
 
     async def forgot_password(self, data: ForgotPasswordRequest):
         """
         Запрос на сброс пароля. Генерирует код сброса и отправляет его на email пользователя.
 
         :param data: Запрос на сброс пароля, содержащий email пользователя.
+        :raises HTTPException: Если пользователь не найден.
         """
-        # Поиск пользователя по email
         user = await self.user_repo.get_user_by_email(data.email)
         
         if not user:
             raise HTTPException(status_code=400, detail="User not found")
         
-        # Генерация кода сброса
         reset_code = self.generate_reset_code()  # Генерация случайного кода
         expiration_time = datetime.utcnow() + timedelta(minutes=15)  # Код действует 15 минут
-        
-        # Сохранение кода сброса в базе данных
+
         reset_code_entry = await self.user_repo.create_reset_code(
             user_id=user.id,
             reset_code=reset_code,
             expires_at=expiration_time
         )
         
-        # Отправка кода сброса на email
         await self.email_service.send_reset_email(user.email, reset_code)
 
         return {"detail": "Password reset code has been sent to your email."}
-
 
     async def confirm_reset_code(self, data: ResetCodeRequest):
         """
         Подтверждение кода сброса и обновление пароля пользователя.
 
         :param data: Запрос с кодом сброса и новыми паролями.
+        :raises HTTPException: Если код сброса неверный или истек.
         """
-        # Поиск кода сброса в базе данных
         reset_code_entry = await self.user_repo.get_reset_code(data.code)
 
         if not reset_code_entry:
@@ -144,26 +130,19 @@ class UserService:
         
         if reset_code_entry.expires_at < datetime.utcnow():
             raise HTTPException(status_code=400, detail="Reset code has expired")
-        
-        # Получаем пользователя по user_id, связанному с кодом сброса
+
         user = await self.user_repo.get_user_by_id(reset_code_entry.user_id)
 
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        
-        # Проверка на совпадение нового пароля
+
         if data.new_password != data.new_password_confirm:
             raise HTTPException(status_code=400, detail="Passwords don't match")
-        
-        # Хешируем новый пароль
-        hashed_password = pwd_context.hash(data.new_password)
-        
-        # Обновление пароля пользователя в базе данных
-        updated_user = await self.user_repo.update_user(user.id, password=hashed_password)
+
+        updated_user = await self.user_repo.update_user(user.id, password=data.new_password)
         if not updated_user:
             raise HTTPException(status_code=500, detail="Failed to update password")
         
-        # Удаление кода сброса после использования
         await self.user_repo.delete_reset_code(data.code)
 
         return {"detail": "Password has been successfully reset."}
@@ -175,5 +154,20 @@ class UserService:
         :param length: Длина кода сброса. По умолчанию 6 символов.
         :return: Генерируемый код сброса.
         """
-        # Для простоты используем цифры
-        return ''.join(random.choices(string.digits, k=length))
+        return ''.join(random.choices(string.digits + string.ascii_letters, k=length))
+
+
+
+def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
+    """
+    Создает и возвращает сервис пользователя, инкапсулируя все зависимости, включая
+    доступ к базе данных и сервис подтверждения email.
+
+    :param db: Асинхронная сессия базы данных, автоматически передаваемая через Depends.
+    :return: Экземпляр UserService, готовый к использованию в обработчиках запросов.
+    """
+
+    email_service = get_email_service(db)
+    user_repo = UserRepository(db)
+    
+    return UserService(user_repo, email_service)
