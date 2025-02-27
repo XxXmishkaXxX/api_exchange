@@ -3,30 +3,17 @@ import string
 from datetime import datetime, timedelta
 
 from fastapi import HTTPException, Depends
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.email import EmailVerification
 from app.repositories.user_repository import UserRepository
 from app.repositories.email_repository import EmailRepository
-from app.core.config import settings
 from app.schemas.email import VerificationRequest, ResendVerificationRequest
 from app.db.database import get_db
-
-conf = ConnectionConfig(
-    MAIL_USERNAME=settings.EMAIL_HOST_USER,
-    MAIL_PASSWORD=settings.EMAIL_HOST_PASSWORD,
-    MAIL_FROM=settings.EMAIL_HOST_USER,
-    MAIL_PORT=settings.EMAIL_PORT,
-    MAIL_SERVER=settings.EMAIL_HOST,
-    MAIL_STARTTLS=True,
-    MAIL_SSL_TLS=False,
-)
-
-mail = FastMail(conf)
+from app.tasks.tasks import send_email_task
 
 
-class VerificationEmailService:
+class EmailService:
     """
     Сервис для отправки и проверки кодов подтверждения электронной почты.
 
@@ -108,14 +95,14 @@ class VerificationEmailService:
 
         await self.email_repo.add_verification(verification)
 
-        message = MessageSchema(
-            subject="Подтверждение электронной почты",
-            recipients=[user.email],
-            body=f"Ваш код подтверждения: {code}",
-            subtype="plain"
-        )
+        message = {
+            "subject": "Подтверждение электронной почты",
+            "recipients": [user_email],
+            "body": f"Ваш код подтверждения: {code}",
+            "subtype": "plain"
+        }
 
-        await mail.send_message(message)
+        send_email_task.apply_async(args=[message])
 
     async def resend_verification_email_code(self, data: ResendVerificationRequest) -> dict:
         """
@@ -154,14 +141,14 @@ class VerificationEmailService:
         Исключения:
             HTTPException: Если не удалось отправить письмо.
         """
-        message = MessageSchema(
-            subject="Сброс пароля",
-            recipients=[user_email],
-            body=f"Ваш код подтверждения: {reset_code}",
-            subtype="plain"
-        )
+        message = {
+            "subject": "Сброс пароля",
+            "recipients": [user_email],
+            "body": f"Ваш код подтверждения: {reset_code}",
+            "subtype": "plain"
+        }
 
-        await mail.send_message(message)
+        send_email_task.apply_async(args=[message])
 
     @staticmethod
     def generate_new_code(length: int = 6) -> str:
@@ -177,7 +164,7 @@ class VerificationEmailService:
         return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
 
-def get_email_service(session: AsyncSession = Depends(get_db)) -> VerificationEmailService:
+def get_email_service(session: AsyncSession = Depends(get_db)) -> EmailService:
     """Функция для получения экземпляра VerificationEmailService с зависимостями.
     
     Аргументы:
@@ -188,4 +175,4 @@ def get_email_service(session: AsyncSession = Depends(get_db)) -> VerificationEm
     """
     user_repo = UserRepository(session)
     email_repo = EmailRepository(session)
-    return VerificationEmailService(user_repo, email_repo)
+    return EmailService(user_repo, email_repo)

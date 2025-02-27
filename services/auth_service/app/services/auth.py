@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
-from app.services.email import VerificationEmailService, get_email_service
+from app.services.email import EmailService, get_email_service
 from app.schemas.auth import LoginRequest, RegisterRequest, Token
 from app.core.config import settings
 from app.db.database import get_db
@@ -18,7 +18,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 class AuthService:
     """Сервис аутентификации и авторизации пользователей."""
 
-    def __init__(self, user_repo: UserRepository, email_service: VerificationEmailService) -> None:
+    def __init__(self, user_repo: UserRepository, email_service: EmailService) -> None:
         """Инициализация сервиса с настройками шифрования паролей."""
         self.user_repo = user_repo
         self.email_service = email_service

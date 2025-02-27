@@ -1,6 +1,8 @@
 import os
 from pydantic_settings import BaseSettings
 from passlib.context import CryptContext
+from fastapi_mail import ConnectionConfig
+from authlib.integrations.starlette_client import OAuth
 
 
 class Settings(BaseSettings):
@@ -41,3 +43,26 @@ class Settings(BaseSettings):
 settings = Settings()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+email_conf = ConnectionConfig(
+    MAIL_USERNAME=settings.EMAIL_HOST_USER,
+    MAIL_PASSWORD=settings.EMAIL_HOST_PASSWORD,
+    MAIL_FROM=settings.EMAIL_HOST_USER,
+    MAIL_PORT=settings.EMAIL_PORT,
+    MAIL_SERVER=settings.EMAIL_HOST,
+    MAIL_STARTTLS=True,
+    MAIL_SSL_TLS=False,
+)
+
+
+oauth = OAuth()
+oauth.register(
+    name="google",
+    client_id=settings.OAUTH2_CLIENT_ID,
+    client_secret=settings.OAUTH2_CLIENT_SECRET,
+    authorize_url="https://accounts.google.com/o/oauth2/auth",
+    authorize_params={"scope": "openid email profile"},
+    access_token_url="https://oauth2.googleapis.com/token",
+    client_kwargs={"scope": "openid email profile"},
+    server_metadata_url= 'https://accounts.google.com/.well-known/openid-configuration'
+)
