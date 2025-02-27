@@ -1,13 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError
-from passlib.context import CryptContext
 from typing import Optional
 from app.models.user import User
 from app.models.password_reset import PasswordResetCode
-from datetime import datetime, timedelta
+from app.core.config import pwd_context
+from datetime import datetime
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserRepository:
     """Репозиторий для управления пользователями в базе данных."""
@@ -75,7 +74,20 @@ class UserRepository:
         Returns:
             bool: True, если пароли совпадают, иначе False.
         """
-        return pwd_context.verify(provided_password, stored_password)
+        try:
+            res = pwd_context.verify(provided_password, stored_password)
+            return res
+        except:
+            return False
+    
+    def get_password_hash(self, password) -> str:
+        """
+        Функция для создания хэша пароля.
+
+        :param password: Пароль пользователя.
+        :return: Хэш строка
+        """
+        return pwd_context.hash(password)
 
     async def update_user(self, user_id: int, name: Optional[str] = None, password: Optional[str] = None) -> Optional[User]:
         """Обновляет данные пользователя (имя и/или пароль).
@@ -94,7 +106,7 @@ class UserRepository:
             if name:
                 db_user.name = name
             if password:
-                db_user.password = pwd_context.hash(password)
+                db_user.password = password
             await self.db.commit()
             await self.db.refresh(db_user)
         return db_user
