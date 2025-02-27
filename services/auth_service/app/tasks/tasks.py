@@ -1,4 +1,5 @@
 import asyncio
+from typing import Dict
 from datetime import datetime, timedelta
 from sqlalchemy.future import select
 from fastapi_mail import FastMail, MessageSchema
@@ -13,10 +14,22 @@ mail = FastMail(email_conf)
 
 
 @app.task
-def delete_inactive_users():
+def delete_inactive_users() -> None:
+    """
+    Задача для удаления неактивных пользователей из базы данных.
+
+    Пользователи считаются неактивными, если они не были подтверждены
+    и созданы более чем 1 день назад.
+    """
     asyncio.run(run_delete_inactive_users())
 
-async def run_delete_inactive_users():
+
+async def run_delete_inactive_users() -> None:
+    """
+    Асинхронная функция для удаления неактивных пользователей из базы данных.
+
+    :return: None
+    """
     async for session in get_db():
         now = datetime.utcnow()
         inactive_threshold = now - timedelta(days=1)
@@ -38,10 +51,23 @@ async def run_delete_inactive_users():
 
 
 @app.task
-def send_email_task(message: dict):
+def send_email_task(message: Dict[str, str]) -> None:
+    """
+    Задача для отправки email сообщения.
+
+    :param message: Словарь, содержащий данные сообщения (subject, recipients, body, subtype).
+    :return: None
+    """
     asyncio.run(send_email(message))
 
-async def send_email(message: dict):
+
+async def send_email(message: Dict[str, str]) -> None:
+    """
+    Асинхронная функция для отправки email сообщения.
+
+    :param message: Словарь, содержащий данные сообщения (subject, recipients, body, subtype).
+    :return: None
+    """
     email_message = MessageSchema(
         subject=message["subject"],
         recipients=message["recipients"],

@@ -3,7 +3,6 @@ import string
 from datetime import datetime, timedelta
 
 from fastapi import HTTPException, Depends
-from fastapi_mail import MessageSchema
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.email import EmailVerification
