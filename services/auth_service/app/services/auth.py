@@ -1,6 +1,5 @@
 import jwt
 from fastapi import HTTPException, Response, Request, status, Depends
-from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordBearer
@@ -21,7 +20,6 @@ class AuthService:
 
     def __init__(self, user_repo: UserRepository, email_service: VerificationEmailService) -> None:
         """Инициализация сервиса с настройками шифрования паролей."""
-        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         self.user_repo = user_repo
         self.email_service = email_service
 
@@ -41,7 +39,7 @@ class AuthService:
         user = User(
             email=data.email,
             name=data.name,
-            password=self.pwd_context.hash(data.password),
+            password=self.user_repo.get_password_hash(data.password),
         )
         
         user = await self.user_repo.create(user)
@@ -60,8 +58,8 @@ class AuthService:
             Token: Сгенерированный access token.
         """
         user = await self.user_repo.get_user_by_email(data.email)
-
-        if not user or not self.user_repo.verify_password(data.password, user.password):
+        print(data.password, user.password)
+        if not user or await self.user_repo.verify_password(data.password, user.password) is False:
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
         if not user.is_verified:
