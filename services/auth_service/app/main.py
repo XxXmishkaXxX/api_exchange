@@ -8,6 +8,7 @@ from app.routers import auth, oauth2, email, user
 from app.db.database import engine, Base
 from app.core.config import settings
 from app.core.limiter import limiter
+from app.middleware.ratelimit import RateLimitMiddleware
 
 
 
@@ -16,6 +17,7 @@ app = FastAPI(title="Auth Service")
 
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
+app.add_middleware(RateLimitMiddleware)
 
 
 async def create_tables():
