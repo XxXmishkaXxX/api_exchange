@@ -1,24 +1,21 @@
 from typing import Dict
-from fastapi import APIRouter, Depends, HTTPException, status, Security
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from fastapi import APIRouter, Depends, Security, Request
 
 from app.schemas.user import ChangePasswordRequest, ForgotPasswordRequest, ResetCodeRequest
-from app.db.database import get_db
 from app.services.auth import oauth2_scheme
 from app.services.user import UserService, get_user_service
+from app.core.limiter import limiter
 
-
-
-router = APIRouter()
 
 
 router = APIRouter()
 
 
 @router.post("/change-password", response_model=Dict[str, str])
+@limiter.limit("3/10minutes")
 async def change_password(
     data: ChangePasswordRequest,
+    request: Request,
     service: UserService = Depends(get_user_service),
     token: str = Security(oauth2_scheme)
 ) -> Dict[str, str]:
@@ -35,9 +32,12 @@ async def change_password(
     return await service.change_password(user.id, data)
 
 
+
 @router.post("/forgot-password", response_model=Dict[str, str])
+@limiter.limit("3/15minutes")
 async def forgot_password(
-    data: ForgotPasswordRequest, 
+    data: ForgotPasswordRequest,
+    request: Request,
     service: UserService = Depends(get_user_service)
 ) -> Dict[str, str]:
     """
@@ -51,9 +51,12 @@ async def forgot_password(
     return await service.forgot_password(data=data)
 
 
+
 @router.post("/confirm-reset-code", response_model=Dict[str, str])
+@limiter.limit("3/15minutes")
 async def confirm_reset_code(
-    data: ResetCodeRequest, 
+    data: ResetCodeRequest,
+    request: Request,
     service: UserService = Depends(get_user_service)
 ) -> Dict[str, str]:
     """

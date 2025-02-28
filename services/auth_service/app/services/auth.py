@@ -58,7 +58,7 @@ class AuthService:
             Token: Сгенерированный access token.
         """
         user = await self.user_repo.get_user_by_email(data.email)
-        print(data.password, user.password)
+        
         if not user or await self.user_repo.verify_password(data.password, user.password) is False:
             raise HTTPException(status_code=401, detail="Invalid credentials")
 

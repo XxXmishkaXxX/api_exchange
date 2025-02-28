@@ -51,9 +51,9 @@ class EmailService:
         """
         verification = await self.email_repo.get_verification_by_user_email(data.email)
 
-        if not verification:
+        if not verification or verification.verification_code != data.verification_code:
             raise HTTPException(status_code=400, detail="Неверный код подтверждения")
-
+        
         if verification.expires_at < datetime.utcnow():
             raise HTTPException(status_code=400, detail="Код подтверждения истек")
 
