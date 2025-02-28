@@ -1,11 +1,10 @@
 from typing import Dict
-from fastapi import APIRouter, Depends, HTTPException, Security, Request
-
+from fastapi import APIRouter, Depends, Security, Request
 
 from app.schemas.user import ChangePasswordRequest, ForgotPasswordRequest, ResetCodeRequest
 from app.services.auth import oauth2_scheme
 from app.services.user import UserService, get_user_service
-from app.utils.security import check_brute_force, record_failed_attempt
+from app.core.limiter import limiter
 
 
 
@@ -13,6 +12,7 @@ router = APIRouter()
 
 
 @router.post("/change-password", response_model=Dict[str, str])
+@limiter.limit("3/10minutes")
 async def change_password(
     data: ChangePasswordRequest,
     request: Request,
@@ -23,25 +23,20 @@ async def change_password(
     Изменение пароля пользователя.
 
     :param data: Данные для изменения пароля (ChangePasswordRequest).
-    :param request: Запрос, содержащий IP-адрес пользователя.
     :param service: Сервис для работы с пользователем.
     :param token: Токен доступа для получения текущего пользователя.
     :return: Ответ с результатом операции (словарь с сообщением).
     :raises HTTPException: В случае ошибок изменения пароля.
     """
-    check_brute_force(request, "change_password")
+    user = await service.get_current_user(token=token)
+    return await service.change_password(user.id, data)
 
-    try:
-        user = await service.get_current_user(token=token)
-        return await service.change_password(user.id, data)
-    except Exception as e:
-        record_failed_attempt(request, "change_password")
-        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/forgot-password", response_model=Dict[str, str])
+@limiter.limit("3/15minutes")
 async def forgot_password(
-    data: ForgotPasswordRequest, 
+    data: ForgotPasswordRequest,
     request: Request,
     service: UserService = Depends(get_user_service)
 ) -> Dict[str, str]:
@@ -49,23 +44,18 @@ async def forgot_password(
     Запрос на восстановление пароля.
 
     :param data: Данные для восстановления пароля (ForgotPasswordRequest).
-    :param request: Запрос, содержащий IP-адрес пользователя.
     :param service: Сервис для работы с пользователем.
     :return: Ответ с результатом операции (словарь с сообщением).
     :raises HTTPException: В случае ошибок восстановления пароля.
     """
-    check_brute_force(request, "forgot_password")
+    return await service.forgot_password(data=data)
 
-    try:
-        return await service.forgot_password(data=data)
-    except Exception as e:
-        record_failed_attempt(request, "forgot_password")
-        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/confirm-reset-code", response_model=Dict[str, str])
+@limiter.limit("3/15minutes")
 async def confirm_reset_code(
-    data: ResetCodeRequest, 
+    data: ResetCodeRequest,
     request: Request,
     service: UserService = Depends(get_user_service)
 ) -> Dict[str, str]:
@@ -73,17 +63,10 @@ async def confirm_reset_code(
     Подтверждение кода восстановления пароля.
 
     :param data: Данные для подтверждения кода восстановления (ResetCodeRequest).
-    :param request: Запрос, содержащий IP-адрес пользователя.
     :param service: Сервис для работы с пользователем.
     :return: Ответ с результатом операции (словарь с сообщением).
     :raises HTTPException: В случае ошибок подтверждения кода.
     """
-    check_brute_force(request, "confirm_reset_code")
-
-    try:
-        return await service.confirm_reset_code(data=data)
-    except Exception as e:
-        record_failed_attempt(request, "confirm_reset_code")
-        raise HTTPException(status_code=400, detail=str(e))
+    return await service.confirm_reset_code(data=data)
 
 

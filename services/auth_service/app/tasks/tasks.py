@@ -6,7 +6,7 @@ from fastapi_mail import FastMail, MessageSchema
 
 from app.tasks.worker_config import app
 from app.models.user import User
-from app.db.database import get_db, redis_client
+from app.db.database import get_db
 from app.core.config import email_conf
 
 
@@ -75,19 +75,3 @@ async def send_email(message: Dict[str, str]) -> None:
         subtype=message["subtype"]
     )
     await mail.send_message(email_message)
-
-
-
-@app.task
-def unblock_ip(ip: str, action: str):
-    """
-    Фоновая задача для разблокировки IP-адреса после истечения времени блокировки.
-
-    - Удаляет ключ блокировки из Redis, позволяя снова выполнять указанное действие.
-    - Запускается через Celery после окончания времени блокировки.
-    
-    Args:
-        ip (str): IP-адрес, который нужно разблокировать.
-        action (str): Действие, для которого снимется блокировка (например, "login", "reset_password").
-    """
-    redis_client.delete(f"blocked:{action}:{ip}")
