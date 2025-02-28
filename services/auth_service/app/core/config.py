@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     BLOCK_TIME: int 
     WINDOW_TIME: int
 
+    REDIS_URL: str
     REDIS_HOST: str
     REDIS_PORT: int
 
