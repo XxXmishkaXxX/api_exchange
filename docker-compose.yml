@@ -47,6 +47,24 @@ services:
     networks:
       - exchange
 
+  wallet_service:
+    build:
+      context: ./services/wallet_service
+    container_name: wallet_service
+    restart: always
+    env_file:
+      - ./services/wallet_service/.env
+    depends_on:
+      - db
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./services/wallet_service:/wallet_service
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload"
+    networks:
+      - exchange
+
   redis_celery:
     image: redis:alpine
     container_name: redis_celery
