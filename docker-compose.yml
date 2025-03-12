@@ -65,6 +65,24 @@ services:
     networks:
       - exchange
 
+  orders_service:
+    build:
+      context: ./services/orders_service
+    container_name: orders_service
+    restart: always
+    env_file:
+      - ./services/orders_service/.env
+    depends_on:
+      - db
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./services/orders_service:/orders_service
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload"
+    networks:
+      - exchange
+
   redis_celery:
     image: redis:alpine
     container_name: redis_celery
