@@ -9,6 +9,7 @@ from alembic import context
 from app.core.config import settings
 from app.db.database import Base
 
+
 # Get the Alembic Config object, which provides access to the values in the .ini file
 config = context.config
 
@@ -18,6 +19,7 @@ if config.config_file_name is not None:
 
 # Set the sqlalchemy.url dynamically using the environment variable
 database_url = settings.DATABASE_URL
+print(database_url)
 if database_url:
     config.set_section_option('alembic', 'sqlalchemy.url', database_url)
 else:
@@ -25,6 +27,7 @@ else:
 
 
 target_metadata = Base.metadata
+
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
@@ -85,6 +88,7 @@ def run_migrations_online() -> None:
 
     asyncio.run(run_async_migrations())
 
+from app.models.order import Order
 
 if context.is_offline_mode():
     run_migrations_offline()
