@@ -9,11 +9,11 @@ class Settings(BaseSettings):
     # Секретный ключ для подписания JWT токенов
     SECRET_KEY: str 
     SESSION_KEY: str
+    ALGORITM_JWT: str
 
     # Логирование
     LOG_LEVEL: str = "INFO"
 
-    # Другие переменные окружения
     DEBUG: bool = False
     TESTING: bool = False
 
