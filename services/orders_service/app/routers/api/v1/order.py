@@ -5,6 +5,7 @@ from jose import jwt, JWTError
 
 from app.schemas.order import Order, OrderResponse, OrderListResponse
 from app.core.config import settings
+from app.service.order import OrderService, get_order_servcice
 
 router = APIRouter()
 
@@ -21,36 +22,32 @@ def verify_token(token: str = Security(oauth2_scheme)):
 
 
 @router.get("/", response_model=OrderListResponse)
-async def get_orders_list(user_data: dict = Depends(verify_token)):
-    return {"message": "Authorized", "user": user_data}
+async def get_orders_list(user_data: dict = Depends(verify_token),
+                          service: OrderService = Depends(get_order_servcice)):
+    print(user_data)
+    return await service.get_list_order(user_data)
 
 
 @router.post("/", response_model=OrderResponse)
-async def create_order(order: Order,):
-    # try:
-        # order_id = await order_service.create_order(order)
-        # return OrderResponse(order_id=order_id, **order.dict())
-    # except Exception as e:
-        # raise HTTPException(status_code=400, detail=str(e))
-        pass
+async def create_order(order: Order, 
+                       user_data: dict = Depends(verify_token),  
+                       service: OrderService = Depends(get_order_servcice) ):
+    print(user_data)
+    order_id = await service.create_order(user_data, order)
+    return OrderResponse(order_id=order_id, **order.dict())
 
-@router.get("/", response_model=OrderListResponse)
-async def get_orders_list():
-     pass
 
 @router.get("/{order_id}", response_model=OrderResponse)
-async def get_order(order_id: str,):
-    # order = await order_service.get_order(order_id)
-    # if not order:
-        # raise HTTPException(status_code=404, detail="Order not found")
-    # return OrderResponse(**order)
-    pass
+async def get_order(order_id: str,
+                    user_data: dict = Depends(verify_token),  
+                    service: OrderService = Depends(get_order_servcice)):
+    
+    order = await service.get_order(user_data, order_id)
+    return OrderResponse(**order)
 
 @router.delete("/{order_id}")
-async def cancel_order(order_id: str,):
-    # try:
-        # await order_service.cancel_order(order_id)
-        # return {"message": "Order cancelled successfully"}
-    # except Exception as e:
-        # raise HTTPException(status_code=400, detail=str(e))
-    pass
+async def cancel_order(order_id: str, 
+                       user_data: dict = Depends(verify_token),
+                       service: OrderService = Depends(get_order_servcice)):
+    await service.cancel_order(user_data, order_id)
+    return {"message": "Order cancelled successfully"}
