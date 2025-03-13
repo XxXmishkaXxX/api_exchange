@@ -65,7 +65,7 @@ class AuthService:
         if not user.is_verified:
             raise HTTPException(status_code=403, detail="User is not verified")
 
-        return await self._generate_tokens(user.email, response)
+        return await self._generate_tokens(user.id, response)
 
     async def oauth_authenticate(self, user_info: dict[str, str], provider: str, response: Response) -> Token:
         """Аутентифицирует пользователя через OAuth-провайдера.
@@ -92,7 +92,7 @@ class AuthService:
             )
             await self.user_repo.create(user)
 
-        return await self._generate_tokens(user.email, response)
+        return await self._generate_tokens(user.id, response)
 
     async def refresh_access_token(self, request: Request) -> Token:
         """Обновляет access token по refresh token.
@@ -107,21 +107,21 @@ class AuthService:
         if not refresh_token:
             raise HTTPException(status_code=401, detail="Refresh token missing")
 
-        email = await self._decode_jwt(refresh_token)
-        return Token(access_token=await self._generate_jwt(email, days=1))
+        user_id = await self._decode_jwt(refresh_token)
+        return Token(access_token=await self._generate_jwt(user_id, days=1))
 
-    async def _generate_tokens(self, email: str, response: Response) -> Token:
+    async def _generate_tokens(self, user_id: int, response: Response) -> Token:
         """Создает access и refresh токены и устанавливает refresh token в cookies.
         
         Args:
-            email (str): Email пользователя.
+            user_id (int): ID пользователя.
             response (Response): Объект ответа для установки cookies.
         
         Returns:
             Token: Сгенерированный access token.
         """
-        access_token = await self._generate_jwt(email, days=1)
-        refresh_token = await self._generate_jwt(email, days=100)
+        access_token = await self._generate_jwt(user_id, days=1)
+        refresh_token = await self._generate_jwt(user_id, days=100)
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
@@ -130,11 +130,11 @@ class AuthService:
         )
         return Token(access_token=access_token)
 
-    async def _generate_jwt(self, email: str, minutes: int = 0, days: int = 0) -> str:
+    async def _generate_jwt(self, user_id: int, minutes: int = 0, days: int = 0) -> str:
         """Генерирует JWT токен.
         
         Args:
-            email (str): Email пользователя.
+            user_id (int): ID пользователя.
             minutes (int, optional): Количество минут до истечения токена. Defaults to 0.
             days (int, optional): Количество дней до истечения токена. Defaults to 0.
         
@@ -142,7 +142,7 @@ class AuthService:
             str: Сгенерированный JWT токен.
         """
         expire = datetime.utcnow() + timedelta(minutes=minutes, days=days)
-        return jwt.encode({"sub": email, "exp": expire}, settings.SECRET_KEY, algorithm="HS256")
+        return jwt.encode({"sub": user_id, "exp": expire}, settings.SECRET_KEY, algorithm="HS256")
 
     async def _decode_jwt(self, token: str) -> str:
         """Декодирует JWT токен и извлекает email.
@@ -151,17 +151,17 @@ class AuthService:
             token (str): JWT токен.
         
         Returns:
-            str: Email пользователя.
+            int: ID пользователя.
         
         Raises:
             HTTPException: Если токен недействителен или истек.
         """
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            email = payload.get("sub")
-            if not email:
+            id = payload.get("sub")
+            if not id:
                 raise HTTPException(status_code=401, detail="Invalid token")
-            return email
+            return id
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Refresh token expired")
         except jwt.InvalidTokenError:
