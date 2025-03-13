@@ -10,13 +10,34 @@ services:
     restart: always
     env_file:
       - .env
+    environment:
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - auth_postgres_data:/var/lib/postgresql/data
     networks:
       - exchange
-  
+
+  orders_db:
+    image: postgres:15
+    container_name: orders_db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${ORDERS_DB_NAME}
+      POSTGRES_USER: ${ORDERS_DB_USER}
+      POSTGRES_PASSWORD: ${ORDERS_DB_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - orders_postgres_data:/var/lib/postgresql/data
+    networks:
+      - exchange
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
@@ -26,6 +47,7 @@ services:
       - "5050:80"
     depends_on:
       - db
+      - orders_db
     networks:
       - exchange
 
@@ -73,7 +95,7 @@ services:
     env_file:
       - ./services/orders_service/.env
     depends_on:
-      - db
+      - orders_db
     ports:
       - "8003:8003"
     volumes:
@@ -91,13 +113,14 @@ services:
       - "6379:6379"
     networks:
       - exchange
-  
+
   celery_worker:
     build:
       context: ./services/auth_service
     command: celery -A app.tasks.worker_config worker --loglevel=info
     depends_on:
-      - redis_celery
+      redis_celery:
+        condition: service_started
     env_file:
       - .env
     volumes:
@@ -110,11 +133,13 @@ services:
       context: ./services/auth_service
     command: celery -A app.tasks.worker_config beat --loglevel=info
     depends_on:
-      - redis_celery
+      redis_celery:
+        condition: service_started
     volumes:
       - ./services/auth_service:/auth_service
     networks:
       - exchange
 
 volumes:
-  postgres_data:
+  auth_postgres_data:
+  orders_postgres_data:
