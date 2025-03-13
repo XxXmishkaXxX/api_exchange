@@ -142,7 +142,7 @@ class AuthService:
             str: Сгенерированный JWT токен.
         """
         expire = datetime.utcnow() + timedelta(minutes=minutes, days=days)
-        return jwt.encode({"sub": user_id, "exp": expire}, settings.SECRET_KEY, algorithm="HS256")
+        return jwt.encode({"sub": str(user_id), "exp": expire}, settings.SECRET_KEY, algorithm="HS256")
 
     async def _decode_jwt(self, token: str) -> str:
         """Декодирует JWT токен и извлекает email.
@@ -161,7 +161,7 @@ class AuthService:
             id = payload.get("sub")
             if not id:
                 raise HTTPException(status_code=401, detail="Invalid token")
-            return id
+            return int(id)
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Refresh token expired")
         except jwt.InvalidTokenError:
