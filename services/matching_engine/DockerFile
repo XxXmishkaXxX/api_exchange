@@ -1,26 +1,34 @@
 FROM python:3.11.5
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     libssl-dev \
     libffi-dev \
     libsasl2-dev \
     libldap2-dev \
-    python-dev \
+    python-dev-is-python3 \
     python3-dev \
     gcc \
+    libpq-dev \
     && apt-get clean
 
-WORKDIR /app
-COPY requirements.txt /app/
+# Set working directory
+WORKDIR /me_service
+
+# Copy requirements file and install dependencies
+COPY requirements.txt /me_service/
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . /app/
 
-RUN cythonize -i matching_engine.pyx
+COPY . /me_service/
 
-EXPOSE 9092  # Порт для связи с Kafka (если необходимо)
-EXPOSE 5000  # Порт для веб-сервиса (если используется FastAPI или другой интерфейс)
+RUN python setup.py build_ext --inplace
 
-# 7. Команда для запуска приложения
-CMD ["python", "matching_engine.py"]
+# Expose port for Kafka interaction (if needed)
+EXPOSE 9092
+
+# Define entrypoint (to run the matching engine when container starts)
+CMD ["python", "order_matching.pyx"]
