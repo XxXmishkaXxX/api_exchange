@@ -12,31 +12,47 @@ class OrderType(str, Enum):
     MARKET = "market"
     LIMIT = "limit"
 
-# Базовая модель ордера
-class Order(BaseModel):
+class StatusOrder(str, Enum):
+    NEW = "new"  # Новый ордер
+    FILLED = "filled"  # Выполнен
+    PENDING = "pending"  # Ожидает выполнения
+    REJECTED = "rejected"  # Отклонен
+
+
+class TickerSchema(BaseModel):
+    id: int = Field(description="ID тикера")
+    symbol: str = Field(min_length=3, max_length=5, description="Аббревиатура тикера")
+    name: str = Field(min_length=2, max_length=255, description="Название тикера")
+
+    class Config:
+        from_attributes = True
+
+class OrderSchema(BaseModel):
     type: OrderType = Field(description="Тип ордера: 'market' или 'limit'")
     direction: Direction = Field(description="Направление ордера: 'buy' или 'sell'")
-    ticker: str = Field(min_length=1, max_length=10, description="Тикер актива (например, 'AAPL')")
+    status: StatusOrder = Field(description="Статус ордера")
+    ticker_id: int = Field(None, description="id тикера")
     qty: int = Field(gt=0, description="Количество должно быть положительным числом")
     price: Optional[float] = Field(None, gt=0, description="Цена для лимитного ордера (должна быть положительной)")
 
-    @validator("ticker")
-    def ticker_must_be_uppercase(cls, value):
-        if not value.isupper():
-            raise ValueError("Тикер должен быть в верхнем регистре")
-        return value
-
-    @validator("price")
+    @validator("price", pre=True, always=True)
     def price_required_for_limit_orders(cls, value, values):
-        if values["type"] == OrderType.LIMIT and value is None:
+        if values.get("type") == OrderType.LIMIT and value is None:
             raise ValueError("Цена обязательна для лимитных ордеров")
         return value
+    
+    class Config:
+        from_attributes = True
+    
+class OrderCreateResponse(BaseModel):
+    success: bool = Field(description="Успешность выполнения заявки")
+    order_id: int = Field(description="Уникальный идентификатор заявки")
+
+class OrderCancelResponse(BaseModel):
+    success: bool = Field(description="Успешность отмены заявки")
 
 class OrderResponse(BaseModel):
-    success: bool = Field(description="Успешность выполнения заявки")
-    order_id: str = Field(min_length=1, description="Уникальный идентификатор заявки")
-
+    order: OrderSchema = Field(description="Отдельный ордер пользователя")
 
 class OrderListResponse(BaseModel):
-    orders: list[Order] = Field(description="Список ордеров пользователя")
-    
+    orders: list[OrderSchema] = Field(description="Список ордеров пользователя")
