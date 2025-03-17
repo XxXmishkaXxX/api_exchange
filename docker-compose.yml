@@ -104,6 +104,20 @@ services:
       sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload"
     networks:
       - exchange
+  
+  matching_engine_service:
+    build:
+      context: ./services/matching_engine
+    container_name: ME
+    depends_on:
+      - orders_service
+    ports:
+      - "8004:8004"
+    volumes:
+      - ./services/matching_engine:/me_service
+    networks:
+      - exchange
+
 
   redis_celery:
     image: redis:alpine
