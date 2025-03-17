@@ -1,2 +1,5 @@
+aiokafka==0.12.0
+async-timeout==5.0.1
 Cython==3.0.12
-kafka-python==2.1.1
+packaging==24.2
+typing_extensions==4.12.2
