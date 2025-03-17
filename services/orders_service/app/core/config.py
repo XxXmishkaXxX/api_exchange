@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     SESSION_KEY: str
     ALGORITM_JWT: str
 
+    BOOTSTRAP_SERVERS: str
+
     # Логирование
     LOG_LEVEL: str = "INFO"
 
