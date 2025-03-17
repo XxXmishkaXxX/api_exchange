@@ -1,1 +1,26 @@
 FROM python:3.11.5
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libssl-dev \
+    libffi-dev \
+    libsasl2-dev \
+    libldap2-dev \
+    python-dev \
+    python3-dev \
+    gcc \
+    && apt-get clean
+
+WORKDIR /app
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . /app/
+
+RUN cythonize -i matching_engine.pyx
+
+EXPOSE 9092  # Порт для связи с Kafka (если необходимо)
+EXPOSE 5000  # Порт для веб-сервиса (если используется FastAPI или другой интерфейс)
+
+# 7. Команда для запуска приложения
+CMD ["python", "matching_engine.py"]
