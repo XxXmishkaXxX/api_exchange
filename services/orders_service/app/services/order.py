@@ -3,17 +3,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
 from app.repositories.order_repo import OrderRepository
-from app.schemas.order import OrderSchema, OrderCancelResponse, OrderCreateResponse, OrderResponse, OrderListResponse
+from app.schemas.order import (OrderSchema, 
+                               OrderCancelResponse, 
+                               OrderCreateResponse, 
+                               OrderResponse, 
+                               OrderListResponse)
 from app.models.order import Order
 from app.repositories.ticker_repo import TickerRepository 
+from app.services.producer import get_producer_service, KafkaProducerService
 
 class OrderService:
     
-    def __init__(self, order_repo: OrderRepository, ticker_repo: TickerRepository):
+    def __init__(self, order_repo: OrderRepository, ticker_repo: TickerRepository, producer: KafkaProducerService):
         self.order_repo = order_repo
         self.ticker_repo = ticker_repo
+        self.producer = producer
 
-    
     async def get_order(self, user_data: dict, order_id: int):
         
         user_id = int(user_data.get('sub'))
@@ -52,6 +57,8 @@ class OrderService:
 
         order = await self.order_repo.create(order)
 
+        self.producer.send_order(order=order)
+
         return OrderCreateResponse(success=True, order_id=order.id)
 
     async def cancel_order(self, user_data: dict, order_id: int) -> OrderCancelResponse:
@@ -75,7 +82,10 @@ class OrderService:
         await self.order_repo.update(order, new_status)
         return order
 
-def get_order_servcice(session: AsyncSession = Depends(get_db)):
+def get_order_service(
+    session: AsyncSession = Depends(get_db),
+    producer: KafkaProducerService = Depends(get_producer_service)
+):
     order_repo = OrderRepository(session)
     ticker_repo = TickerRepository(session)
-    return OrderService(order_repo=order_repo, ticker_repo=ticker_repo)
+    return OrderService(order_repo=order_repo, ticker_repo=ticker_repo, producer=producer)
