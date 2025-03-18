@@ -96,6 +96,8 @@ services:
       - ./services/orders_service/.env
     depends_on:
       - orders_db
+      - kafka
+      - matching_engine_service
     ports:
       - "8003:8003"
     volumes:
@@ -109,12 +111,15 @@ services:
     build:
       context: ./services/matching_engine
     container_name: ME
-    depends_on:
-      - orders_service
     ports:
       - "8004:8004"
+    depends_on:
+      - kafka
+    environment:
+      - PYTHONPATH=/app
+    command: ["python", "-c", "import matching_engine; from matching_engine import consume_orders; import asyncio; asyncio.run(consume_orders())"]
     volumes:
-      - ./services/matching_engine:/me_service
+      - ./services/matching_engine:/app
     networks:
       - exchange
 

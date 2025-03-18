@@ -19,7 +19,6 @@ if config.config_file_name is not None:
 
 # Set the sqlalchemy.url dynamically using the environment variable
 database_url = settings.DATABASE_URL
-print(database_url)
 if database_url:
     config.set_section_option('alembic', 'sqlalchemy.url', database_url)
 else:
@@ -89,6 +88,7 @@ def run_migrations_online() -> None:
     asyncio.run(run_async_migrations())
 
 from app.models.order import Order
+from app.models.ticker import Ticker
 
 if context.is_offline_mode():
     run_migrations_offline()
