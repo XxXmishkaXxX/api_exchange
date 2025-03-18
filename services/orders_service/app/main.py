@@ -5,13 +5,11 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.routers.api.v1 import order
 from app.db.database import engine, Base
 from app.core.config import settings
-from app.services.consumer import get_consumer_service
-from app.services.producer import get_producer_service
+from app.services.producer import producer_service
 
-kafka_producer=get_producer_service()
-# kafka_consumer=get_consumer_service()
 
 app = FastAPI(title="Orders Service")
+
 
 
 async def create_tables():
@@ -22,15 +20,15 @@ async def create_tables():
 @app.on_event("startup")
 async def on_startup():
     await create_tables()
-    await kafka_producer.start()
-    # await kafka_consumer.start()
+    await producer_service.start()
+    print("Kafka Producer initialized.")
 
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    await kafka_producer.stop()
-    # await kafka_consumer.stop()
+    await producer_service.stop()
+
 
 
 app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_KEY)
