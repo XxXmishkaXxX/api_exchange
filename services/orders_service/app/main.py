@@ -6,6 +6,7 @@ from app.routers.api.v1 import order
 from app.db.database import engine, Base
 from app.core.config import settings
 from app.services.producer import producer_service
+from app.services.consumer import consumer_service
 
 
 app = FastAPI(title="Orders Service")
@@ -21,7 +22,10 @@ async def create_tables():
 async def on_startup():
     await create_tables()
     await producer_service.start()
+    await consumer_service.start()
     print("Kafka Producer initialized.")
+
+    asyncio.create_task(consumer_service.consume_messages())
 
 
 
