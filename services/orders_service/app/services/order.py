@@ -48,7 +48,7 @@ class OrderService:
         order = Order(
             user_id=int(user_data.get("sub")),
             type=order.type,
-            status=order.status,
+            status="new",
             direction=order.direction,
             ticker_id=ticker.id,
             qty=order.qty,
@@ -57,7 +57,7 @@ class OrderService:
 
         order = await self.order_repo.create(order)
 
-        self.producer.send_order(order=order)
+        await self.producer.send_order(order=order)
 
         return OrderCreateResponse(success=True, order_id=order.id)
 
