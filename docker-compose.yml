@@ -96,6 +96,8 @@ services:
       - ./services/orders_service/.env
     depends_on:
       - orders_db
+      - kafka
+      - matching_engine_service
     ports:
       - "8003:8003"
     volumes:
@@ -104,6 +106,23 @@ services:
       sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload"
     networks:
       - exchange
+  
+  matching_engine_service:
+    build:
+      context: ./services/matching_engine
+    container_name: ME
+    ports:
+      - "8004:8004"
+    depends_on:
+      - kafka
+    environment:
+      - PYTHONPATH=/app
+    command: ["python", "-c", "import matching_engine; from matching_engine import consume_orders; import asyncio; asyncio.run(consume_orders())"]
+    volumes:
+      - ./services/matching_engine:/app
+    networks:
+      - exchange
+
 
   zookeeper:
     image: wurstmeister/zookeeper
@@ -120,19 +139,6 @@ services:
       - "9092:9092"
     depends_on:
       - zookeeper
-    networks:
-      - exchange
-  
-  kafka-ui:
-    image: kafbat/kafka-ui:main
-    ports:
-      - 8080:8080
-    environment:
-      DYNAMIC_CONFIG_ENABLED: "true"
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-    depends_on:
-      - kafka
     networks:
       - exchange
 

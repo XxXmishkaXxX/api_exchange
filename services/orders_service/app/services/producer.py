@@ -19,8 +19,17 @@ class KafkaProducerService:
         await self.producer.stop()
 
     async def send_order(self, order: Order):
-        """Отправка ордера в Kafka"""
-        message = json.dumps(order.model_dump())  # Преобразуем в JSON-строку
+        order_data = {
+        "order_id": order.id,
+        "user_id": order.user_id,
+        "status": order.status,
+        "type": order.type,
+        "direction": order.direction,
+        "ticker_id": order.ticker_id,
+        "qty": order.qty,
+        "price": order.price,
+        }
+        message = json.dumps(order_data)
         await self.producer.send_and_wait("orders", message.encode("utf-8"))
 
 
