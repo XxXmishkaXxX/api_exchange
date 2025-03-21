@@ -30,7 +30,6 @@ class TickerSchema(BaseModel):
 class OrderSchema(BaseModel):
     type: OrderType = Field(description="Тип ордера: 'market' или 'limit'")
     direction: Direction = Field(description="Направление ордера: 'buy' или 'sell'")
-    status: StatusOrder = Field(description="Статус ордера")
     ticker_id: int = Field(None, description="id тикера")
     qty: int = Field(gt=0, description="Количество должно быть положительным числом")
     price: Optional[float] = Field(None, gt=0, description="Цена для лимитного ордера (должна быть положительной)")
@@ -52,7 +51,13 @@ class OrderCancelResponse(BaseModel):
     success: bool = Field(description="Успешность отмены заявки")
 
 class OrderResponse(BaseModel):
-    order: OrderSchema = Field(description="Отдельный ордер пользователя")
+    order_id: int = Field(description="id ордера")
+    user_id: int = Field(description="id пользователя")
+    status: StatusOrder = Field(description="Статус ордера")
+    body: OrderSchema
+
+    class Config:
+        from_attributes = True
 
 class OrderListResponse(BaseModel):
     orders: list[OrderSchema] = Field(description="Список ордеров пользователя")
