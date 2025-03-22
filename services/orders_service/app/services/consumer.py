@@ -2,14 +2,21 @@ import json
 from aiokafka import AIOKafkaConsumer
 
 from app.core.config import settings
-from app.services.order import get_order_service, OrderService
+from app.db.database import get_db
+from app.repositories.order_repo import OrderRepository
 
 
 class KafkaConsumerService:
-    def __init__(self, bootstrap_servers: str, order_service: OrderService):
+    def __init__(self, bootstrap_servers: str):
         self.bootstrap_servers = bootstrap_servers
         self.consumer = AIOKafkaConsumer("orders_update", bootstrap_servers=self.bootstrap_servers)
-        self.order_service = order_service
+
+    async def change_order_status(self, order_id: int, user_id: int, status: str):
+        async for session in get_db():
+            order_repo = OrderRepository(session)
+            order = await order_repo.get(order_id, user_id)
+            if order:
+                await order_repo.update(order, {"status": status})
 
     async def start(self):
         await self.consumer.start()
@@ -23,9 +30,8 @@ class KafkaConsumerService:
             order_id = int(data["order_id"])
             user_id = int(data["user_id"])
             status = str(data["status"])
-            await self.order_service.change_order_status(order_id, user_id, status)
+            await self.change_order_status(order_id, user_id, status)
 
-service = get_order_service()
 
-consumer_service = KafkaConsumerService(settings.BOOTSTRAP_SERVERS,
-                                order_service=service)
+
+consumer_service = KafkaConsumerService(settings.BOOTSTRAP_SERVERS)
