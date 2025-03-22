@@ -97,7 +97,6 @@ services:
     depends_on:
       - orders_db
       - kafka
-      - matching_engine_service
     ports:
       - "8003:8003"
     volumes:
@@ -117,13 +116,11 @@ services:
       - kafka
     environment:
       - PYTHONPATH=/app
-    command: ["python", "-c", "import matching_engine; from matching_engine import consume_orders; import asyncio; asyncio.run(consume_orders())"]
     volumes:
       - ./services/matching_engine:/app
     networks:
       - exchange
-
-
+      
   zookeeper:
     image: wurstmeister/zookeeper
     ports:
