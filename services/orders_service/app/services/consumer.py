@@ -8,7 +8,7 @@ from app.services.order import get_order_service, OrderService
 class KafkaConsumerService:
     def __init__(self, bootstrap_servers: str, order_service: OrderService):
         self.bootstrap_servers = bootstrap_servers
-        self.consumer = AIOKafkaConsumer("order_updates", bootstrap_servers=self.bootstrap_servers)
+        self.consumer = AIOKafkaConsumer("orders_update", bootstrap_servers=self.bootstrap_servers)
         self.order_service = order_service
 
     async def start(self):
