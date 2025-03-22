@@ -1,6 +1,6 @@
 import logging
-from engine.order import Order
-from engine.order_book import OrderBook
+from engine.order cimport Order
+from engine.order_book cimport OrderBook
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -8,18 +8,68 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class MatchingEngine:
+cdef class MatchingEngine:
+    cdef:
+        dict order_books  # {ticker_id: OrderBook}
+
     def __init__(self):
         self.order_books = {}
 
-    def add_order(self, order: Order):
-        logger.info(f"\n📌 NEW ORDER ADDED: {order.order_id}, {order.type}, {order.direction}, {order.ticker_id}, {order.price:.2f}, {order.qty:.2f}")
+    cpdef void add_order(self, Order order):
+        """Добавляет ордер и запускает процесс исполнения."""
+        cdef OrderBook order_book
         if order.ticker_id not in self.order_books:
             self.order_books[order.ticker_id] = OrderBook(order.ticker_id)
+
         order_book = self.order_books[order.ticker_id]
-        if order.type == "market":
-            order_book.execute_market_order(order)
-        else:
-            order_book.add_order(order)
-        order_book.match_orders()
-        order_book.log_order_book()
+        order_book.add_order(order)
+        self.match_orders(order_book)
+
+    cdef void match_orders(self, OrderBook order_book):
+        """Сопоставляет заявки, если возможно."""
+        cdef Order best_buy
+        cdef Order best_sell
+        cdef double trade_qty
+
+        while True:
+            best_buy = order_book.get_best_buy()
+            best_sell = order_book.get_best_sell()
+
+            if not best_buy or not best_sell or best_buy.price < best_sell.price:
+                break  # Матч невозможен
+
+            trade_qty = min(best_buy.qty, best_sell.qty)
+            best_buy.qty -= trade_qty
+            best_sell.qty -= trade_qty
+
+            logger.info(f"🔄 TRADE EXECUTED: {trade_qty:.2f} @ {best_sell.price:.2f}")
+
+            if best_buy.qty == 0:
+                order_book.remove_order(best_buy.order_id, best_buy.direction)
+            if best_sell.qty == 0:
+                order_book.remove_order(best_sell.order_id, best_sell.direction)
+
+    cdef void execute_market_order(self, Order order):
+        """Исполняет рыночный ордер, удаляя ордера из стакана."""
+        cdef OrderBook order_book
+        cdef list orders
+        cdef Order best_order
+        cdef double trade_qty
+
+        if order.ticker_id not in self.order_books:
+            return  # Нет стакана для тикера
+
+        order_book = self.order_books[order.ticker_id]
+        orders = order_book.sell_orders if order.direction == 1 else order_book.buy_orders
+
+        while order.qty > 0 and orders:
+            best_order = orders[0]  # Берем лучший ордер
+
+            trade_qty = min(order.qty, best_order.qty)
+            order.qty -= trade_qty
+            best_order.qty -= trade_qty
+
+            logger.info(f"✅ MATCHED: {trade_qty:.2f} @ {best_order.price:.2f}")
+
+            if best_order.qty == 0:
+                orders.pop(0)  # Удаляем исполненный ордер
