@@ -12,7 +12,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем файлы проекта
 COPY . .
 
-# Собираем Cython-код
-RUN python setup.py build_ext --inplace
-# Запускаем код, указывая PYTHONPATH
-CMD ["python", "-c", "import matching_engine; from matching_engine import consume_orders; import asyncio; asyncio.run(consume_orders())"]
+# Команда запуска контейнера
+CMD ["bash", "-c", "./build.sh && python main.py"]
