@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from engine.order cimport Order
 from engine.order_book cimport OrderBook
 
@@ -10,10 +11,19 @@ logger = logging.getLogger(__name__)
 
 cdef class MatchingEngine:
     cdef:
-        dict order_books  # {ticker_id: OrderBook}
+        dict order_books
+        object producer
 
-    def __init__(self):
+    def __init__(self, producer):
         self.order_books = {}
+        self.producer = producer
+
+    async def send_order_status(self, order_id: int, user_id, status: str):
+        """Отправка статуса ордера через продюсер"""
+        if self.producer:
+            message = {"order_id": order_id, "user_id": user_id, "status": status}
+            await self.producer.send_order_update(order_id, user_id, status)
+            logger.info(f"📤 SENT: {message}")
 
     cpdef void add_order(self, Order order):
         """Добавляет ордер и запускает процесс исполнения."""
@@ -36,7 +46,7 @@ cdef class MatchingEngine:
             best_sell = order_book.get_best_sell()
 
             if not best_buy or not best_sell or best_buy.price < best_sell.price:
-                break  # Матч невозможен
+                break
 
             trade_qty = min(best_buy.qty, best_sell.qty)
             best_buy.qty -= trade_qty
@@ -45,8 +55,11 @@ cdef class MatchingEngine:
             logger.info(f"🔄 TRADE EXECUTED: {trade_qty:.2f} @ {best_sell.price:.2f}")
 
             if best_buy.qty == 0:
+                asyncio.create_task(self.send_order_status(best_buy.order_id, best_buy.user_id, "filled"))
                 order_book.remove_order(best_buy.order_id, best_buy.direction)
+
             if best_sell.qty == 0:
+                asyncio.create_task(self.send_order_status(best_sell.order_id, best_sell.user_id, "filled"))
                 order_book.remove_order(best_sell.order_id, best_sell.direction)
 
     cdef void execute_market_order(self, Order order):
@@ -57,13 +70,13 @@ cdef class MatchingEngine:
         cdef double trade_qty
 
         if order.ticker_id not in self.order_books:
-            return  # Нет стакана для тикера
+            return
 
         order_book = self.order_books[order.ticker_id]
-        orders = order_book.sell_orders if order.direction == 1 else order_book.buy_orders
+        orders = order_book.sell_orders if order.direction == "sell" else order_book.buy_orders
 
         while order.qty > 0 and orders:
-            best_order = orders[0]  # Берем лучший ордер
+            best_order = orders[0]
 
             trade_qty = min(order.qty, best_order.qty)
             order.qty -= trade_qty
@@ -71,5 +84,9 @@ cdef class MatchingEngine:
 
             logger.info(f"✅ MATCHED: {trade_qty:.2f} @ {best_order.price:.2f}")
 
+            if order.qty == 0:
+                asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "filled"))
+
             if best_order.qty == 0:
-                orders.pop(0)  # Удаляем исполненный ордер
+                asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, "filled"))
+                orders.pop(0)

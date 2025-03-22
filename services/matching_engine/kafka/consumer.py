@@ -7,11 +7,11 @@ from engine.order import Order
 logger = logging.getLogger(__name__)
 
 class KafkaConsumerService:
-    def __init__(self, kafka_broker="kafka:9092", topic="orders"):
+    def __init__(self, engine, kafka_broker="kafka:9092", topic="orders"):
         self.kafka_broker = kafka_broker
         self.topic = topic
         self.consumer = AIOKafkaConsumer(self.topic, bootstrap_servers=self.kafka_broker)
-        self.engine = MatchingEngine()
+        self.engine = engine
 
     async def start(self):
         await self.consumer.start()
