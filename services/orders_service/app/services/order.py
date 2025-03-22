@@ -71,16 +71,6 @@ class OrderService:
 
         return OrderCancelResponse(success=True)
     
-    async def change_order_status(self, order_id: int, user_id: int, new_status: str):
-        order = await self.order_repo.get(order_id, user_id)
-        if not order:
-            raise ValueError("Order not found.")
-        
-        if order.status == 'completed' or order.status == 'canceled':
-            raise ValueError(f"Order with status {order.status} cannot be changed.")
-
-        await self.order_repo.update(order, new_status)
-        return order
 
 def get_order_service(
     session: AsyncSession = Depends(get_db),
