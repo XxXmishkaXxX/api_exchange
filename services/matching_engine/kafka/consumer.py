@@ -29,20 +29,26 @@ class KafkaConsumerService:
         """ Обрабатывает входящие ордера из Kafka """
         try:
             data = json.loads(msg.value.decode("utf-8"))
-            logger.info(f"📩 ORDER RECEIVED: {data}")
+            
+            if data["action"] == "add":
+                logger.info(f"📩 ORDER RECEIVED: {data}")
 
-            order = Order(
-                order_id=int(data["order_id"]),
-                user_id=int(data["user_id"]),
-                status=data["status"],
-                type=data["type"],
-                direction=data["direction"],
-                ticker_id=int(data["ticker_id"]),
-                price=float(data["price"]) if "price" in data and data["price"] is not None else 0.0,
-                qty=float(data["qty"])
-            )
+                order = Order(
+                    order_id=int(data["order_id"]),
+                    user_id=int(data["user_id"]),
+                    status=data["status"],
+                    type=data["type"],
+                    direction=data["direction"],
+                    ticker_id=int(data["ticker_id"]),
+                    price=float(data["price"]) if "price" in data and data["price"] is not None else 0.0,
+                    qty=float(data["qty"])
+                )
 
-            self.engine.add_order(order)
+                self.engine.add_order(order)
+            else:
+                self.engine.cancel_order(data["order_id"],
+                                         data["direction"],
+                                         data["ticker_id"])
 
         except Exception as e:
             logger.error(f"⚠️ Error processing order: {e}")
