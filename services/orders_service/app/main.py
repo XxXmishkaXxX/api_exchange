@@ -1,6 +1,7 @@
 import asyncio
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
+from contextlib import asynccontextmanager
 
 from app.routers.api.v1 import order
 from app.db.database import engine, Base
@@ -9,31 +10,30 @@ from app.services.producer import producer_service
 from app.services.consumer import consumer_service
 
 
-app = FastAPI(title="Orders Service")
-
-
 
 async def create_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         
 
-@app.on_event("startup")
-async def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     await create_tables()
-    await producer_service.start()
-    await consumer_service.start()
-    print("Kafka Producer initialized.")
+    try:
+        await consumer_service.start()
+        asyncio.create_task(consumer_service.consume_messages())
+        print("✅ Kafka Consumer started.")
+    except Exception as e:
+        print(f"⚠️ Ошибка Kafka: {e}")
 
-    asyncio.create_task(consumer_service.consume_messages())
+    yield
+
+    await producer_service.close()
+    await consumer_service.stop()
+    print("🛑 Kafka Producer and Consumer stopped.")
 
 
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    await producer_service.stop()
-
-
+app = FastAPI(title="Orders Service", lifespan=lifespan)
 
 app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_KEY)
 
