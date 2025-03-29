@@ -6,6 +6,7 @@ from jose import jwt, JWTError
 from app.schemas.order import OrderSchema, OrderCreateResponse, OrderListResponse, OrderResponse, OrderCancelResponse
 from app.core.config import settings
 from app.services.order import OrderService, get_order_service
+from app.services.producer import get_producer_service, KafkaProducerService
 
 router = APIRouter()
 
@@ -30,8 +31,9 @@ async def get_orders_list(user_data: dict = Depends(verify_token),
 @router.post("/", response_model=OrderCreateResponse)
 async def create_order(order: OrderSchema, 
                        user_data: dict = Depends(verify_token),  
-                       service: OrderService = Depends(get_order_service)):
-    return await service.create_order(user_data, order)
+                       service: OrderService = Depends(get_order_service),
+                       prod: KafkaProducerService = Depends(get_producer_service)):
+    return await service.create_order(user_data, order, prod)
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
@@ -43,5 +45,6 @@ async def get_order(order_id: int,
 @router.delete("/{order_id}", response_model=OrderCancelResponse)
 async def cancel_order(order_id: int, 
                        user_data: dict = Depends(verify_token),
-                       service: OrderService = Depends(get_order_service)):
-    return await service.cancel_order(user_data, order_id) 
+                       service: OrderService = Depends(get_order_service), 
+                       prod: KafkaProducerService = Depends(get_producer_service)):
+    return await service.cancel_order(user_data, order_id, prod) 

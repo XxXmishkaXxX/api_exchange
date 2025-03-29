@@ -10,14 +10,13 @@ from app.schemas.order import (OrderSchema,
                                OrderListResponse)
 from app.models.order import Order
 from app.repositories.ticker_repo import TickerRepository 
-from app.services.producer import get_producer_service, KafkaProducerService
+from app.services.producer import KafkaProducerService
 
 class OrderService:
     
-    def __init__(self, order_repo: OrderRepository, ticker_repo: TickerRepository, producer: KafkaProducerService):
+    def __init__(self, order_repo: OrderRepository, ticker_repo: TickerRepository):
         self.order_repo = order_repo
         self.ticker_repo = ticker_repo
-        self.producer = producer
 
     async def get_order(self, user_data: dict, order_id: int):
         
@@ -38,7 +37,7 @@ class OrderService:
         return OrderListResponse(orders=orders_data)
 
     
-    async def create_order(self, user_data: dict, order: OrderSchema):
+    async def create_order(self, user_data: dict, order: OrderSchema, producer: KafkaProducerService):
         
         ticker = await self.ticker_repo.get_ticker_by_id(order.ticker_id)
 
@@ -57,11 +56,11 @@ class OrderService:
 
         order = await self.order_repo.create(order)
 
-        await self.producer.send_order(order=order)
+        await producer.send_order(order=order)
 
         return OrderCreateResponse(success=True, order_id=order.id)
 
-    async def cancel_order(self, user_data: dict, order_id: int) -> OrderCancelResponse:
+    async def cancel_order(self, user_data: dict, order_id: int, producer: KafkaProducerService) -> OrderCancelResponse:
         user_id = int(user_data.get('sub')) 
         
         order = await self.order_repo.remove(user_id, order_id)
@@ -69,15 +68,14 @@ class OrderService:
         if not order:
             raise HTTPException(status_code=401, detail="Такого ордера не существует")
 
-        await self.producer.cancel_order(order_id=order_id, direction=order.direction, ticker_id=order.ticker_id)
+        await producer.cancel_order(order_id=order_id, direction=order.direction, ticker_id=order.ticker_id)
 
         return OrderCancelResponse(success=True)
     
 
 def get_order_service(
-    session: AsyncSession = Depends(get_db),
-    producer: KafkaProducerService = Depends(get_producer_service)
-):
+    session: AsyncSession = Depends(get_db)
+    ):
     order_repo = OrderRepository(session)
     ticker_repo = TickerRepository(session)
-    return OrderService(order_repo=order_repo, ticker_repo=ticker_repo, producer=producer)
+    return OrderService(order_repo=order_repo, ticker_repo=ticker_repo)
