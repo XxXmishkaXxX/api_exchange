@@ -33,11 +33,12 @@ class KafkaProducerService:
         message = json.dumps(order_data)
         await self.producer.send_and_wait("orders", message.encode("utf-8"))
     
-    async def cancel_order(self, order_id: int, direction: str):
+    async def cancel_order(self, order_id: int, direction: str, ticker_id: int):
         
         data = {"action": "cancel",
                 "order_id": order_id,
-                "direction": direction}
+                "direction": direction,
+                "ticker_id": ticker_id}
         
         message = json.dumps(data)
         await self.producer.send_and_wait("orders", message.encode("utf-8"))
