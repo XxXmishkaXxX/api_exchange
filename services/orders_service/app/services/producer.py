@@ -20,6 +20,7 @@ class KafkaProducerService:
 
     async def send_order(self, order: Order):
         order_data = {
+        "action": "add",
         "order_id": order.id,
         "user_id": order.user_id,
         "status": order.status,
@@ -31,9 +32,17 @@ class KafkaProducerService:
         }
         message = json.dumps(order_data)
         await self.producer.send_and_wait("orders", message.encode("utf-8"))
+    
+    async def cancel_order(self, order_id: int, direction: str):
+        
+        data = {"action": "cancel",
+                "order_id": order_id,
+                "direction": direction}
+        
+        message = json.dumps(data)
+        await self.producer.send_and_wait("orders", message.encode("utf-8"))
 
 
-# Создаем глобальный экземпляр продюсера
 producer_service = KafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
 
 
