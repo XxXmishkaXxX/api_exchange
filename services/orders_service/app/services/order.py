@@ -69,6 +69,8 @@ class OrderService:
         if not order:
             raise HTTPException(status_code=401, detail="Такого ордера не существует")
 
+        await self.producer.cancel_order(order_id=order_id, direction=order.direction)
+
         return OrderCancelResponse(success=True)
     
 
