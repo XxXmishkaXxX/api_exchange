@@ -35,6 +35,13 @@ cdef class MatchingEngine:
         order_book.add_order(order)
         self.match_orders(order_book)
 
+    cpdef void cancel_order(self, order_id, direction, ticker_id):
+        cdef OrderBook order_book
+        if ticker_id in self.order_books:
+            order_book = self.order_books[ticker_id]
+            order_book.remove_order(order_id=order_id, direction=direction)
+
+
     cdef void match_orders(self, OrderBook order_book):
         """Сопоставляет заявки, если возможно."""
         cdef Order best_buy
