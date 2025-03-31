@@ -37,6 +37,23 @@ services:
       - orders_postgres_data:/var/lib/postgresql/data
     networks:
       - exchange
+  
+  md_db:
+    image: postgres:15
+    container_name: md_db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${MD_DB_NAME}
+      POSTGRES_USER: ${MD_DB_USER}
+      POSTGRES_PASSWORD: ${MD_DB_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - md_postgres_data:/var/lib/postgresql/data
+    networks:
+      - exchange
 
   pgadmin:
     image: dpage/pgadmin4
@@ -120,6 +137,25 @@ services:
       - ./services/matching_engine:/app
     networks:
       - exchange
+
+  market_data_service:
+    build:
+      context: ./services/market_data_service
+    container_name: market_data_service
+    restart: always
+    env_file:
+      - ./services/market_data_service/.env
+    depends_on:
+      - md_db
+      - kafka
+    ports:
+      - "8005:8005"
+    volumes:
+      - ./services/market_data_service:/market_data_service
+    entrypoint: ["/market_data_service/entrypoint.sh"]
+    networks:
+      - exchange
+  
       
   zookeeper:
     image: wurstmeister/zookeeper
@@ -177,3 +213,4 @@ services:
 volumes:
   auth_postgres_data:
   orders_postgres_data:
+  md_postgres_data:
