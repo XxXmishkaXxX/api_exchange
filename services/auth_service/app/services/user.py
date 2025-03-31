@@ -2,13 +2,10 @@ import jwt
 import random
 import string
 from datetime import datetime, timedelta
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError, PyJWTError
 
 from app.repositories.user_repository import UserRepository
-from app.models.user import User
-from app.core.config import settings
 from app.schemas.user import ChangePasswordRequest, ForgotPasswordRequest, ResetCodeRequest
 from app.services.email import EmailService, get_email_service
 from app.db.database import get_db
