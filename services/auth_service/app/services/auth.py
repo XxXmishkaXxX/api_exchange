@@ -2,7 +2,6 @@ import jwt
 from fastapi import HTTPException, Response, Request, status, Depends
 from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.security import OAuth2PasswordBearer
 
 
 from app.models.user import User
@@ -11,8 +10,6 @@ from app.services.email import EmailService, get_email_service
 from app.schemas.auth import LoginRequest, RegisterRequest, Token
 from app.core.config import settings
 from app.db.database import get_db
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
 
 class AuthService:
@@ -176,7 +173,7 @@ class AuthService:
             HTTPException: Если токен недействителен или истек.
         """
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=settings.ALGORITHM)
             id = payload.get("sub")
             if not id:
                 raise HTTPException(status_code=401, detail="Invalid token")
