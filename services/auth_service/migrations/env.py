@@ -8,6 +8,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from app.core.config import settings
 from app.db.database import Base
+from app.models.user import User
+from app.models.email import EmailVerification
+from app.models.password_reset import PasswordResetCode
 
 # Get the Alembic Config object, which provides access to the values in the .ini file
 config = context.config
