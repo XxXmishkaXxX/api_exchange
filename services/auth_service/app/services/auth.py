@@ -47,6 +47,24 @@ class AuthService:
 
         return {"message": "User created successfully", "detail": "verify email"}, status.HTTP_201_CREATED
 
+    async def register_admin(self, data: RegisterRequest):
+        
+        if await self.user_repo.get_user_by_email(data.email):
+            raise HTTPException(status_code=400, detail="User already exists")
+        
+        user = User(
+            email=data.email,
+            name=data.name,
+            password=self.user_repo.get_password_hash(data.password),
+            role="ADMIN",
+            is_verified=True
+        )
+
+        user = await self.user_repo.create(user)
+
+        return {"message": "Admin created successfully"}, status.HTTP_201_CREATED
+        
+
     async def authenticate(self, data: LoginRequest, response: Response) -> Token:
         """Аутентифицирует пользователя по email и паролю.
         
