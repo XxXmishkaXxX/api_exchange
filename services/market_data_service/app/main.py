@@ -3,19 +3,13 @@ from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from contextlib import asynccontextmanager
 
-from app.db.database import engine, Base
 from app.core.config import settings
 
 
 
-async def create_tables():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await create_tables()
+
     yield
 
 

@@ -29,8 +29,8 @@ class TickerRepository:
             await self.db.rollback()
             raise ValueError(f"Такой тикер уже существует")
         
-    async def delete(self, ticker_id: int) -> Optional[Ticker]:
-        result = await self.db.execute(select(Ticker).filter(Ticker.id == ticker_id))
+    async def delete(self, ticker_symbol: str) -> Optional[Ticker]:
+        result = await self.db.execute(select(Ticker).filter(Ticker.symbol == ticker_symbol))
         db_ticker = result.scalars().first()
         if db_ticker:
             await self.db.delete(db_ticker)
