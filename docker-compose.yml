@@ -81,8 +81,7 @@ services:
       - "8001:8001"
     volumes:
       - ./services/auth_service:/auth_service
-    command: >
-      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload"
+    entrypoint: ["/auth_service/entrypoint.sh"]
     networks:
       - exchange
 
@@ -99,8 +98,7 @@ services:
       - "8002:8002"
     volumes:
       - ./services/wallet_service:/wallet_service
-    command: >
-      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload"
+    entrypoint: ["/wallet_service/entrypoint.sh"]
     networks:
       - exchange
 
@@ -118,8 +116,7 @@ services:
       - "8003:8003"
     volumes:
       - ./services/orders_service:/orders_service
-    command: >
-      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload"
+    entrypoint: ["/orders_service/entrypoint.sh"]
     networks:
       - exchange
   
