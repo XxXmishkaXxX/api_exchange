@@ -12,6 +12,7 @@ class User(Base):
     email = Column(String, nullable=False, unique=True)
     name = Column(String, nullable=False)
     password = Column(String, nullable=True)
+    role = Column(String, default="USER")
     oauth_provider = Column(String, nullable=True)  
     oauth_id = Column(String, nullable=True, unique=True)
     is_verified = Column(Boolean, default=False)

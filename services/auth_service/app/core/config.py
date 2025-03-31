@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: int
 
+    ADMIN_EMAIL: str
+    ADMIN_NAME: str 
+    ADMIN_PASSWORD: str
+
     # Логирование
     LOG_LEVEL: str = "INFO"
 

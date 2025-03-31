@@ -1,29 +1,36 @@
+import logging
 from fastapi import FastAPI
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
+from contextlib import asynccontextmanager
+
 
 from app.routers import auth, oauth2, email, user
-from app.db.database import engine, Base
+from app.admin.create_admin import create_first_admin
 from app.core.config import settings
 from app.core.limiter import limiter
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
-app = FastAPI(title="Auth Service")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        await create_first_admin()
+    except Exception as e:
+        logger.error(f"⚠️ {e}")
+
+    yield
+
+
+app = FastAPI(title="Auth Service", lifespan=lifespan)
 
 
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
-
-async def create_tables():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-@app.on_event("startup")
-async def on_startup():
-    await create_tables()
 
 
 @app.exception_handler(RateLimitExceeded)
