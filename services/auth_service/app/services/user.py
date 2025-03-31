@@ -29,42 +29,6 @@ class UserService:
         self.email_service = email_service
         self.user_repo = user_repo
 
-    async def get_current_user(self, token: str) -> User:
-        """
-        Получает текущего пользователя, декодируя JWT токен.
-
-        :param token: JWT токен, полученный при аутентификации.
-        :return: Объект пользователя, соответствующий токену.
-        :raises HTTPException: Если токен некорректен, истек или пользователь не найден.
-        """
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        except ExpiredSignatureError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has expired"
-            )
-        except InvalidSignatureError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token signature"
-            )
-        except PyJWTError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token"
-            )
-
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(status_code=401, detail="Invalid token")
-        
-        user = await self.user_repo.get_user_by_email(email)
-        if not user:
-            raise HTTPException(status_code=401, detail="User not found")
-
-        return user
-
     async def change_password(self, user_id: int, data: ChangePasswordRequest) -> dict:
         """
         Меняет пароль пользователя, если старый пароль верный и оба новых пароля совпадают.
