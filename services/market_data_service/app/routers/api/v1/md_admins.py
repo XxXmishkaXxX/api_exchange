@@ -10,7 +10,6 @@ from app.services.ticker import TickerService, get_ticker_service
 router = APIRouter()
 
 
-
 @router.get("/instrumet")
 async def create_instrument(ticker: TickerSchema,
                           user_info: dict = Depends(admin_required),
