@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     
     # Секретный ключ для подписания JWT токенов
     SECRET_KEY: str 
+    ALGORITHM: str
     SESSION_KEY: str
     # # Конфигурация для отправки email
     EMAIL_HOST: str
