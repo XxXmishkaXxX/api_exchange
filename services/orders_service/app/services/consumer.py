@@ -1,15 +1,12 @@
 import json
-import logging
 from aiokafka import AIOKafkaConsumer
 from redis import asyncio as aioredis
 
 from app.core.config import settings
+from app.core.logger import logger
 from app.db.database import get_db, get_redis_connection
 from app.repositories.order_repo import OrderRepository
 
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 class BaseKafkaConsumerService:
     def __init__(self, topic: str, bootstrap_servers: str):
