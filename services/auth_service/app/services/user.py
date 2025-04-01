@@ -2,13 +2,10 @@ import jwt
 import random
 import string
 from datetime import datetime, timedelta
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError, PyJWTError
 
 from app.repositories.user_repository import UserRepository
-from app.models.user import User
-from app.core.config import settings
 from app.schemas.user import ChangePasswordRequest, ForgotPasswordRequest, ResetCodeRequest
 from app.services.email import EmailService, get_email_service
 from app.db.database import get_db
@@ -28,42 +25,6 @@ class UserService:
         """
         self.email_service = email_service
         self.user_repo = user_repo
-
-    async def get_current_user(self, token: str) -> User:
-        """
-        Получает текущего пользователя, декодируя JWT токен.
-
-        :param token: JWT токен, полученный при аутентификации.
-        :return: Объект пользователя, соответствующий токену.
-        :raises HTTPException: Если токен некорректен, истек или пользователь не найден.
-        """
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        except ExpiredSignatureError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has expired"
-            )
-        except InvalidSignatureError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token signature"
-            )
-        except PyJWTError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token"
-            )
-
-        email = payload.get("sub")
-        if not email:
-            raise HTTPException(status_code=401, detail="Invalid token")
-        
-        user = await self.user_repo.get_user_by_email(email)
-        if not user:
-            raise HTTPException(status_code=401, detail="User not found")
-
-        return user
 
     async def change_password(self, user_id: int, data: ChangePasswordRequest) -> dict:
         """

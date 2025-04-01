@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Response, Request
 from app.core.limiter import limiter
 from app.services.auth import AuthService, get_auth_service
 from app.schemas.auth import Token, LoginRequest, RegisterRequest
+from app.deps.security import admin_required
 
 
 router = APIRouter()
@@ -20,6 +21,23 @@ async def register(data: RegisterRequest, request: Request, service: AuthService
     :return: Ответ с результатами регистрации.
     """
     return await service.register_user(data)
+
+
+@router.post("/register/admin")
+@limiter.limit("5/10minutes")
+async def register_admin(data: RegisterRequest, 
+                         request: Request, 
+                         service: AuthService = Depends(get_auth_service),
+                         user_info: dict = Depends(admin_required)) -> Any:
+    """
+    Регистрация администратора. Доступно только другим администраторам.
+
+    :param data: Данные для регистрации пользователя (RegisterRequest).
+    :param service: Сервис для аутентификации и регистрации пользователей.
+    :param user_info: Проверка токена на роль администратора.
+    :return: Ответ с результатами регистрации.
+    """
+    return await service.register_admin(data)
 
 
 @router.post("/login", response_model=Token)

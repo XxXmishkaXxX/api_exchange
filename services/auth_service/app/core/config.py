@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     
     # Секретный ключ для подписания JWT токенов
     SECRET_KEY: str 
+    ALGORITHM: str
     SESSION_KEY: str
     # # Конфигурация для отправки email
     EMAIL_HOST: str
@@ -33,6 +34,10 @@ class Settings(BaseSettings):
     REDIS_URL: str
     REDIS_HOST: str
     REDIS_PORT: int
+
+    ADMIN_EMAIL: str
+    ADMIN_NAME: str 
+    ADMIN_PASSWORD: str
 
     # Логирование
     LOG_LEVEL: str = "INFO"

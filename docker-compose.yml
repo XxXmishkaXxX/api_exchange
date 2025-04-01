@@ -4,9 +4,9 @@ networks:
   exchange:
 
 services:
-  db:
+  auth_db:
     image: postgres:15
-    container_name: db
+    container_name: auth_db
     restart: always
     env_file:
       - .env
@@ -37,6 +37,23 @@ services:
       - orders_postgres_data:/var/lib/postgresql/data
     networks:
       - exchange
+  
+  md_db:
+    image: postgres:15
+    container_name: md_db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${MD_DB_NAME}
+      POSTGRES_USER: ${MD_DB_USER}
+      POSTGRES_PASSWORD: ${MD_DB_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - md_postgres_data:/var/lib/postgresql/data
+    networks:
+      - exchange
 
   pgadmin:
     image: dpage/pgadmin4
@@ -46,8 +63,9 @@ services:
     ports:
       - "5050:80"
     depends_on:
-      - db
+      - auth_db
       - orders_db
+      - md_db
     networks:
       - exchange
 
@@ -59,13 +77,12 @@ services:
     env_file:
       - ./services/auth_service/.env
     depends_on:
-      - db
+      - auth_db
     ports:
       - "8001:8001"
     volumes:
       - ./services/auth_service:/auth_service
-    command: >
-      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload"
+    entrypoint: ["/auth_service/entrypoint.sh"]
     networks:
       - exchange
 
@@ -76,14 +93,11 @@ services:
     restart: always
     env_file:
       - ./services/wallet_service/.env
-    depends_on:
-      - db
     ports:
       - "8002:8002"
     volumes:
       - ./services/wallet_service:/wallet_service
-    command: >
-      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload"
+    entrypoint: ["/wallet_service/entrypoint.sh"]
     networks:
       - exchange
 
@@ -101,8 +115,7 @@ services:
       - "8003:8003"
     volumes:
       - ./services/orders_service:/orders_service
-    command: >
-      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload"
+    entrypoint: ["/orders_service/entrypoint.sh"]
     networks:
       - exchange
   
@@ -120,6 +133,25 @@ services:
       - ./services/matching_engine:/app
     networks:
       - exchange
+
+  market_data_service:
+    build:
+      context: ./services/market_data_service
+    container_name: market_data_service
+    restart: always
+    env_file:
+      - ./services/market_data_service/.env
+    depends_on:
+      - md_db
+      - kafka
+    ports:
+      - "8005:8005"
+    volumes:
+      - ./services/market_data_service:/market_data_service
+    entrypoint: ["/market_data_service/entrypoint.sh"]
+    networks:
+      - exchange
+  
       
   zookeeper:
     image: wurstmeister/zookeeper
@@ -145,6 +177,15 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    networks:
+      - exchange
+
+  redis_orders:
+    image: redis:alpine
+    container_name: redis_orders
+    restart: always
+    ports:
+      - "6378:6379"
     networks:
       - exchange
 
@@ -177,3 +218,4 @@ services:
 volumes:
   auth_postgres_data:
   orders_postgres_data:
+  md_postgres_data:

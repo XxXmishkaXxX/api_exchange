@@ -1,36 +1,35 @@
 import asyncio
+import logging
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from contextlib import asynccontextmanager
 
 from app.routers.api.v1 import order
-from app.db.database import engine, Base
 from app.core.config import settings
+from app.core.logger import logger
 from app.services.producer import producer_service
-from app.services.consumer import consumer_service
+from app.services.consumer import order_status_consumer, ticker_consumer
 
-
-
-async def create_tables():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await create_tables()
     try:
-        await consumer_service.start()
-        asyncio.create_task(consumer_service.consume_messages())
-        print("✅ Kafka Consumer started.")
+        await order_status_consumer.start()
+        asyncio.create_task(order_status_consumer.consume_messages())
+        await ticker_consumer.start()
+        asyncio.create_task(ticker_consumer.consume_messages())
+        logger.info("✅ Kafka Consumers started.")
+        await producer_service.start()
+        logger.info("✅ Kafka producer started.")
     except Exception as e:
-        print(f"⚠️ Ошибка Kafka: {e}")
+        logger.warning(f"⚠️ Ошибка Kafka: {e}")
 
     yield
 
-    await producer_service.close()
-    await consumer_service.stop()
-    print("🛑 Kafka Producer and Consumer stopped.")
+    await producer_service.stop()
+    await order_status_consumer.stop()
+    await ticker_consumer.stop()
+    logger.info("🛑 Kafka Producer and Consumers stopped.")
 
 
 app = FastAPI(title="Orders Service", lifespan=lifespan)

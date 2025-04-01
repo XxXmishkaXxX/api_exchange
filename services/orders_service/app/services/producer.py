@@ -1,36 +1,44 @@
 import json
 from aiokafka import AIOKafkaProducer
+from typing import AsyncGenerator
+
 from app.core.config import settings
 from app.models.order import Order
 
 
 class KafkaProducerService:
+    """
+    Сервис для взаимодействия с Kafka, отправляющий сообщения о заказах.
+    
+    Этот сервис позволяет отправлять информацию о новых и отменённых ордерах в Kafka.
+    """
+
     def __init__(self, bootstrap_servers: str):
+        """
+        Инициализация Kafka продюсера.
+
+        Аргументы:
+            bootstrap_servers (str): Адреса серверов Kafka.
+        """
         self.bootstrap_servers = bootstrap_servers
-        self._producer = None
+        self.producer = AIOKafkaProducer(bootstrap_servers=self.bootstrap_servers)
 
-    async def _get_producer(self) -> AIOKafkaProducer:
-        if self._producer is None:
-            self._producer = AIOKafkaProducer(bootstrap_servers=self.bootstrap_servers)
-            await self._producer.start()
-        return self._producer
+    async def start(self) -> None:
+        """Запуск продюсера Kafka."""
+        await self.producer.start()
 
-    async def close(self):
-        """Остановка продюсера Kafka"""
-        if self._producer:
-            await self._producer.stop()
-            self._producer = None
+    async def stop(self) -> None:
+        """Остановка продюсера Kafka."""
+        await self.producer.stop()
 
-    async def _serialize_message(self, data: dict) -> bytes:
-        return json.dumps(data).encode("utf-8")
+    async def send_order(self, order: Order) -> None:
+        """
+        Отправка нового ордера в Kafka.
 
-    async def send_message(self, data: dict):
-        producer = await self._get_producer()
-        message = await self._serialize_message(data)
-        await producer.send_and_wait("orders", message)
-
-    async def send_order(self, order: Order):
-        data = {
+        Аргументы:
+            order (Order): Объект ордера, который будет отправлен в Kafka.
+        """
+        order_data = {
             "action": "add",
             "order_id": order.id,
             "user_id": order.user_id,
@@ -41,21 +49,36 @@ class KafkaProducerService:
             "qty": order.qty,
             "price": order.price,
         }
-        await self.send_message(data)
+        message = json.dumps(order_data)
+        await self.producer.send_and_wait("orders", message.encode("utf-8"))
+    
+    async def cancel_order(self, order_id: int, direction: str, ticker_id: int) -> None:
+        """
+        Отправка отмены ордера в Kafka.
 
-    async def cancel_order(self, order_id: int, direction: str, ticker_id: int):
+        Аргументы:
+            order_id (int): ID ордера.
+            direction (str): Направление ордера.
+            ticker_id (int): ID тикера.
+        """
         data = {
             "action": "cancel",
             "order_id": order_id,
             "direction": direction,
-            "ticker_id": ticker_id,
+            "ticker_id": ticker_id
         }
-        await self.send_message(data)
+        message = json.dumps(data)
+        await self.producer.send_and_wait("orders", message.encode("utf-8"))
 
 
 producer_service = KafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
 
 
-async def get_producer_service():
+async def get_producer_service() -> AsyncGenerator[KafkaProducerService, None]:
+    """
+    Асинхронный генератор для получения экземпляра сервиса Kafka продюсера.
+
+    Возвращает:
+        KafkaProducerService: Экземпляр сервиса Kafka продюсера.
+    """
     yield producer_service
-    await producer_service.close()
