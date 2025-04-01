@@ -55,6 +55,23 @@ services:
     networks:
       - exchange
 
+  wallet_db:
+    image: postgres:15
+    container_name: wallet_db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${WALLET_DB_NAME}
+      POSTGRES_USER: ${WALLET_DB_USER}
+      POSTGRES_PASSWORD: ${WALLET_DB_PASSWORD}
+    ports:
+      - "5436:5432"
+    volumes:
+      - wallet_postgres_data:/var/lib/postgresql/data
+    networks:
+      - exchange
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
@@ -219,3 +236,4 @@ volumes:
   auth_postgres_data:
   orders_postgres_data:
   md_postgres_data:
+  wallet_postgres_data:
