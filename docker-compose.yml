@@ -180,6 +180,15 @@ services:
     networks:
       - exchange
 
+  redis_orders:
+    image: redis:alpine
+    container_name: redis_orders
+    restart: always
+    ports:
+      - "6378:6379"
+    networks:
+      - exchange
+
   celery_worker:
     build:
       context: ./services/auth_service
