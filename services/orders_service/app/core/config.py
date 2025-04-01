@@ -5,7 +5,7 @@ from passlib.context import CryptContext
 class Settings(BaseSettings):
     # Конфигурация для подключения к базе данных
     DATABASE_URL: str 
-    
+    REDIS_URL: str
     # Секретный ключ для подписания JWT токенов
     SECRET_KEY: str 
     SESSION_KEY: str

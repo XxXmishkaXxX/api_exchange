@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.database import get_db
+from app.db.database import get_db, get_redis_connection
 from app.repositories.order_repo import OrderRepository
 from app.schemas.order import (OrderSchema, 
                                OrderCancelResponse, 
@@ -9,14 +9,12 @@ from app.schemas.order import (OrderSchema,
                                OrderResponse, 
                                OrderListResponse)
 from app.models.order import Order
-from app.repositories.ticker_repo import TickerRepository 
 from app.services.producer import KafkaProducerService
 
 class OrderService:
     
-    def __init__(self, order_repo: OrderRepository, ticker_repo: TickerRepository):
+    def __init__(self, order_repo: OrderRepository):
         self.order_repo = order_repo
-        self.ticker_repo = ticker_repo
 
     async def get_order(self, user_data: dict, order_id: int):
         
@@ -38,18 +36,19 @@ class OrderService:
 
     
     async def create_order(self, user_data: dict, order: OrderSchema, producer: KafkaProducerService):
+        async with get_redis_connection() as redis:
+            ticker_key = f"ticker:{order.ticker_id}"
+            ticker_exists = await redis.exists(ticker_key)
         
-        ticker = await self.ticker_repo.get_ticker_by_id(order.ticker_id)
+        if not ticker_exists:
+            raise HTTPException(status_code=401, detail="Такого тикера не существует")
 
-        if not ticker:
-            raise HTTPException(status_code=401, detail="Такого тикер не существует")
-        
         order = Order(
             user_id=int(user_data.get("sub")),
             type=order.type,
             status="new",
             direction=order.direction,
-            ticker_id=ticker.id,
+            ticker_id=order.ticker_id,
             qty=order.qty,
             price=order.price
         )
@@ -77,5 +76,4 @@ def get_order_service(
     session: AsyncSession = Depends(get_db)
     ):
     order_repo = OrderRepository(session)
-    ticker_repo = TickerRepository(session)
-    return OrderService(order_repo=order_repo, ticker_repo=ticker_repo)
+    return OrderService(order_repo=order_repo)

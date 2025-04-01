@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from app.core.config import settings
 from app.db.database import Base
-
+from app.models.order import Order
 
 # Get the Alembic Config object, which provides access to the values in the .ini file
 config = context.config
@@ -26,11 +26,6 @@ else:
 
 
 target_metadata = Base.metadata
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
 
 
 def run_migrations_offline() -> None:
@@ -87,8 +82,6 @@ def run_migrations_online() -> None:
 
     asyncio.run(run_async_migrations())
 
-from app.models.order import Order
-from app.models.ticker import Ticker
 
 if context.is_offline_mode():
     run_migrations_offline()

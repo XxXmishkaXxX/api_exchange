@@ -19,14 +19,6 @@ class StatusOrder(str, Enum):
     REJECTED = "rejected"  # Отклонен
 
 
-class TickerSchema(BaseModel):
-    id: int = Field(description="ID тикера")
-    symbol: str = Field(min_length=3, max_length=5, description="Аббревиатура тикера")
-    name: str = Field(min_length=2, max_length=255, description="Название тикера")
-
-    class Config:
-        from_attributes = True
-
 class OrderSchema(BaseModel):
     type: OrderType = Field(description="Тип ордера: 'market' или 'limit'")
     direction: Direction = Field(description="Направление ордера: 'buy' или 'sell'")
