@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 
 from app.repositories.wallet_repo import WalletRepository
+from app.repositories.asset_repo import AssetRepository
 from app.db.database import get_db
 from app.schemas.wallet import WithdrawAssetsSchema, DepositAssetsSchema
 
@@ -40,5 +41,6 @@ def get_wallet_service(
     Возвращает:
         WalletService: Экземпляр wallet service.
     """
-    order_repo = WalletRepository(session)
-    return WalletService(order_repo=order_repo)
+    asset_repo = AssetRepository(session)
+    wallet_repo = WalletRepository(session, asset_repo)
+    return WalletService(wallet_repo=wallet_repo)
