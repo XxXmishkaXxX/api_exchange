@@ -83,6 +83,7 @@ services:
       - auth_db
       - orders_db
       - md_db
+      - wallet_db
     networks:
       - exchange
 
@@ -110,10 +111,12 @@ services:
     restart: always
     env_file:
       - ./services/wallet_service/.env
+    depends_on:
+      - wallet_db    
     ports:
       - "8002:8002"
     volumes:
-      - ./services/wallet_service:/wallet_service
+     - ./services/wallet_service:/wallet_service
     entrypoint: ["/wallet_service/entrypoint.sh"]
     networks:
       - exchange
@@ -203,6 +206,15 @@ services:
     restart: always
     ports:
       - "6378:6379"
+    networks:
+      - exchange
+
+  redis_wallets:
+    image: redis:alpine
+    container_name: redis_wallets
+    restart: always
+    ports:
+      - "6377:6379"
     networks:
       - exchange
 
