@@ -7,6 +7,7 @@ from app.routers.api.v1 import wallet_users, wallet_admins
 from app.core.config import settings
 from app.core.logger import logger
 from app.services.consumers import  assets_consumer
+from app.services.producers import change_balance_producer_service
 from app.db.database import redis_pool
 
 
@@ -15,6 +16,8 @@ async def lifespan(app: FastAPI):
     try:
         await redis_pool.start()
         logger.info("✅ Redis started.")
+        await change_balance_producer_service.start()
+        logger.info("✅ Produser started.")
         # await change_assets_consumer.start()
         # asyncio.create_task(change_assets_consumer.consume_messages())
         # await lock_assets_consumer.start()
@@ -29,6 +32,8 @@ async def lifespan(app: FastAPI):
 
     # await change_assets_consumer.stop()
     # await lock_assets_consumer.stop()
+    await change_balance_producer_service.stop()
+    logger.info("🛑 Producer stopped.")
     await assets_consumer.stop()
     logger.info("🛑 Consumers stopped.")
     await redis_pool.close()
