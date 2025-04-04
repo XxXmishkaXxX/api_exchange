@@ -6,25 +6,33 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.routers.api.v1 import wallet_users, wallet_admins
 from app.core.config import settings
 from app.core.logger import logger
-from app.services.consumers import change_assets_consumer, lock_assets_consumer
+from app.services.consumers import  assets_consumer
+from app.db.database import redis_pool
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        await change_assets_consumer.start()
-        asyncio.create_task(change_assets_consumer.consume_messages())
-        await lock_assets_consumer.start()
-        asyncio.create_task(lock_assets_consumer.consume_messages())
+        await redis_pool.start()
+        logger.info("✅ Redis started.")
+        # await change_assets_consumer.start()
+        # asyncio.create_task(change_assets_consumer.consume_messages())
+        # await lock_assets_consumer.start()
+        # asyncio.create_task(lock_assets_consumer.consume_messages())
+        await assets_consumer.start()
+        asyncio.create_task(assets_consumer.consume_messages())
         logger.info("✅ Kafka Consumers started.")
     except Exception as e:
         logger.warning(f"⚠️ Ошибка Kafka: {e}")
 
     yield
 
-    await change_assets_consumer.stop()
-    await lock_assets_consumer.stop()
+    # await change_assets_consumer.stop()
+    # await lock_assets_consumer.stop()
+    await assets_consumer.stop()
     logger.info("🛑 Consumers stopped.")
+    await redis_pool.close()
+    logger.info("🛑 Redis stopped.")
 
 
 app = FastAPI(title="Wallet Service", lifespan=lifespan)
