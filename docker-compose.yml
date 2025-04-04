@@ -55,6 +55,23 @@ services:
     networks:
       - exchange
 
+  wallet_db:
+    image: postgres:15
+    container_name: wallet_db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${WALLET_DB_NAME}
+      POSTGRES_USER: ${WALLET_DB_USER}
+      POSTGRES_PASSWORD: ${WALLET_DB_PASSWORD}
+    ports:
+      - "5436:5432"
+    volumes:
+      - wallet_postgres_data:/var/lib/postgresql/data
+    networks:
+      - exchange
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
@@ -66,6 +83,7 @@ services:
       - auth_db
       - orders_db
       - md_db
+      - wallet_db
     networks:
       - exchange
 
@@ -93,10 +111,12 @@ services:
     restart: always
     env_file:
       - ./services/wallet_service/.env
+    depends_on:
+      - wallet_db    
     ports:
       - "8002:8002"
     volumes:
-      - ./services/wallet_service:/wallet_service
+     - ./services/wallet_service:/wallet_service
     entrypoint: ["/wallet_service/entrypoint.sh"]
     networks:
       - exchange
@@ -189,6 +209,15 @@ services:
     networks:
       - exchange
 
+  redis_wallets:
+    image: redis:alpine
+    container_name: redis_wallets
+    restart: always
+    ports:
+      - "6377:6379"
+    networks:
+      - exchange
+
   celery_worker:
     build:
       context: ./services/auth_service
@@ -219,3 +248,4 @@ volumes:
   auth_postgres_data:
   orders_postgres_data:
   md_postgres_data:
+  wallet_postgres_data:
