@@ -1,8 +1,11 @@
+import json
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from typing import Optional, List
 
 from app.models.order import Order
+from app.db.database import redis_pool
 
 
 class OrderRepository:
@@ -33,26 +36,21 @@ class OrderRepository:
             Optional[Order]: Возвращает заказ, если найден, иначе None.
         """
         result = await self.db.execute(
-            select(Order).
-            filter(Order.id == order_id, Order.user_id == user_id)
+            select(Order)
+            .options(selectinload(Order.asset))
+            .filter(Order.id == order_id, Order.user_id == user_id)
         )
         return result.scalars().first()
 
-    async def get_list(self, user_id: int) -> List[Order]:
-        """
-        Получение списка заказов пользователя.
 
-        Аргументы:
-            user_id (int): ID пользователя.
-
-        Возвращает:
-            List[Order]: Список заказов пользователя.
-        """
+    
+    async def get_list(self, user_id: int) -> Optional[List[Order]]:
         result = await self.db.execute(
-            select(Order).
-            filter(Order.user_id == user_id)
+            select(Order).options(selectinload(Order.asset)).filter(Order.user_id == user_id)
         )
-        return result.scalars().all()
+        orders = result.scalars().all()
+
+        return orders
 
     async def create(self, order: Order) -> Order:
         """
@@ -106,7 +104,7 @@ class OrderRepository:
             Optional[Order]: Возвращает удалённый заказ, если он был найден и удалён, иначе None.
         """
         result = await self.db.execute(
-            select(Order).
+            select(Order).options(selectinload(Order.asset)).
             filter(Order.user_id == user_id, Order.id == order_id)
         )
         order = result.scalars().first()
@@ -114,3 +112,37 @@ class OrderRepository:
             await self.db.delete(order)
             await self.db.commit()
         return order
+
+
+    async def lock(self, user_id, ticker, amount):
+        key = f"user:{user_id}:asset:{ticker}"
+
+        
+        async with redis_pool.connection() as redis:
+            data = await redis.hgetall(key)
+
+            if data is None:
+                return False
+
+            locked = int( data["locked"])
+            data["locked"] = amount + locked
+
+            await redis.hset(key, mapping=data)
+
+            return True
+
+    async def unlock(self, user_id, ticker, amount):
+        key = f"user:{user_id}:asset:{ticker}"
+
+        async with redis_pool.connection() as redis:
+            data = await redis.hgetall(key)
+
+            if data is None:
+                return False
+
+            locked = int( data["locked"])
+            data["locked"] = locked - amount
+
+            await redis.hset(key, mapping=data)
+
+            return True
