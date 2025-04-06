@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from app.schemas.order import OrderSchema, OrderCreateResponse, OrderListResponse, OrderResponse, OrderCancelResponse
 from app.deps.security import get_user_from_token
 from app.services.order import OrderService, get_order_service
-from app.services.producer import get_producer_service, KafkaProducerService
+from app.services.producer import get_order_producer_service, OrderKafkaProducerService
 
 router = APIRouter()
 
@@ -31,7 +31,7 @@ async def create_order(
     order: OrderSchema,
     user_data: dict = Depends(get_user_from_token),
     service: OrderService = Depends(get_order_service),
-    prod: KafkaProducerService = Depends(get_producer_service)
+    prod: OrderKafkaProducerService = Depends(get_order_producer_service)
 ) -> OrderCreateResponse:
     """
     Создать новый заказ.
@@ -73,7 +73,7 @@ async def cancel_order(
     order_id: int,
     user_data: dict = Depends(get_user_from_token),
     service: OrderService = Depends(get_order_service),
-    prod: KafkaProducerService = Depends(get_producer_service)
+    prod: OrderKafkaProducerService = Depends(get_order_producer_service)
 ) -> OrderCancelResponse:
     """
     Отменить заказ по ID.
