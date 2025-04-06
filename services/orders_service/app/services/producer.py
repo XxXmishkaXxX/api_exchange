@@ -6,79 +6,88 @@ from app.core.config import settings
 from app.models.order import Order
 
 
-class KafkaProducerService:
-    """
-    Сервис для взаимодействия с Kafka, отправляющий сообщения о заказах.
-    
-    Этот сервис позволяет отправлять информацию о новых и отменённых ордерах в Kafka.
-    """
-
-    def __init__(self, bootstrap_servers: str):
-        """
-        Инициализация Kafka продюсера.
-
-        Аргументы:
-            bootstrap_servers (str): Адреса серверов Kafka.
-        """
+class BaseKafkaProducerService:
+    def __init__(self, bootstrap_servers: str, topic: str):
         self.bootstrap_servers = bootstrap_servers
+        self.topic = topic
         self.producer = AIOKafkaProducer(bootstrap_servers=self.bootstrap_servers)
 
     async def start(self) -> None:
-        """Запуск продюсера Kafka."""
         await self.producer.start()
 
     async def stop(self) -> None:
-        """Остановка продюсера Kafka."""
         await self.producer.stop()
 
-    async def send_order(self, order: Order) -> None:
-        """
-        Отправка нового ордера в Kafka.
+    async def send_message(self, data: dict) -> None:
+        message = json.dumps(data)
+        await self.producer.send_and_wait(self.topic, message.encode("utf-8"))
 
-        Аргументы:
-            order (Order): Объект ордера, который будет отправлен в Kafka.
-        """
-        order_data = {
+
+class OrderKafkaProducerService(BaseKafkaProducerService):
+    def __init__(self, bootstrap_servers: str):
+        super().__init__(bootstrap_servers, topic="orders")
+
+    async def send_order(self, ticker: str, order: Order) -> None:
+        data = {
             "action": "add",
             "order_id": order.id,
             "user_id": order.user_id,
             "status": order.status,
             "type": order.type,
             "direction": order.direction,
-            "ticker_id": order.ticker_id,
+            "ticker": ticker,
             "qty": order.qty,
             "price": order.price,
         }
-        message = json.dumps(order_data)
-        await self.producer.send_and_wait("orders", message.encode("utf-8"))
-    
-    async def cancel_order(self, order_id: int, direction: str, ticker_id: int) -> None:
-        """
-        Отправка отмены ордера в Kafka.
+        await self.send_message(data)
 
-        Аргументы:
-            order_id (int): ID ордера.
-            direction (str): Направление ордера.
-            ticker_id (int): ID тикера.
-        """
+    async def cancel_order(self, order_id: int, direction: str, ticker: str) -> None:
         data = {
             "action": "cancel",
             "order_id": order_id,
             "direction": direction,
-            "ticker_id": ticker_id
+            "ticker": ticker
         }
-        message = json.dumps(data)
-        await self.producer.send_and_wait("orders", message.encode("utf-8"))
+        await self.send_message(data)
 
 
-producer_service = KafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
+
+class LockAssetsKafkaProducerService(BaseKafkaProducerService):
+    def __init__(self, bootstrap_servers: str):
+        super().__init__(bootstrap_servers, topic="lock_assets")
+
+    async def lock_assets(self, user_id: int, asset: str, amount: int) -> None:
+        data = {
+            "action": "lock",
+            "user_id": user_id,
+            "asset": asset,
+            "amount": amount
+        }
+        await self.send_message(data)
+
+    async def unlock_assets(self, user_id: int, asset: str, amount: int) -> None:
+        data = {
+            "action": "unlock",
+            "user_id": user_id,
+            "asset": asset,
+            "amount": amount
+        }
+        await self.send_message(data)
 
 
-async def get_producer_service() -> AsyncGenerator[KafkaProducerService, None]:
+lock_assets_producer = LockAssetsKafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
+order_producer = OrderKafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
+
+
+async def get_order_producer_service() -> AsyncGenerator[OrderKafkaProducerService, None]:
     """
     Асинхронный генератор для получения экземпляра сервиса Kafka продюсера.
 
     Возвращает:
-        KafkaProducerService: Экземпляр сервиса Kafka продюсера.
+        OrderKafkaProducerService: Экземпляр сервиса Kafka продюсера.
     """
-    yield producer_service
+    yield order_producer
+
+
+async def get_lock_assets_producer() -> AsyncGenerator[LockAssetsKafkaProducerService, None]:
+    yield lock_assets_producer
