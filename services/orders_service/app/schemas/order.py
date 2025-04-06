@@ -22,7 +22,7 @@ class StatusOrder(str, Enum):
 class OrderSchema(BaseModel):
     type: OrderType = Field(description="Тип ордера: 'market' или 'limit'")
     direction: Direction = Field(description="Направление ордера: 'buy' или 'sell'")
-    ticker_id: int = Field(None, description="id тикера")
+    ticker: str = Field(description="Тикер актива")
     qty: int = Field(gt=0, description="Количество должно быть положительным числом")
     price: Optional[float] = Field(None, gt=0, description="Цена для лимитного ордера (должна быть положительной)")
 
@@ -52,4 +52,4 @@ class OrderResponse(BaseModel):
         from_attributes = True
 
 class OrderListResponse(BaseModel):
-    orders: list[OrderSchema] = Field(description="Список ордеров пользователя")
+    orders: list[OrderResponse] = Field(description="Список ордеров пользователя")
