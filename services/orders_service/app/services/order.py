@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.database import get_db, get_redis_connection
+from app.db.database import get_db, redis_pool
 from app.repositories.order_repo import OrderRepository
 from app.schemas.order import (OrderSchema, 
                                OrderCancelResponse, 
@@ -9,7 +9,10 @@ from app.schemas.order import (OrderSchema,
                                OrderResponse, 
                                OrderListResponse)
 from app.models.order import Order
-from app.services.producer import KafkaProducerService
+from app.services.producer import OrderKafkaProducerService, LockAssetsKafkaProducerService
+from app.repositories.asset_repo import AssetRepository
+from app.services.wallet_client import wallet_client
+from app.core.logger import logger
 
 class OrderService:
     """
@@ -19,7 +22,7 @@ class OrderService:
     а также для проверки существования ордеров.
     """
 
-    def __init__(self, order_repo: OrderRepository):
+    def __init__(self, order_repo: OrderRepository, asset_repo: AssetRepository):
         """
         Инициализация сервиса ордеров с репозиторием ордеров.
 
@@ -27,6 +30,7 @@ class OrderService:
             order_repo (OrderRepository): Репозиторий для взаимодействия с данными ордеров.
         """
         self.order_repo = order_repo
+        self.asset_repo = asset_repo
 
     async def get_order(self, user_data: dict, order_id: int) -> OrderResponse:
         """
@@ -41,7 +45,22 @@ class OrderService:
         """
         user_id = int(user_data.get('sub'))
         order = await self.order_repo.get(order_id, user_id)
-        return OrderResponse(order=order)
+        logger.info(order)
+        if order is None:
+            return OrderResponse()
+
+        return OrderResponse(
+            order_id=order.id,
+            user_id=order.user_id,
+            status=order.status,
+            body=OrderSchema(
+                type=order.type,
+                direction=order.direction,
+                ticker=order.asset.ticker,
+                qty=order.qty,
+                price=order.price
+            )
+        )
 
     async def get_list_order(self, user_data: dict) -> OrderListResponse:
         """
@@ -55,43 +74,66 @@ class OrderService:
         """
         user_id = int(user_data.get('sub'))
         orders = await self.order_repo.get_list(user_id)
-        orders_data = [OrderSchema.model_validate(order) for order in orders]
-        return OrderListResponse(orders=orders_data)
+        return OrderListResponse(
+                    orders=[
+                        OrderResponse(
+                            order_id=order.id,
+                            user_id=order.user_id,
+                            status=order.status,
+                            body=OrderSchema(
+                                type=order.type,
+                                direction=order.direction,
+                                ticker=order.asset.ticker,
+                                qty=order.qty,
+                                price=order.price
+                            )
+                        )
+                        for order in orders
+                    ]
+                )
 
-    async def create_order(self, user_data: dict, order: OrderSchema, producer: KafkaProducerService) -> OrderCreateResponse:
-        """
-        Создание нового ордера.
+    async def create_order(self, user_data: dict, 
+                           order: OrderSchema, 
+                           prod_order: OrderKafkaProducerService,
+                           prod_lock: LockAssetsKafkaProducerService) -> OrderCreateResponse:
+        user_id = int(user_data.get("sub"))
+        asset_id = await self.asset_repo.get_asset_by_ticker(order.ticker)
 
-        Аргументы:
-            user_data (dict): Данные пользователя, содержащие информацию о пользователе (например, ID).
-            order (OrderSchema): Данные ордера, которые нужно создать.
-            producer (KafkaProducerService): Сервис для отправки ордера в Kafka.
-
-        Возвращает:
-            OrderCreateResponse: Ответ с информацией о созданном ордере.
-        """
-        async with get_redis_connection() as redis:
-            ticker_key = f"ticker:{order.ticker_id}"
-            ticker_exists = await redis.exists(ticker_key)
+        await self.validate_balance_for_order(user_id, order)
         
-        if not ticker_exists:
-            raise HTTPException(status_code=401, detail="Такого тикера не существует")
-
-        order = Order(
-            user_id=int(user_data.get("sub")),
+        order_entity = Order(
+            user_id=user_id,
             type=order.type,
             status="new",
             direction=order.direction,
-            ticker_id=order.ticker_id,
+            asset_id=asset_id,
             qty=order.qty,
             price=order.price
         )
 
-        order = await self.order_repo.create(order)
-        await producer.send_order(order=order)
-        return OrderCreateResponse(success=True, order_id=order.id)
+        order_entity = await self.order_repo.create(order_entity)
+        
+        await self.order_repo.lock(user_id, order.ticker, 
+                                   order.qty * order.price if order.direction == 'buy' 
+                                   else order.qty)
+        
+        try:
+            await prod_order.send_order(order.ticker, order=order_entity)
+            await prod_lock.lock_assets(user_id, 
+                                        order.ticker, 
+                                        order.qty * order.price if order.direction == 'buy' 
+                                        else order.qty)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error sending order to Kafka: {e}")
+        
+        return OrderCreateResponse(success=True, order_id=order_entity.id)
 
-    async def cancel_order(self, user_data: dict, order_id: int, producer: KafkaProducerService) -> OrderCancelResponse:
+
+
+    async def cancel_order(self, user_data: dict, 
+                           order_id: int, 
+                           prod_order: OrderKafkaProducerService,
+                           prod_lock: LockAssetsKafkaProducerService) -> OrderCancelResponse:
         """
         Отмена ордера.
 
@@ -109,9 +151,58 @@ class OrderService:
         if not order:
             raise HTTPException(status_code=401, detail="Такого ордера не существует")
 
-        await producer.cancel_order(order_id=order_id, direction=order.direction, ticker_id=order.ticker_id)
+        await self.order_repo.unlock(user_id=user_id, ticker=order.asset.ticker, amount=order.qty)
+
+        await prod_order.cancel_order(order_id=order_id, direction=order.direction, ticker=order.asset.ticker)
+        
+        await prod_lock.unlock_assets(user_id, 
+                                    order.asset.ticker,
+                                    order.qty * order.price if order.direction == 'buy' 
+                                        else order.qty )
         return OrderCancelResponse(success=True)
 
+
+    async def _get_balance(self, user_id: int, ticker: str) -> int:
+        """
+        Получение баланса пользователя из Redis.
+        
+        Аргументы:
+            user_id (int): ID пользователя для получения баланса.
+            ticker (str): Тикер актива
+        
+        Возвращает:
+            int: Баланс пользователя.
+        """
+        balance_key = f"user:{user_id}:asset:{ticker}"
+
+        async with redis_pool.connection() as redis:
+            user_asset_balance = await redis.hgetall(balance_key)
+
+            if not user_asset_balance:
+                data = await wallet_client.get_balance(user_id=user_id, ticker=ticker)
+                if data:
+                    amount = int(data["amount"])
+                    locked = int(data["locked"])
+                    await redis.hset(balance_key, mapping={
+                        "amount": amount,
+                        "locked": locked})
+                else:
+                    raise HTTPException(status_code=400, detail=f"У вас нет актива - {ticker}, пополните кошелек таким активом")
+            else:
+                amount = int(user_asset_balance["amount"])
+                locked = int(user_asset_balance["locked"])
+            
+        if amount < locked:
+            raise HTTPException(status_code=400, detail="Недостаточно доступных средств для выполнения операции")
+        return int(amount)
+    
+    async def validate_balance_for_order(self, user_id: int, order: OrderSchema):
+        balance = await self._get_balance(user_id, order.ticker)
+        if order.direction == "buy" and balance < order.qty * order.price:
+            raise HTTPException(status_code=400, detail="Недостаточно средств для выполнения ордера")
+
+        if order.direction == "sell" and balance < order.qty:
+            raise HTTPException(status_code=400, detail="Недостаточно средств на продаже активов")
 
 def get_order_service(
     session: AsyncSession = Depends(get_db)
@@ -125,5 +216,6 @@ def get_order_service(
     Возвращает:
         OrderService: Экземпляр сервиса ордеров.
     """
+    asset_repo = AssetRepository(session)
     order_repo = OrderRepository(session)
-    return OrderService(order_repo=order_repo)
+    return OrderService(order_repo=order_repo, asset_repo=asset_repo)
