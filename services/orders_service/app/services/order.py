@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -49,14 +49,17 @@ class OrderService:
         user_id = int(user_data.get('sub'))
         order = await self.order_repo.get(order_id, user_id)
         logger.info(order)
-        if order is None:
-            return OrderResponse()
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
 
         return OrderResponse(
                 order_id=order.id,
                 user_id=order.user_id,
                 status=order.status,
-                timestamp=order.created_at.isoformat(),  
+                timestamp=order.updated_at.isoformat(),  
                 body=OrderSchema(
                     type=order.type,
                     direction=order.direction,
@@ -86,7 +89,7 @@ class OrderService:
                     order_id=order.id,
                     user_id=order.user_id,
                     status=order.status,
-                    timestamp=order.created_at.isoformat(),
+                    timestamp=order.updated_at.isoformat(),
                     body=OrderSchema(
                         type=order.type,
                         direction=order.direction,
@@ -99,7 +102,8 @@ class OrderService:
                 for order in orders
             ]
         )
-
+    # пока не реализовано создание рыночного ордера, из-за незнания цены рынка!
+    # пофиксить
     async def create_order(self, user_data: dict, 
                         order: OrderSchema, 
                         prod_order: OrderKafkaProducerService,
