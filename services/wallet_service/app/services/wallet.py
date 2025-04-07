@@ -20,6 +20,9 @@ class WalletService:
         self.wallet_repo = wallet_repo
         self.asset_repo = asset_repo
 
+    async def get_all_assets_balance(self, user_id: int):
+        return await self.wallet_repo.get_all(user_id)
+
     async def get_user_asset_balance(self, user_id: int, ticker: str) -> dict:
         """Получить баланс конкретного актива для пользователя."""
         try:
