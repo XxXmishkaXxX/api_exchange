@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     # Секретный ключ для подписания JWT токенов
     SECRET_KEY: str 
     SESSION_KEY: str
+    INTERNAL_API_TOKEN: str
     ALGORITM_JWT: str
 
     BOOTSTRAP_SERVERS: str

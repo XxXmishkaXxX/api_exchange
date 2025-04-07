@@ -3,12 +3,15 @@ from fastapi import APIRouter, Depends
 from app.schemas.order import OrderSchema, OrderCreateResponse, OrderListResponse, OrderResponse, OrderCancelResponse
 from app.deps.security import get_user_from_token
 from app.services.order import OrderService, get_order_service
-from app.services.producer import get_producer_service, KafkaProducerService
+from app.services.producer import (get_lock_assets_producer, 
+                                   get_order_producer_service, 
+                                   OrderKafkaProducerService, 
+                                   LockAssetsKafkaProducerService)
 
 router = APIRouter()
 
 
-@router.get("/", response_model=OrderListResponse)
+@router.get("/", response_model=OrderListResponse | None)
 async def get_orders_list(
     user_data: dict = Depends(get_user_from_token),
     service: OrderService = Depends(get_order_service)
@@ -31,7 +34,8 @@ async def create_order(
     order: OrderSchema,
     user_data: dict = Depends(get_user_from_token),
     service: OrderService = Depends(get_order_service),
-    prod: KafkaProducerService = Depends(get_producer_service)
+    prod_order: OrderKafkaProducerService = Depends(get_order_producer_service),
+    prod_lock: LockAssetsKafkaProducerService = Depends(get_lock_assets_producer),
 ) -> OrderCreateResponse:
     """
     Создать новый заказ.
@@ -45,10 +49,10 @@ async def create_order(
     Возвращает:
         OrderCreateResponse: Ответ с информацией о созданном заказе.
     """
-    return await service.create_order(user_data, order, prod)
+    return await service.create_order(user_data, order, prod_order=prod_order, prod_lock=prod_lock)
 
 
-@router.get("/{order_id}", response_model=OrderResponse)
+@router.get("/{order_id}", response_model=OrderResponse | None)
 async def get_order(
     order_id: int,
     user_data: dict = Depends(get_user_from_token),
@@ -73,7 +77,8 @@ async def cancel_order(
     order_id: int,
     user_data: dict = Depends(get_user_from_token),
     service: OrderService = Depends(get_order_service),
-    prod: KafkaProducerService = Depends(get_producer_service)
+    prod_order: OrderKafkaProducerService = Depends(get_order_producer_service),
+    prod_lock: LockAssetsKafkaProducerService = Depends(get_lock_assets_producer)
 ) -> OrderCancelResponse:
     """
     Отменить заказ по ID.
@@ -87,4 +92,4 @@ async def cancel_order(
     Возвращает:
         OrderCancelResponse: Ответ с информацией об успешной отмене заказа.
     """
-    return await service.cancel_order(user_data, order_id, prod)
+    return await service.cancel_order(user_data, order_id, prod_order=prod_order, prod_lock=prod_lock)
