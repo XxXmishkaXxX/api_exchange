@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from kafka.consumer import KafkaConsumerService
-from kafka.producer import KafkaProducerService
+from kafka.producer import KafkaOrderProducer, KafkaWalletProducer
 from engine.matching_engine import MatchingEngine
 
 logging.basicConfig(level=logging.INFO)
@@ -9,10 +9,12 @@ logger = logging.getLogger(__name__)
 
 async def main():
     try:
-        producer = KafkaProducerService()
-        await producer.start()
+        prod_order = KafkaOrderProducer()
+        await prod_order.start()
+        prod_wallet = KafkaWalletProducer()
+        await prod_wallet.start()
 
-        engine = MatchingEngine(producer)
+        engine = MatchingEngine(prod_order, prod_wallet)
         
         consumer_service = KafkaConsumerService(engine)
         await consumer_service.start()
