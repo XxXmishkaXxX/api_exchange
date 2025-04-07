@@ -143,6 +143,7 @@ services:
     build:
       context: ./services/matching_engine
     container_name: ME
+    restart: always
     ports:
       - "8004:8004"
     depends_on:
