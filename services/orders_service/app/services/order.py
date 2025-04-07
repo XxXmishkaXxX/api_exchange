@@ -119,10 +119,11 @@ class OrderService:
         
         try:
             await prod_order.send_order(order.ticker, order=order_entity)
-            await prod_lock.lock_assets(user_id, 
+            await prod_lock.lock_assets(user_id,
+                                        order_entity.asset_id,
                                         order.ticker, 
-                                        order.qty * order.price if order.direction == 'buy' 
-                                        else order.qty)
+                                        order_entity.qty * order_entity.price if order_entity.direction == 'buy' 
+                                        else order_entity.qty)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error sending order to Kafka: {e}")
         
@@ -155,7 +156,8 @@ class OrderService:
 
         await prod_order.cancel_order(order_id=order_id, direction=order.direction, ticker=order.asset.ticker)
         
-        await prod_lock.unlock_assets(user_id, 
+        await prod_lock.unlock_assets(user_id,
+                                    order.asset_id, 
                                     order.asset.ticker,
                                     order.qty * order.price if order.direction == 'buy' 
                                         else order.qty )

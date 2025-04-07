@@ -56,20 +56,22 @@ class LockAssetsKafkaProducerService(BaseKafkaProducerService):
     def __init__(self, bootstrap_servers: str):
         super().__init__(bootstrap_servers, topic="lock_assets")
 
-    async def lock_assets(self, user_id: int, asset: str, amount: int) -> None:
+    async def lock_assets(self, user_id: int, asset_id: int, ticker: str, amount: int) -> None:
         data = {
             "action": "lock",
             "user_id": user_id,
-            "asset": asset,
+            "asset_id": asset_id,
+            "ticker": ticker,
             "amount": amount
         }
         await self.send_message(data)
 
-    async def unlock_assets(self, user_id: int, asset: str, amount: int) -> None:
+    async def unlock_assets(self, user_id: int, asset_id: int, ticker: str, amount: int) -> None:
         data = {
             "action": "unlock",
             "user_id": user_id,
-            "asset": asset,
+            "asset_id": asset_id,
+            "ticker": ticker,
             "amount": amount
         }
         await self.send_message(data)
