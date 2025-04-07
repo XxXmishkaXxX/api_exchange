@@ -5,9 +5,9 @@ from app.core.config import settings
 from app.core.logger import logger
 from app.db.database import get_db, redis_pool
 from app.models.asset import Asset
-from app.models.wallet import  UserAssetBalance
 from app.repositories.asset_repo import AssetRepository
-from app.repositories.wallet_repo import WalletRepository 
+from app.repositories.wallet_repo import WalletRepository
+from app.services.wallet import get_wallet_service
 
 
 class BaseKafkaConsumerService:
@@ -65,14 +65,38 @@ class BaseKafkaConsumerService:
         logger.info(f"{action}: {kwargs}")
 
 
-# class ChangeAssetsConsumer(BaseKafkaConsumerService):
+class ChangeBalanceConsumer(BaseKafkaConsumerService):
 
-#     def __init__(self, topic: str, bootstrap_servers: str):
-#         super().__init__(topic, bootstrap_servers)
+    def __init__(self, topic: str, bootstrap_servers: str, group_id: str):
+        super().__init__(topic, bootstrap_servers, group_id)
 
 
-#     async def process_message(self, message):
-#         pass
+    async def process_message(self, message):
+        data = json.loads(message.value.decode("utf-8"))
+
+        from_user = int(data.get("from_user"))
+        to_user = int(data.get("to_user"))
+        asset_id = data.get("asset_id")
+        amount = int(data.get("amount", 0))
+
+        logger.info(f"➡️ Обработка перевода: {data}")
+
+        try:
+            async for session in get_db():
+                repo = WalletRepository(session)
+                from_user_asset = await repo.get(from_user, asset_id)
+                to_user_asset = await repo.get(to_user, asset_id)
+
+                await repo.unlock(from_user_asset, amount)
+                await repo.withdraw(from_user_asset, amount)
+                if to_user_asset is None:
+                    await repo.create(to_user, asset_id, amount)
+                else:
+                    await repo.deposit(to_user_asset, amount)
+                logger.info("✅ Перевод завершён")
+                break
+        except Exception as e:
+            logger.error(f"❌ Ошибка при переводе: {e}")
 
 
 class LockAssetsConsumer(BaseKafkaConsumerService):
@@ -184,6 +208,8 @@ class AssetConsumer(BaseKafkaConsumerService):
             await repo.delete(ticker)
             await self.log_message("Удалён актив из DB", ticker=ticker)
 
-# Инициализируем с группой потребителей
+
+
+change_balance_consumer = ChangeBalanceConsumer(topic="post_trade_processing", bootstrap_servers=settings.BOOTSTRAP_SERVERS, group_id=None)
 assets_consumer = AssetConsumer(topic="tickers", bootstrap_servers=settings.BOOTSTRAP_SERVERS, group_id="assets_group")
 lock_asset_amount_consumer = LockAssetsConsumer(topic="lock_assets", bootstrap_servers=settings.BOOTSTRAP_SERVERS, group_id=None)
