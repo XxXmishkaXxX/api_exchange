@@ -1574,14 +1574,14 @@ struct __pyx_obj_6engine_15matching_engine___pyx_scope_struct__send_order_status
 /* "engine/matching_engine.pyx":29
  *             logger.info(f" SENT ORDER STATUS: {message}")
  * 
- *     async def send_wallet_transfer(self, from_user, to_user, asset, amount):             # <<<<<<<<<<<<<<
+ *     async def send_wallet_transfer(self, from_user, to_user, asset_id, amount):             # <<<<<<<<<<<<<<
  *         if self.post_wallet_transfer_prod:
  *             transfer = {
  */
 struct __pyx_obj_6engine_15matching_engine___pyx_scope_struct_1_send_wallet_transfer {
   PyObject_HEAD
   PyObject *__pyx_v_amount;
-  PyObject *__pyx_v_asset;
+  PyObject *__pyx_v_asset_id;
   PyObject *__pyx_v_from_user;
   struct __pyx_obj_6engine_15matching_engine_MatchingEngine *__pyx_v_self;
   PyObject *__pyx_v_to_user;
@@ -2570,7 +2570,6 @@ static const char __pyx_k_self[] = "self";
 static const char __pyx_k_send[] = "send";
 static const char __pyx_k_spec[] = "__spec__";
 static const char __pyx_k_test[] = "__test__";
-static const char __pyx_k_asset[] = "asset";
 static const char __pyx_k_await[] = "__await__";
 static const char __pyx_k_close[] = "close";
 static const char __pyx_k_level[] = "level";
@@ -2596,6 +2595,7 @@ static const char __pyx_k_message[] = "message";
 static const char __pyx_k_to_user[] = "to_user";
 static const char __pyx_k_user_id[] = "user_id";
 static const char __pyx_k_warning[] = "warning";
+static const char __pyx_k_asset_id[] = "asset_id";
 static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_order_id[] = "order_id";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
@@ -2662,7 +2662,7 @@ static const char __pyx_k_MatchingEngine_send_wallet_trans[] = "MatchingEngine.s
 /* #### Code section: decls ### */
 static int __pyx_pf_6engine_15matching_engine_14MatchingEngine___init__(struct __pyx_obj_6engine_15matching_engine_MatchingEngine *__pyx_v_self, PyObject *__pyx_v_change_order_status_prod, PyObject *__pyx_v_post_wallet_transfer_prod); /* proto */
 static PyObject *__pyx_pf_6engine_15matching_engine_14MatchingEngine_2send_order_status(struct __pyx_obj_6engine_15matching_engine_MatchingEngine *__pyx_v_self, PyObject *__pyx_v_order_id, PyObject *__pyx_v_user_id, PyObject *__pyx_v_status); /* proto */
-static PyObject *__pyx_pf_6engine_15matching_engine_14MatchingEngine_5send_wallet_transfer(struct __pyx_obj_6engine_15matching_engine_MatchingEngine *__pyx_v_self, PyObject *__pyx_v_from_user, PyObject *__pyx_v_to_user, PyObject *__pyx_v_asset, PyObject *__pyx_v_amount); /* proto */
+static PyObject *__pyx_pf_6engine_15matching_engine_14MatchingEngine_5send_wallet_transfer(struct __pyx_obj_6engine_15matching_engine_MatchingEngine *__pyx_v_self, PyObject *__pyx_v_from_user, PyObject *__pyx_v_to_user, PyObject *__pyx_v_asset_id, PyObject *__pyx_v_amount); /* proto */
 static PyObject *__pyx_pf_6engine_15matching_engine_14MatchingEngine_8add_order(struct __pyx_obj_6engine_15matching_engine_MatchingEngine *__pyx_v_self, struct __pyx_obj_6engine_5order_Order *__pyx_v_order); /* proto */
 static PyObject *__pyx_pf_6engine_15matching_engine_14MatchingEngine_10cancel_order(struct __pyx_obj_6engine_15matching_engine_MatchingEngine *__pyx_v_self, PyObject *__pyx_v_order_id, PyObject *__pyx_v_direction, PyObject *__pyx_v_order_ticker, PyObject *__pyx_v_payment_ticker); /* proto */
 static PyObject *__pyx_pf_6engine_15matching_engine_14MatchingEngine_12__reduce_cython__(struct __pyx_obj_6engine_15matching_engine_MatchingEngine *__pyx_v_self); /* proto */
@@ -2745,8 +2745,8 @@ typedef struct {
   PyObject *__pyx_n_u_amount;
   PyObject *__pyx_n_s_args;
   PyObject *__pyx_kp_u_asctime_s_levelname_s_message_s;
-  PyObject *__pyx_n_s_asset;
-  PyObject *__pyx_n_u_asset;
+  PyObject *__pyx_n_s_asset_id;
+  PyObject *__pyx_n_u_asset_id;
   PyObject *__pyx_n_s_asyncio;
   PyObject *__pyx_n_s_asyncio_coroutines;
   PyObject *__pyx_n_s_asyncio_tasks;
@@ -2935,8 +2935,8 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_u_amount);
   Py_CLEAR(clear_module_state->__pyx_n_s_args);
   Py_CLEAR(clear_module_state->__pyx_kp_u_asctime_s_levelname_s_message_s);
-  Py_CLEAR(clear_module_state->__pyx_n_s_asset);
-  Py_CLEAR(clear_module_state->__pyx_n_u_asset);
+  Py_CLEAR(clear_module_state->__pyx_n_s_asset_id);
+  Py_CLEAR(clear_module_state->__pyx_n_u_asset_id);
   Py_CLEAR(clear_module_state->__pyx_n_s_asyncio);
   Py_CLEAR(clear_module_state->__pyx_n_s_asyncio_coroutines);
   Py_CLEAR(clear_module_state->__pyx_n_s_asyncio_tasks);
@@ -3103,8 +3103,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_u_amount);
   Py_VISIT(traverse_module_state->__pyx_n_s_args);
   Py_VISIT(traverse_module_state->__pyx_kp_u_asctime_s_levelname_s_message_s);
-  Py_VISIT(traverse_module_state->__pyx_n_s_asset);
-  Py_VISIT(traverse_module_state->__pyx_n_u_asset);
+  Py_VISIT(traverse_module_state->__pyx_n_s_asset_id);
+  Py_VISIT(traverse_module_state->__pyx_n_u_asset_id);
   Py_VISIT(traverse_module_state->__pyx_n_s_asyncio);
   Py_VISIT(traverse_module_state->__pyx_n_s_asyncio_coroutines);
   Py_VISIT(traverse_module_state->__pyx_n_s_asyncio_tasks);
@@ -3285,8 +3285,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_u_amount __pyx_mstate_global->__pyx_n_u_amount
 #define __pyx_n_s_args __pyx_mstate_global->__pyx_n_s_args
 #define __pyx_kp_u_asctime_s_levelname_s_message_s __pyx_mstate_global->__pyx_kp_u_asctime_s_levelname_s_message_s
-#define __pyx_n_s_asset __pyx_mstate_global->__pyx_n_s_asset
-#define __pyx_n_u_asset __pyx_mstate_global->__pyx_n_u_asset
+#define __pyx_n_s_asset_id __pyx_mstate_global->__pyx_n_s_asset_id
+#define __pyx_n_u_asset_id __pyx_mstate_global->__pyx_n_u_asset_id
 #define __pyx_n_s_asyncio __pyx_mstate_global->__pyx_n_s_asyncio
 #define __pyx_n_s_asyncio_coroutines __pyx_mstate_global->__pyx_n_s_asyncio_coroutines
 #define __pyx_n_s_asyncio_tasks __pyx_mstate_global->__pyx_n_s_asyncio_tasks
@@ -3859,7 +3859,7 @@ static PyObject *__pyx_gb_6engine_15matching_engine_14MatchingEngine_4generator(
  *             await self.change_order_status_prod.send_order_update(message)
  *             logger.info(f" SENT ORDER STATUS: {message}")             # <<<<<<<<<<<<<<
  * 
- *     async def send_wallet_transfer(self, from_user, to_user, asset, amount):
+ *     async def send_wallet_transfer(self, from_user, to_user, asset_id, amount):
  */
     __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_logger); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 27, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
@@ -3939,7 +3939,7 @@ static PyObject *__pyx_gb_6engine_15matching_engine_14MatchingEngine_7generator1
 /* "engine/matching_engine.pyx":29
  *             logger.info(f" SENT ORDER STATUS: {message}")
  * 
- *     async def send_wallet_transfer(self, from_user, to_user, asset, amount):             # <<<<<<<<<<<<<<
+ *     async def send_wallet_transfer(self, from_user, to_user, asset_id, amount):             # <<<<<<<<<<<<<<
  *         if self.post_wallet_transfer_prod:
  *             transfer = {
  */
@@ -3962,7 +3962,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 ) {
   PyObject *__pyx_v_from_user = 0;
   PyObject *__pyx_v_to_user = 0;
-  PyObject *__pyx_v_asset = 0;
+  PyObject *__pyx_v_asset_id = 0;
   PyObject *__pyx_v_amount = 0;
   #if !CYTHON_METH_FASTCALL
   CYTHON_UNUSED Py_ssize_t __pyx_nargs;
@@ -3984,7 +3984,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   #endif
   __pyx_kwvalues = __Pyx_KwValues_FASTCALL(__pyx_args, __pyx_nargs);
   {
-    PyObject **__pyx_pyargnames[] = {&__pyx_n_s_from_user,&__pyx_n_s_to_user,&__pyx_n_s_asset,&__pyx_n_s_amount,0};
+    PyObject **__pyx_pyargnames[] = {&__pyx_n_s_from_user,&__pyx_n_s_to_user,&__pyx_n_s_asset_id,&__pyx_n_s_amount,0};
     if (__pyx_kwds) {
       Py_ssize_t kw_args;
       switch (__pyx_nargs) {
@@ -4020,7 +4020,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
         }
         CYTHON_FALLTHROUGH;
         case  2:
-        if (likely((values[2] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_asset)) != 0)) {
+        if (likely((values[2] = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_asset_id)) != 0)) {
           (void)__Pyx_Arg_NewRef_FASTCALL(values[2]);
           kw_args--;
         }
@@ -4053,7 +4053,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
     }
     __pyx_v_from_user = values[0];
     __pyx_v_to_user = values[1];
-    __pyx_v_asset = values[2];
+    __pyx_v_asset_id = values[2];
     __pyx_v_amount = values[3];
   }
   goto __pyx_L6_skip;
@@ -4072,7 +4072,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6engine_15matching_engine_14MatchingEngine_5send_wallet_transfer(((struct __pyx_obj_6engine_15matching_engine_MatchingEngine *)__pyx_v_self), __pyx_v_from_user, __pyx_v_to_user, __pyx_v_asset, __pyx_v_amount);
+  __pyx_r = __pyx_pf_6engine_15matching_engine_14MatchingEngine_5send_wallet_transfer(((struct __pyx_obj_6engine_15matching_engine_MatchingEngine *)__pyx_v_self), __pyx_v_from_user, __pyx_v_to_user, __pyx_v_asset_id, __pyx_v_amount);
 
   /* function exit code */
   {
@@ -4085,7 +4085,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6engine_15matching_engine_14MatchingEngine_5send_wallet_transfer(struct __pyx_obj_6engine_15matching_engine_MatchingEngine *__pyx_v_self, PyObject *__pyx_v_from_user, PyObject *__pyx_v_to_user, PyObject *__pyx_v_asset, PyObject *__pyx_v_amount) {
+static PyObject *__pyx_pf_6engine_15matching_engine_14MatchingEngine_5send_wallet_transfer(struct __pyx_obj_6engine_15matching_engine_MatchingEngine *__pyx_v_self, PyObject *__pyx_v_from_user, PyObject *__pyx_v_to_user, PyObject *__pyx_v_asset_id, PyObject *__pyx_v_amount) {
   struct __pyx_obj_6engine_15matching_engine___pyx_scope_struct_1_send_wallet_transfer *__pyx_cur_scope;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -4110,9 +4110,9 @@ static PyObject *__pyx_pf_6engine_15matching_engine_14MatchingEngine_5send_walle
   __pyx_cur_scope->__pyx_v_to_user = __pyx_v_to_user;
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_to_user);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_to_user);
-  __pyx_cur_scope->__pyx_v_asset = __pyx_v_asset;
-  __Pyx_INCREF(__pyx_cur_scope->__pyx_v_asset);
-  __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_asset);
+  __pyx_cur_scope->__pyx_v_asset_id = __pyx_v_asset_id;
+  __Pyx_INCREF(__pyx_cur_scope->__pyx_v_asset_id);
+  __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_asset_id);
   __pyx_cur_scope->__pyx_v_amount = __pyx_v_amount;
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_amount);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_amount);
@@ -4160,7 +4160,7 @@ static PyObject *__pyx_gb_6engine_15matching_engine_14MatchingEngine_7generator1
 
   /* "engine/matching_engine.pyx":30
  * 
- *     async def send_wallet_transfer(self, from_user, to_user, asset, amount):
+ *     async def send_wallet_transfer(self, from_user, to_user, asset_id, amount):
  *         if self.post_wallet_transfer_prod:             # <<<<<<<<<<<<<<
  *             transfer = {
  *                 "from_user": from_user,
@@ -4173,7 +4173,7 @@ static PyObject *__pyx_gb_6engine_15matching_engine_14MatchingEngine_7generator1
  *             transfer = {
  *                 "from_user": from_user,             # <<<<<<<<<<<<<<
  *                 "to_user": to_user,
- *                 "asset": asset,
+ *                 "asset_id": asset_id,
  */
     __pyx_t_2 = __Pyx_PyDict_NewPresized(4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 32, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -4183,7 +4183,7 @@ static PyObject *__pyx_gb_6engine_15matching_engine_14MatchingEngine_7generator1
  *             transfer = {
  *                 "from_user": from_user,
  *                 "to_user": to_user,             # <<<<<<<<<<<<<<
- *                 "asset": asset,
+ *                 "asset_id": asset_id,
  *                 "amount": amount
  */
     if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_to_user, __pyx_cur_scope->__pyx_v_to_user) < 0) __PYX_ERR(0, 32, __pyx_L1_error)
@@ -4191,15 +4191,15 @@ static PyObject *__pyx_gb_6engine_15matching_engine_14MatchingEngine_7generator1
     /* "engine/matching_engine.pyx":34
  *                 "from_user": from_user,
  *                 "to_user": to_user,
- *                 "asset": asset,             # <<<<<<<<<<<<<<
+ *                 "asset_id": asset_id,             # <<<<<<<<<<<<<<
  *                 "amount": amount
  *             }
  */
-    if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_asset, __pyx_cur_scope->__pyx_v_asset) < 0) __PYX_ERR(0, 32, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_asset_id, __pyx_cur_scope->__pyx_v_asset_id) < 0) __PYX_ERR(0, 32, __pyx_L1_error)
 
     /* "engine/matching_engine.pyx":35
  *                 "to_user": to_user,
- *                 "asset": asset,
+ *                 "asset_id": asset_id,
  *                 "amount": amount             # <<<<<<<<<<<<<<
  *             }
  *             await self.post_wallet_transfer_prod.send_wallet_update(transfer)
@@ -4304,7 +4304,7 @@ static PyObject *__pyx_gb_6engine_15matching_engine_14MatchingEngine_7generator1
 
     /* "engine/matching_engine.pyx":30
  * 
- *     async def send_wallet_transfer(self, from_user, to_user, asset, amount):
+ *     async def send_wallet_transfer(self, from_user, to_user, asset_id, amount):
  *         if self.post_wallet_transfer_prod:             # <<<<<<<<<<<<<<
  *             transfer = {
  *                 "from_user": from_user,
@@ -4315,7 +4315,7 @@ static PyObject *__pyx_gb_6engine_15matching_engine_14MatchingEngine_7generator1
   /* "engine/matching_engine.pyx":29
  *             logger.info(f" SENT ORDER STATUS: {message}")
  * 
- *     async def send_wallet_transfer(self, from_user, to_user, asset, amount):             # <<<<<<<<<<<<<<
+ *     async def send_wallet_transfer(self, from_user, to_user, asset_id, amount):             # <<<<<<<<<<<<<<
  *         if self.post_wallet_transfer_prod:
  *             transfer = {
  */
@@ -5065,8 +5065,8 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
   struct __pyx_obj_6engine_5order_Order *__pyx_v_best_sell = 0;
   int __pyx_v_trade_qty;
   int __pyx_v_trade_value;
-  PyObject *__pyx_v_base_asset = 0;
-  PyObject *__pyx_v_quote_asset = 0;
+  int __pyx_v_base_asset_id;
+  int __pyx_v_quote_asset_id;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   int __pyx_t_2;
@@ -5090,7 +5090,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
   __Pyx_RefNannySetupContext("match_orders", 1);
 
   /* "engine/matching_engine.pyx":64
- *         cdef str quote_asset
+ *         cdef int quote_asset_id
  * 
  *         while True:             # <<<<<<<<<<<<<<
  *             best_buy = order_book.get_best_buy()
@@ -5171,7 +5171,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
  * 
  *             trade_qty = min(best_buy.qty, best_sell.qty)             # <<<<<<<<<<<<<<
  *             trade_value = trade_qty * best_sell.price
- *             base_asset = best_buy.order_ticker
+ *             base_asset_id = best_buy.order_asset_id
  */
     __pyx_t_5 = __pyx_v_best_sell->qty;
     __pyx_t_6 = __pyx_v_best_buy->qty;
@@ -5187,37 +5187,33 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
  * 
  *             trade_qty = min(best_buy.qty, best_sell.qty)
  *             trade_value = trade_qty * best_sell.price             # <<<<<<<<<<<<<<
- *             base_asset = best_buy.order_ticker
- *             quote_asset = best_buy.payment_ticker
+ *             base_asset_id = best_buy.order_asset_id
+ *             quote_asset_id = best_buy.payment_asset_id
  */
     __pyx_v_trade_value = (__pyx_v_trade_qty * __pyx_v_best_sell->price);
 
     /* "engine/matching_engine.pyx":73
  *             trade_qty = min(best_buy.qty, best_sell.qty)
  *             trade_value = trade_qty * best_sell.price
- *             base_asset = best_buy.order_ticker             # <<<<<<<<<<<<<<
- *             quote_asset = best_buy.payment_ticker
+ *             base_asset_id = best_buy.order_asset_id             # <<<<<<<<<<<<<<
+ *             quote_asset_id = best_buy.payment_asset_id
  * 
  */
-    __pyx_t_1 = __pyx_v_best_buy->order_ticker;
-    __Pyx_INCREF(__pyx_t_1);
-    __Pyx_XDECREF_SET(__pyx_v_base_asset, ((PyObject*)__pyx_t_1));
-    __pyx_t_1 = 0;
+    __pyx_t_7 = __pyx_v_best_buy->order_asset_id;
+    __pyx_v_base_asset_id = __pyx_t_7;
 
     /* "engine/matching_engine.pyx":74
  *             trade_value = trade_qty * best_sell.price
- *             base_asset = best_buy.order_ticker
- *             quote_asset = best_buy.payment_ticker             # <<<<<<<<<<<<<<
+ *             base_asset_id = best_buy.order_asset_id
+ *             quote_asset_id = best_buy.payment_asset_id             # <<<<<<<<<<<<<<
  * 
  *             best_buy.qty -= trade_qty
  */
-    __pyx_t_1 = __pyx_v_best_buy->payment_ticker;
-    __Pyx_INCREF(__pyx_t_1);
-    __Pyx_XDECREF_SET(__pyx_v_quote_asset, ((PyObject*)__pyx_t_1));
-    __pyx_t_1 = 0;
+    __pyx_t_7 = __pyx_v_best_buy->payment_asset_id;
+    __pyx_v_quote_asset_id = __pyx_t_7;
 
     /* "engine/matching_engine.pyx":76
- *             quote_asset = best_buy.payment_ticker
+ *             quote_asset_id = best_buy.payment_asset_id
  * 
  *             best_buy.qty -= trade_qty             # <<<<<<<<<<<<<<
  *             best_sell.qty -= trade_qty
@@ -5230,14 +5226,14 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
  *             best_buy.qty -= trade_qty
  *             best_sell.qty -= trade_qty             # <<<<<<<<<<<<<<
  * 
- *             logger.info(f" TRADE EXECUTED: {trade_qty} {base_asset} @ {best_sell.price} {quote_asset}")
+ *             logger.info(f" TRADE EXECUTED: {trade_qty} {base_asset_id} @ {best_sell.price} {quote_asset_id}")
  */
     __pyx_v_best_sell->qty = (__pyx_v_best_sell->qty - __pyx_v_trade_qty);
 
     /* "engine/matching_engine.pyx":79
  *             best_sell.qty -= trade_qty
  * 
- *             logger.info(f" TRADE EXECUTED: {trade_qty} {base_asset} @ {best_sell.price} {quote_asset}")             # <<<<<<<<<<<<<<
+ *             logger.info(f" TRADE EXECUTED: {trade_qty} {base_asset_id} @ {best_sell.price} {quote_asset_id}")             # <<<<<<<<<<<<<<
  * 
  *             asyncio.create_task(self.send_wallet_transfer(
  */
@@ -5265,9 +5261,8 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
     __pyx_t_10 += 1;
     __Pyx_GIVEREF(__pyx_kp_u__4);
     PyTuple_SET_ITEM(__pyx_t_8, 2, __pyx_kp_u__4);
-    __pyx_t_12 = __Pyx_PyUnicode_Unicode(__pyx_v_base_asset); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 79, __pyx_L1_error)
+    __pyx_t_12 = __Pyx_PyUnicode_From_int(__pyx_v_base_asset_id, 0, ' ', 'd'); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 79, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_12);
-    __pyx_t_11 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_12) > __pyx_t_11) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_12) : __pyx_t_11;
     __pyx_t_10 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_12);
     __Pyx_GIVEREF(__pyx_t_12);
     PyTuple_SET_ITEM(__pyx_t_8, 3, __pyx_t_12);
@@ -5286,9 +5281,8 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
     __pyx_t_10 += 1;
     __Pyx_GIVEREF(__pyx_kp_u__4);
     PyTuple_SET_ITEM(__pyx_t_8, 6, __pyx_kp_u__4);
-    __pyx_t_12 = __Pyx_PyUnicode_Unicode(__pyx_v_quote_asset); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 79, __pyx_L1_error)
+    __pyx_t_12 = __Pyx_PyUnicode_From_int(__pyx_v_quote_asset_id, 0, ' ', 'd'); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 79, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_12);
-    __pyx_t_11 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_12) > __pyx_t_11) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_12) : __pyx_t_11;
     __pyx_t_10 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_12);
     __Pyx_GIVEREF(__pyx_t_12);
     PyTuple_SET_ITEM(__pyx_t_8, 7, __pyx_t_12);
@@ -5322,7 +5316,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
     /* "engine/matching_engine.pyx":81
- *             logger.info(f" TRADE EXECUTED: {trade_qty} {base_asset} @ {best_sell.price} {quote_asset}")
+ *             logger.info(f" TRADE EXECUTED: {trade_qty} {base_asset_id} @ {best_sell.price} {quote_asset_id}")
  * 
  *             asyncio.create_task(self.send_wallet_transfer(             # <<<<<<<<<<<<<<
  *                 from_user=best_buy.user_id,
@@ -5341,7 +5335,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
  *             asyncio.create_task(self.send_wallet_transfer(
  *                 from_user=best_buy.user_id,             # <<<<<<<<<<<<<<
  *                 to_user=best_sell.user_id,
- *                 asset=quote_asset,
+ *                 asset_id=quote_asset_id,
  */
     __pyx_t_8 = __Pyx_PyDict_NewPresized(4); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 82, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
@@ -5354,7 +5348,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
  *             asyncio.create_task(self.send_wallet_transfer(
  *                 from_user=best_buy.user_id,
  *                 to_user=best_sell.user_id,             # <<<<<<<<<<<<<<
- *                 asset=quote_asset,
+ *                 asset_id=quote_asset_id,
  *                 amount=trade_value
  */
     __pyx_t_14 = __Pyx_PyInt_From_int(__pyx_v_best_sell->user_id); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 83, __pyx_L1_error)
@@ -5365,15 +5359,18 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
     /* "engine/matching_engine.pyx":84
  *                 from_user=best_buy.user_id,
  *                 to_user=best_sell.user_id,
- *                 asset=quote_asset,             # <<<<<<<<<<<<<<
+ *                 asset_id=quote_asset_id,             # <<<<<<<<<<<<<<
  *                 amount=trade_value
  *             ))
  */
-    if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_asset, __pyx_v_quote_asset) < 0) __PYX_ERR(0, 82, __pyx_L1_error)
+    __pyx_t_14 = __Pyx_PyInt_From_int(__pyx_v_quote_asset_id); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 84, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_asset_id, __pyx_t_14) < 0) __PYX_ERR(0, 82, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
 
     /* "engine/matching_engine.pyx":85
  *                 to_user=best_sell.user_id,
- *                 asset=quote_asset,
+ *                 asset_id=quote_asset_id,
  *                 amount=trade_value             # <<<<<<<<<<<<<<
  *             ))
  *             asyncio.create_task(self.send_wallet_transfer(
@@ -5384,7 +5381,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
     __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
 
     /* "engine/matching_engine.pyx":81
- *             logger.info(f" TRADE EXECUTED: {trade_qty} {base_asset} @ {best_sell.price} {quote_asset}")
+ *             logger.info(f" TRADE EXECUTED: {trade_qty} {base_asset_id} @ {best_sell.price} {quote_asset_id}")
  * 
  *             asyncio.create_task(self.send_wallet_transfer(             # <<<<<<<<<<<<<<
  *                 from_user=best_buy.user_id,
@@ -5439,7 +5436,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
  *             asyncio.create_task(self.send_wallet_transfer(
  *                 from_user=best_sell.user_id,             # <<<<<<<<<<<<<<
  *                 to_user=best_buy.user_id,
- *                 asset=base_asset,
+ *                 asset_id=base_asset_id,
  */
     __pyx_t_8 = __Pyx_PyDict_NewPresized(4); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 88, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
@@ -5452,7 +5449,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
  *             asyncio.create_task(self.send_wallet_transfer(
  *                 from_user=best_sell.user_id,
  *                 to_user=best_buy.user_id,             # <<<<<<<<<<<<<<
- *                 asset=base_asset,
+ *                 asset_id=base_asset_id,
  *                 amount=trade_qty
  */
     __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_best_buy->user_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 89, __pyx_L1_error)
@@ -5463,15 +5460,18 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
     /* "engine/matching_engine.pyx":90
  *                 from_user=best_sell.user_id,
  *                 to_user=best_buy.user_id,
- *                 asset=base_asset,             # <<<<<<<<<<<<<<
+ *                 asset_id=base_asset_id,             # <<<<<<<<<<<<<<
  *                 amount=trade_qty
  *             ))
  */
-    if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_asset, __pyx_v_base_asset) < 0) __PYX_ERR(0, 88, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_base_asset_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 90, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_9);
+    if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_asset_id, __pyx_t_9) < 0) __PYX_ERR(0, 88, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
     /* "engine/matching_engine.pyx":91
  *                 to_user=best_buy.user_id,
- *                 asset=base_asset,
+ *                 asset_id=base_asset_id,
  *                 amount=trade_qty             # <<<<<<<<<<<<<<
  *             ))
  * 
@@ -5879,8 +5879,6 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_match_orders(stru
   __pyx_L0:;
   __Pyx_XDECREF((PyObject *)__pyx_v_best_buy);
   __Pyx_XDECREF((PyObject *)__pyx_v_best_sell);
-  __Pyx_XDECREF(__pyx_v_base_asset);
-  __Pyx_XDECREF(__pyx_v_quote_asset);
   __Pyx_RefNannyFinishContext();
 }
 
@@ -5898,8 +5896,8 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
   struct __pyx_obj_6engine_5order_Order *__pyx_v_best_order = 0;
   int __pyx_v_trade_qty;
   int __pyx_v_trade_value;
-  PyObject *__pyx_v_base_asset = 0;
-  PyObject *__pyx_v_quote_asset = 0;
+  int __pyx_v_base_asset_id;
+  int __pyx_v_quote_asset_id;
   PyObject *__pyx_v_ticker_pair = 0;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -5918,13 +5916,14 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
   int __pyx_t_14;
   int __pyx_t_15;
   PyObject *__pyx_t_16 = NULL;
+  PyObject *__pyx_t_17 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("execute_market_order", 1);
 
   /* "engine/matching_engine.pyx":115
- *         cdef str quote_asset
+ *         cdef int quote_asset_id
  * 
  *         cdef str ticker_pair = f"{order.order_ticker}/{order.payment_ticker}"             # <<<<<<<<<<<<<<
  * 
@@ -6292,7 +6291,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
  *             asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "cancelled"))
  *             return             # <<<<<<<<<<<<<<
  * 
- *         while order.qty > 0 and orders:
+ *         base_asset_id = order.order_asset_id
  */
     goto __pyx_L0;
 
@@ -6307,6 +6306,26 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
 
   /* "engine/matching_engine.pyx":130
  *             return
+ * 
+ *         base_asset_id = order.order_asset_id             # <<<<<<<<<<<<<<
+ *         quote_asset_id = order.payment_asset_id
+ * 
+ */
+  __pyx_t_13 = __pyx_v_order->order_asset_id;
+  __pyx_v_base_asset_id = __pyx_t_13;
+
+  /* "engine/matching_engine.pyx":131
+ * 
+ *         base_asset_id = order.order_asset_id
+ *         quote_asset_id = order.payment_asset_id             # <<<<<<<<<<<<<<
+ * 
+ *         while order.qty > 0 and orders:
+ */
+  __pyx_t_13 = __pyx_v_order->payment_asset_id;
+  __pyx_v_quote_asset_id = __pyx_t_13;
+
+  /* "engine/matching_engine.pyx":133
+ *         quote_asset_id = order.payment_asset_id
  * 
  *         while order.qty > 0 and orders:             # <<<<<<<<<<<<<<
  *             best_order = orders[0]
@@ -6324,7 +6343,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __pyx_L7_bool_binop_done:;
     if (!__pyx_t_12) break;
 
-    /* "engine/matching_engine.pyx":131
+    /* "engine/matching_engine.pyx":134
  * 
  *         while order.qty > 0 and orders:
  *             best_order = orders[0]             # <<<<<<<<<<<<<<
@@ -6333,20 +6352,20 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
  */
     if (unlikely(__pyx_v_orders == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-      __PYX_ERR(0, 131, __pyx_L1_error)
+      __PYX_ERR(0, 134, __pyx_L1_error)
     }
-    __pyx_t_4 = __Pyx_GetItemInt_List(__pyx_v_orders, 0, long, 1, __Pyx_PyInt_From_long, 1, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 131, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetItemInt_List(__pyx_v_orders, 0, long, 1, __Pyx_PyInt_From_long, 1, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 134, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_6engine_5order_Order))))) __PYX_ERR(0, 131, __pyx_L1_error)
+    if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_6engine_5order_Order))))) __PYX_ERR(0, 134, __pyx_L1_error)
     __Pyx_XDECREF_SET(__pyx_v_best_order, ((struct __pyx_obj_6engine_5order_Order *)__pyx_t_4));
     __pyx_t_4 = 0;
 
-    /* "engine/matching_engine.pyx":133
+    /* "engine/matching_engine.pyx":136
  *             best_order = orders[0]
  * 
  *             trade_qty = min(order.qty, best_order.qty)             # <<<<<<<<<<<<<<
  *             trade_value = trade_qty * best_order.price
- *             base_asset = order.order_ticker
+ * 
  */
     __pyx_t_13 = __pyx_v_best_order->qty;
     __pyx_t_14 = __pyx_v_order->qty;
@@ -6358,41 +6377,17 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     }
     __pyx_v_trade_qty = __pyx_t_15;
 
-    /* "engine/matching_engine.pyx":134
+    /* "engine/matching_engine.pyx":137
  * 
  *             trade_qty = min(order.qty, best_order.qty)
  *             trade_value = trade_qty * best_order.price             # <<<<<<<<<<<<<<
- *             base_asset = order.order_ticker
- *             quote_asset = order.payment_ticker
- */
-    __pyx_v_trade_value = (__pyx_v_trade_qty * __pyx_v_best_order->price);
-
-    /* "engine/matching_engine.pyx":135
- *             trade_qty = min(order.qty, best_order.qty)
- *             trade_value = trade_qty * best_order.price
- *             base_asset = order.order_ticker             # <<<<<<<<<<<<<<
- *             quote_asset = order.payment_ticker
- * 
- */
-    __pyx_t_4 = __pyx_v_order->order_ticker;
-    __Pyx_INCREF(__pyx_t_4);
-    __Pyx_XDECREF_SET(__pyx_v_base_asset, ((PyObject*)__pyx_t_4));
-    __pyx_t_4 = 0;
-
-    /* "engine/matching_engine.pyx":136
- *             trade_value = trade_qty * best_order.price
- *             base_asset = order.order_ticker
- *             quote_asset = order.payment_ticker             # <<<<<<<<<<<<<<
  * 
  *             order.qty -= trade_qty
  */
-    __pyx_t_4 = __pyx_v_order->payment_ticker;
-    __Pyx_INCREF(__pyx_t_4);
-    __Pyx_XDECREF_SET(__pyx_v_quote_asset, ((PyObject*)__pyx_t_4));
-    __pyx_t_4 = 0;
+    __pyx_v_trade_value = (__pyx_v_trade_qty * __pyx_v_best_order->price);
 
-    /* "engine/matching_engine.pyx":138
- *             quote_asset = order.payment_ticker
+    /* "engine/matching_engine.pyx":139
+ *             trade_value = trade_qty * best_order.price
  * 
  *             order.qty -= trade_qty             # <<<<<<<<<<<<<<
  *             best_order.qty -= trade_qty
@@ -6400,7 +6395,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
  */
     __pyx_v_order->qty = (__pyx_v_order->qty - __pyx_v_trade_qty);
 
-    /* "engine/matching_engine.pyx":139
+    /* "engine/matching_engine.pyx":140
  * 
  *             order.qty -= trade_qty
  *             best_order.qty -= trade_qty             # <<<<<<<<<<<<<<
@@ -6409,27 +6404,27 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
  */
     __pyx_v_best_order->qty = (__pyx_v_best_order->qty - __pyx_v_trade_qty);
 
-    /* "engine/matching_engine.pyx":141
+    /* "engine/matching_engine.pyx":142
  *             best_order.qty -= trade_qty
  * 
  *             logger.info(             # <<<<<<<<<<<<<<
- *                 f" MARKET MATCH: {trade_qty} {base_asset} @ {best_order.price} {quote_asset} "
+ *                 f" MARKET MATCH: {trade_qty} {base_asset_id} @ {best_order.price} {quote_asset_id} "
  *                 f"[order_id={order.order_id}  {best_order.order_id}]"
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_logger); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_logger); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 142, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_info); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 141, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_info); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 142, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "engine/matching_engine.pyx":142
+    /* "engine/matching_engine.pyx":143
  * 
  *             logger.info(
- *                 f" MARKET MATCH: {trade_qty} {base_asset} @ {best_order.price} {quote_asset} "             # <<<<<<<<<<<<<<
+ *                 f" MARKET MATCH: {trade_qty} {base_asset_id} @ {best_order.price} {quote_asset_id} "             # <<<<<<<<<<<<<<
  *                 f"[order_id={order.order_id}  {best_order.order_id}]"
  *             )
  */
-    __pyx_t_1 = PyTuple_New(13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 142, __pyx_L1_error)
+    __pyx_t_1 = PyTuple_New(13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_2 = 0;
     __pyx_t_3 = 127;
@@ -6438,7 +6433,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __pyx_t_2 += 16;
     __Pyx_GIVEREF(__pyx_kp_u_MARKET_MATCH);
     PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_kp_u_MARKET_MATCH);
-    __pyx_t_7 = __Pyx_PyUnicode_From_int(__pyx_v_trade_qty, 0, ' ', 'd'); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 142, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyUnicode_From_int(__pyx_v_trade_qty, 0, ' ', 'd'); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __pyx_t_2 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_7);
@@ -6448,9 +6443,8 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __pyx_t_2 += 1;
     __Pyx_GIVEREF(__pyx_kp_u__4);
     PyTuple_SET_ITEM(__pyx_t_1, 2, __pyx_kp_u__4);
-    __pyx_t_7 = __Pyx_PyUnicode_Unicode(__pyx_v_base_asset); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 142, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyUnicode_From_int(__pyx_v_base_asset_id, 0, ' ', 'd'); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_3 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_7) > __pyx_t_3) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_7) : __pyx_t_3;
     __pyx_t_2 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_1, 3, __pyx_t_7);
@@ -6459,7 +6453,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __pyx_t_2 += 3;
     __Pyx_GIVEREF(__pyx_kp_u__5);
     PyTuple_SET_ITEM(__pyx_t_1, 4, __pyx_kp_u__5);
-    __pyx_t_7 = __Pyx_PyUnicode_From_int(__pyx_v_best_order->price, 0, ' ', 'd'); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 142, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyUnicode_From_int(__pyx_v_best_order->price, 0, ' ', 'd'); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __pyx_t_2 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_7);
@@ -6469,9 +6463,8 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __pyx_t_2 += 1;
     __Pyx_GIVEREF(__pyx_kp_u__4);
     PyTuple_SET_ITEM(__pyx_t_1, 6, __pyx_kp_u__4);
-    __pyx_t_7 = __Pyx_PyUnicode_Unicode(__pyx_v_quote_asset); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 142, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyUnicode_From_int(__pyx_v_quote_asset_id, 0, ' ', 'd'); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_3 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_7) > __pyx_t_3) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_7) : __pyx_t_3;
     __pyx_t_2 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_1, 7, __pyx_t_7);
@@ -6481,14 +6474,14 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __Pyx_GIVEREF(__pyx_kp_u_order_id_2);
     PyTuple_SET_ITEM(__pyx_t_1, 8, __pyx_kp_u_order_id_2);
 
-    /* "engine/matching_engine.pyx":143
+    /* "engine/matching_engine.pyx":144
  *             logger.info(
- *                 f" MARKET MATCH: {trade_qty} {base_asset} @ {best_order.price} {quote_asset} "
+ *                 f" MARKET MATCH: {trade_qty} {base_asset_id} @ {best_order.price} {quote_asset_id} "
  *                 f"[order_id={order.order_id}  {best_order.order_id}]"             # <<<<<<<<<<<<<<
  *             )
  * 
  */
-    __pyx_t_7 = __Pyx_PyUnicode_From_int(__pyx_v_order->order_id, 0, ' ', 'd'); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 143, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyUnicode_From_int(__pyx_v_order->order_id, 0, ' ', 'd'); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 144, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __pyx_t_2 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_7);
@@ -6499,7 +6492,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __pyx_t_2 += 3;
     __Pyx_GIVEREF(__pyx_kp_u__6);
     PyTuple_SET_ITEM(__pyx_t_1, 10, __pyx_kp_u__6);
-    __pyx_t_7 = __Pyx_PyUnicode_From_int(__pyx_v_best_order->order_id, 0, ' ', 'd'); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 143, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyUnicode_From_int(__pyx_v_best_order->order_id, 0, ' ', 'd'); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 144, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __pyx_t_2 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_7);
@@ -6510,14 +6503,14 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __Pyx_GIVEREF(__pyx_kp_u__7);
     PyTuple_SET_ITEM(__pyx_t_1, 12, __pyx_kp_u__7);
 
-    /* "engine/matching_engine.pyx":142
+    /* "engine/matching_engine.pyx":143
  * 
  *             logger.info(
- *                 f" MARKET MATCH: {trade_qty} {base_asset} @ {best_order.price} {quote_asset} "             # <<<<<<<<<<<<<<
+ *                 f" MARKET MATCH: {trade_qty} {base_asset_id} @ {best_order.price} {quote_asset_id} "             # <<<<<<<<<<<<<<
  *                 f"[order_id={order.order_id}  {best_order.order_id}]"
  *             )
  */
-    __pyx_t_7 = __Pyx_PyUnicode_Join(__pyx_t_1, 13, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 142, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyUnicode_Join(__pyx_t_1, 13, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_1 = NULL;
@@ -6539,50 +6532,52 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
       __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_6, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
       __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 141, __pyx_L1_error)
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 142, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "engine/matching_engine.pyx":146
+    /* "engine/matching_engine.pyx":147
  *             )
  * 
  *             if order.direction == "buy":             # <<<<<<<<<<<<<<
- *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset, trade_value))
- *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset, trade_qty))
+ *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset_id, trade_value))
+ *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset_id, trade_qty))
  */
-    __pyx_t_12 = (__Pyx_PyUnicode_Equals(__pyx_v_order->direction, __pyx_n_u_buy, Py_EQ)); if (unlikely((__pyx_t_12 < 0))) __PYX_ERR(0, 146, __pyx_L1_error)
+    __pyx_t_12 = (__Pyx_PyUnicode_Equals(__pyx_v_order->direction, __pyx_n_u_buy, Py_EQ)); if (unlikely((__pyx_t_12 < 0))) __PYX_ERR(0, 147, __pyx_L1_error)
     if (__pyx_t_12) {
 
-      /* "engine/matching_engine.pyx":147
+      /* "engine/matching_engine.pyx":148
  * 
  *             if order.direction == "buy":
- *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset, trade_value))             # <<<<<<<<<<<<<<
- *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset, trade_qty))
+ *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset_id, trade_value))             # <<<<<<<<<<<<<<
+ *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset_id, trade_qty))
  *             else:
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 147, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 148, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_create_task); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 147, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_create_task); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 148, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_wallet_transfer); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 147, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_wallet_transfer); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 148, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 147, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 148, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_best_order->user_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 147, __pyx_L1_error)
+      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_best_order->user_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 148, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_trade_value); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 147, __pyx_L1_error)
+      __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_quote_asset_id); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 148, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_16 = NULL;
+      __pyx_t_16 = __Pyx_PyInt_From_int(__pyx_v_trade_value); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 148, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __pyx_t_17 = NULL;
       __pyx_t_8 = 0;
       #if CYTHON_UNPACK_METHODS
       if (likely(PyMethod_Check(__pyx_t_1))) {
-        __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_1);
-        if (likely(__pyx_t_16)) {
+        __pyx_t_17 = PyMethod_GET_SELF(__pyx_t_1);
+        if (likely(__pyx_t_17)) {
           PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-          __Pyx_INCREF(__pyx_t_16);
+          __Pyx_INCREF(__pyx_t_17);
           __Pyx_INCREF(function);
           __Pyx_DECREF_SET(__pyx_t_1, function);
           __pyx_t_8 = 1;
@@ -6590,13 +6585,14 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
       }
       #endif
       {
-        PyObject *__pyx_callargs[5] = {__pyx_t_16, __pyx_t_9, __pyx_t_10, __pyx_v_quote_asset, __pyx_t_11};
+        PyObject *__pyx_callargs[5] = {__pyx_t_17, __pyx_t_9, __pyx_t_10, __pyx_t_11, __pyx_t_16};
         __pyx_t_6 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_8, 4+__pyx_t_8);
-        __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
+        __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-        if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 147, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+        if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 148, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       }
@@ -6619,40 +6615,42 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
         __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_7, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 147, __pyx_L1_error)
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 148, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "engine/matching_engine.pyx":148
+      /* "engine/matching_engine.pyx":149
  *             if order.direction == "buy":
- *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset, trade_value))
- *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset, trade_qty))             # <<<<<<<<<<<<<<
+ *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset_id, trade_value))
+ *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset_id, trade_qty))             # <<<<<<<<<<<<<<
  *             else:
- *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, base_asset, trade_qty))
+ *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, base_asset_id, trade_qty))
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 148, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 149, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_create_task); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 148, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_create_task); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 149, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_wallet_transfer); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 148, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_wallet_transfer); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 149, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_best_order->user_id); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 148, __pyx_L1_error)
+      __pyx_t_16 = __Pyx_PyInt_From_int(__pyx_v_best_order->user_id); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 149, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 149, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 148, __pyx_L1_error)
+      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_base_asset_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 149, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_trade_qty); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 148, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_trade_qty); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 149, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_16 = NULL;
+      __pyx_t_17 = NULL;
       __pyx_t_8 = 0;
       #if CYTHON_UNPACK_METHODS
       if (likely(PyMethod_Check(__pyx_t_1))) {
-        __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_1);
-        if (likely(__pyx_t_16)) {
+        __pyx_t_17 = PyMethod_GET_SELF(__pyx_t_1);
+        if (likely(__pyx_t_17)) {
           PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-          __Pyx_INCREF(__pyx_t_16);
+          __Pyx_INCREF(__pyx_t_17);
           __Pyx_INCREF(function);
           __Pyx_DECREF_SET(__pyx_t_1, function);
           __pyx_t_8 = 1;
@@ -6660,13 +6658,14 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
       }
       #endif
       {
-        PyObject *__pyx_callargs[5] = {__pyx_t_16, __pyx_t_11, __pyx_t_10, __pyx_v_base_asset, __pyx_t_9};
+        PyObject *__pyx_callargs[5] = {__pyx_t_17, __pyx_t_16, __pyx_t_11, __pyx_t_10, __pyx_t_9};
         __pyx_t_7 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_8, 4+__pyx_t_8);
-        __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
+        __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
+        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-        if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 148, __pyx_L1_error)
+        if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 149, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       }
@@ -6689,51 +6688,53 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
         __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_6, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 148, __pyx_L1_error)
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 149, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       }
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "engine/matching_engine.pyx":146
+      /* "engine/matching_engine.pyx":147
  *             )
  * 
  *             if order.direction == "buy":             # <<<<<<<<<<<<<<
- *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset, trade_value))
- *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset, trade_qty))
+ *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset_id, trade_value))
+ *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset_id, trade_qty))
  */
       goto __pyx_L9;
     }
 
-    /* "engine/matching_engine.pyx":150
- *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset, trade_qty))
+    /* "engine/matching_engine.pyx":151
+ *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset_id, trade_qty))
  *             else:
- *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, base_asset, trade_qty))             # <<<<<<<<<<<<<<
- *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset, trade_value))
+ *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, base_asset_id, trade_qty))             # <<<<<<<<<<<<<<
+ *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset_id, trade_value))
  * 
  */
     /*else*/ {
-      __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 150, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 151, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_create_task); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 150, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_create_task); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 151, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_wallet_transfer); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_wallet_transfer); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 151, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 150, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 151, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_best_order->user_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 150, __pyx_L1_error)
+      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_best_order->user_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 151, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_trade_qty); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 150, __pyx_L1_error)
+      __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_base_asset_id); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 151, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_16 = NULL;
+      __pyx_t_16 = __Pyx_PyInt_From_int(__pyx_v_trade_qty); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 151, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __pyx_t_17 = NULL;
       __pyx_t_8 = 0;
       #if CYTHON_UNPACK_METHODS
       if (likely(PyMethod_Check(__pyx_t_1))) {
-        __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_1);
-        if (likely(__pyx_t_16)) {
+        __pyx_t_17 = PyMethod_GET_SELF(__pyx_t_1);
+        if (likely(__pyx_t_17)) {
           PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-          __Pyx_INCREF(__pyx_t_16);
+          __Pyx_INCREF(__pyx_t_17);
           __Pyx_INCREF(function);
           __Pyx_DECREF_SET(__pyx_t_1, function);
           __pyx_t_8 = 1;
@@ -6741,13 +6742,14 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
       }
       #endif
       {
-        PyObject *__pyx_callargs[5] = {__pyx_t_16, __pyx_t_9, __pyx_t_10, __pyx_v_base_asset, __pyx_t_11};
+        PyObject *__pyx_callargs[5] = {__pyx_t_17, __pyx_t_9, __pyx_t_10, __pyx_t_11, __pyx_t_16};
         __pyx_t_6 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_8, 4+__pyx_t_8);
-        __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
+        __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-        if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 150, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+        if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 151, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       }
@@ -6770,40 +6772,42 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
         __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_7, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 150, __pyx_L1_error)
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 151, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "engine/matching_engine.pyx":151
+      /* "engine/matching_engine.pyx":152
  *             else:
- *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, base_asset, trade_qty))
- *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset, trade_value))             # <<<<<<<<<<<<<<
+ *                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, base_asset_id, trade_qty))
+ *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset_id, trade_value))             # <<<<<<<<<<<<<<
  * 
  *             if order.qty == 0:
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 151, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 152, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_create_task); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 151, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_create_task); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 152, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_wallet_transfer); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 151, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_wallet_transfer); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 152, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_best_order->user_id); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 151, __pyx_L1_error)
+      __pyx_t_16 = __Pyx_PyInt_From_int(__pyx_v_best_order->user_id); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 152, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 152, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 151, __pyx_L1_error)
+      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_quote_asset_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 152, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_trade_value); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 151, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_trade_value); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 152, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_16 = NULL;
+      __pyx_t_17 = NULL;
       __pyx_t_8 = 0;
       #if CYTHON_UNPACK_METHODS
       if (likely(PyMethod_Check(__pyx_t_1))) {
-        __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_1);
-        if (likely(__pyx_t_16)) {
+        __pyx_t_17 = PyMethod_GET_SELF(__pyx_t_1);
+        if (likely(__pyx_t_17)) {
           PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-          __Pyx_INCREF(__pyx_t_16);
+          __Pyx_INCREF(__pyx_t_17);
           __Pyx_INCREF(function);
           __Pyx_DECREF_SET(__pyx_t_1, function);
           __pyx_t_8 = 1;
@@ -6811,13 +6815,14 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
       }
       #endif
       {
-        PyObject *__pyx_callargs[5] = {__pyx_t_16, __pyx_t_11, __pyx_t_10, __pyx_v_quote_asset, __pyx_t_9};
+        PyObject *__pyx_callargs[5] = {__pyx_t_17, __pyx_t_16, __pyx_t_11, __pyx_t_10, __pyx_t_9};
         __pyx_t_7 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_8, 4+__pyx_t_8);
-        __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
+        __Pyx_XDECREF(__pyx_t_17); __pyx_t_17 = 0;
+        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-        if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 151, __pyx_L1_error)
+        if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 152, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       }
@@ -6840,7 +6845,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
         __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_6, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 151, __pyx_L1_error)
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 152, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       }
@@ -6848,8 +6853,8 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     }
     __pyx_L9:;
 
-    /* "engine/matching_engine.pyx":153
- *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset, trade_value))
+    /* "engine/matching_engine.pyx":154
+ *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset_id, trade_value))
  * 
  *             if order.qty == 0:             # <<<<<<<<<<<<<<
  *                 asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "filled"))
@@ -6858,23 +6863,23 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __pyx_t_12 = (__pyx_v_order->qty == 0);
     if (__pyx_t_12) {
 
-      /* "engine/matching_engine.pyx":154
+      /* "engine/matching_engine.pyx":155
  * 
  *             if order.qty == 0:
  *                 asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "filled"))             # <<<<<<<<<<<<<<
  *             else:
  *                 asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "partially_filled"))
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 155, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_create_task); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 154, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_create_task); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 155, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_order_status); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_order_status); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_order->order_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 154, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_order->order_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 155, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 154, __pyx_L1_error)
+      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 155, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
       __pyx_t_11 = NULL;
       __pyx_t_8 = 0;
@@ -6896,7 +6901,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
         __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-        if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 154, __pyx_L1_error)
+        if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 155, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       }
@@ -6919,14 +6924,14 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
         __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_7, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 154, __pyx_L1_error)
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "engine/matching_engine.pyx":153
- *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset, trade_value))
+      /* "engine/matching_engine.pyx":154
+ *                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset_id, trade_value))
  * 
  *             if order.qty == 0:             # <<<<<<<<<<<<<<
  *                 asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "filled"))
@@ -6935,7 +6940,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
       goto __pyx_L10;
     }
 
-    /* "engine/matching_engine.pyx":156
+    /* "engine/matching_engine.pyx":157
  *                 asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "filled"))
  *             else:
  *                 asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "partially_filled"))             # <<<<<<<<<<<<<<
@@ -6943,16 +6948,16 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
  *             if best_order.qty == 0:
  */
     /*else*/ {
-      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 156, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 157, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_create_task); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 156, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_create_task); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 157, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_order_status); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_order_status); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_order->order_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 156, __pyx_L1_error)
+      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_order->order_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 157, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 156, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 157, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
       __pyx_t_11 = NULL;
       __pyx_t_8 = 0;
@@ -6974,7 +6979,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
         __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-        if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 156, __pyx_L1_error)
+        if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 157, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       }
@@ -6997,7 +7002,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
         __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_6, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error)
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 157, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       }
@@ -7005,7 +7010,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     }
     __pyx_L10:;
 
-    /* "engine/matching_engine.pyx":158
+    /* "engine/matching_engine.pyx":159
  *                 asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "partially_filled"))
  * 
  *             if best_order.qty == 0:             # <<<<<<<<<<<<<<
@@ -7015,23 +7020,23 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __pyx_t_12 = (__pyx_v_best_order->qty == 0);
     if (__pyx_t_12) {
 
-      /* "engine/matching_engine.pyx":159
+      /* "engine/matching_engine.pyx":160
  * 
  *             if best_order.qty == 0:
  *                 asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, "filled"))             # <<<<<<<<<<<<<<
  *                 orders.pop(0)
  *             else:
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 159, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 160, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_create_task); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 159, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_create_task); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 160, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_order_status); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 159, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_order_status); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 160, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_best_order->order_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 159, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_best_order->order_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 160, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_best_order->user_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 159, __pyx_L1_error)
+      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_best_order->user_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 160, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
       __pyx_t_11 = NULL;
       __pyx_t_8 = 0;
@@ -7053,7 +7058,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
         __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-        if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 159, __pyx_L1_error)
+        if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 160, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       }
@@ -7076,13 +7081,13 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
         __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_7, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 159, __pyx_L1_error)
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 160, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "engine/matching_engine.pyx":160
+      /* "engine/matching_engine.pyx":161
  *             if best_order.qty == 0:
  *                 asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, "filled"))
  *                 orders.pop(0)             # <<<<<<<<<<<<<<
@@ -7091,13 +7096,13 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
  */
       if (unlikely(__pyx_v_orders == Py_None)) {
         PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%.30s'", "pop");
-        __PYX_ERR(0, 160, __pyx_L1_error)
+        __PYX_ERR(0, 161, __pyx_L1_error)
       }
-      __pyx_t_4 = __Pyx_PyList_PopIndex(__pyx_v_orders, __pyx_int_0, 0, 1, Py_ssize_t, PyInt_FromSsize_t); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 160, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyList_PopIndex(__pyx_v_orders, __pyx_int_0, 0, 1, Py_ssize_t, PyInt_FromSsize_t); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 161, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "engine/matching_engine.pyx":158
+      /* "engine/matching_engine.pyx":159
  *                 asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "partially_filled"))
  * 
  *             if best_order.qty == 0:             # <<<<<<<<<<<<<<
@@ -7107,7 +7112,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
       goto __pyx_L11;
     }
 
-    /* "engine/matching_engine.pyx":162
+    /* "engine/matching_engine.pyx":163
  *                 orders.pop(0)
  *             else:
  *                 asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, "partially_filled"))             # <<<<<<<<<<<<<<
@@ -7115,16 +7120,16 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
  *         if order.qty > 0:
  */
     /*else*/ {
-      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 162, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 163, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_create_task); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 162, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_create_task); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 163, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_order_status); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 162, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_order_status); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 163, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_best_order->order_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 162, __pyx_L1_error)
+      __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_best_order->order_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 163, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_best_order->user_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 162, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_best_order->user_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 163, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
       __pyx_t_11 = NULL;
       __pyx_t_8 = 0;
@@ -7146,7 +7151,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
         __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-        if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 162, __pyx_L1_error)
+        if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 163, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       }
@@ -7169,7 +7174,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
         __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_6, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 162, __pyx_L1_error)
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 163, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       }
@@ -7178,7 +7183,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __pyx_L11:;
   }
 
-  /* "engine/matching_engine.pyx":164
+  /* "engine/matching_engine.pyx":165
  *                 asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, "partially_filled"))
  * 
  *         if order.qty > 0:             # <<<<<<<<<<<<<<
@@ -7188,18 +7193,18 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
   __pyx_t_12 = (__pyx_v_order->qty > 0);
   if (__pyx_t_12) {
 
-    /* "engine/matching_engine.pyx":165
+    /* "engine/matching_engine.pyx":166
  * 
  *         if order.qty > 0:
  *             logger.warning(f" Market order {order.order_id} partially or fully unfilled. Cancelling remainder.")             # <<<<<<<<<<<<<<
  *             asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "cancelled"))
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_logger); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 165, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_logger); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 166, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_warning); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 165, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_warning); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 166, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = PyTuple_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 165, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 166, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __pyx_t_2 = 0;
     __pyx_t_3 = 127;
@@ -7208,7 +7213,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __pyx_t_2 += __Pyx_PyUnicode_GET_LENGTH(__pyx_kp_u_Market_order);
     __Pyx_GIVEREF(__pyx_kp_u_Market_order);
     PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_kp_u_Market_order);
-    __pyx_t_1 = __Pyx_PyUnicode_From_int(__pyx_v_order->order_id, 0, ' ', 'd'); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 165, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyUnicode_From_int(__pyx_v_order->order_id, 0, ' ', 'd'); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 166, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_2 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_1);
@@ -7218,7 +7223,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
     __pyx_t_2 += 51;
     __Pyx_GIVEREF(__pyx_kp_u_partially_or_fully_unfilled_Can);
     PyTuple_SET_ITEM(__pyx_t_6, 2, __pyx_kp_u_partially_or_fully_unfilled_Can);
-    __pyx_t_1 = __Pyx_PyUnicode_Join(__pyx_t_6, 3, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 165, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyUnicode_Join(__pyx_t_6, 3, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 166, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __pyx_t_6 = NULL;
@@ -7240,27 +7245,27 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
       __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_7, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
       __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 165, __pyx_L1_error)
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 166, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "engine/matching_engine.pyx":166
+    /* "engine/matching_engine.pyx":167
  *         if order.qty > 0:
  *             logger.warning(f" Market order {order.order_id} partially or fully unfilled. Cancelling remainder.")
  *             asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "cancelled"))             # <<<<<<<<<<<<<<
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 166, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_asyncio); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 167, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_create_task); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 166, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_create_task); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 167, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_order_status); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 166, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_send_order_status); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 167, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_order->order_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 166, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_order->order_id); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 167, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 166, __pyx_L1_error)
+    __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_order->user_id); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 167, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __pyx_t_11 = NULL;
     __pyx_t_8 = 0;
@@ -7282,7 +7287,7 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
       __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 166, __pyx_L1_error)
+      if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 167, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     }
@@ -7305,13 +7310,13 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
       __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
       __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 166, __pyx_L1_error)
+      if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 167, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "engine/matching_engine.pyx":164
+    /* "engine/matching_engine.pyx":165
  *                 asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, "partially_filled"))
  * 
  *         if order.qty > 0:             # <<<<<<<<<<<<<<
@@ -7339,13 +7344,12 @@ static void __pyx_f_6engine_15matching_engine_14MatchingEngine_execute_market_or
   __Pyx_XDECREF(__pyx_t_10);
   __Pyx_XDECREF(__pyx_t_11);
   __Pyx_XDECREF(__pyx_t_16);
+  __Pyx_XDECREF(__pyx_t_17);
   __Pyx_AddTraceback("engine.matching_engine.MatchingEngine.execute_market_order", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_L0:;
   __Pyx_XDECREF((PyObject *)__pyx_v_order_book);
   __Pyx_XDECREF(__pyx_v_orders);
   __Pyx_XDECREF((PyObject *)__pyx_v_best_order);
-  __Pyx_XDECREF(__pyx_v_base_asset);
-  __Pyx_XDECREF(__pyx_v_quote_asset);
   __Pyx_XDECREF(__pyx_v_ticker_pair);
   __Pyx_RefNannyFinishContext();
 }
@@ -8637,7 +8641,7 @@ static void __pyx_tp_dealloc_6engine_15matching_engine___pyx_scope_struct_1_send
   #endif
   PyObject_GC_UnTrack(o);
   Py_CLEAR(p->__pyx_v_amount);
-  Py_CLEAR(p->__pyx_v_asset);
+  Py_CLEAR(p->__pyx_v_asset_id);
   Py_CLEAR(p->__pyx_v_from_user);
   Py_CLEAR(p->__pyx_v_self);
   Py_CLEAR(p->__pyx_v_to_user);
@@ -8665,8 +8669,8 @@ static int __pyx_tp_traverse_6engine_15matching_engine___pyx_scope_struct_1_send
   if (p->__pyx_v_amount) {
     e = (*v)(p->__pyx_v_amount, a); if (e) return e;
   }
-  if (p->__pyx_v_asset) {
-    e = (*v)(p->__pyx_v_asset, a); if (e) return e;
+  if (p->__pyx_v_asset_id) {
+    e = (*v)(p->__pyx_v_asset_id, a); if (e) return e;
   }
   if (p->__pyx_v_from_user) {
     e = (*v)(p->__pyx_v_from_user, a); if (e) return e;
@@ -8832,8 +8836,8 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_u_amount, __pyx_k_amount, sizeof(__pyx_k_amount), 0, 1, 0, 1},
     {&__pyx_n_s_args, __pyx_k_args, sizeof(__pyx_k_args), 0, 0, 1, 1},
     {&__pyx_kp_u_asctime_s_levelname_s_message_s, __pyx_k_asctime_s_levelname_s_message_s, sizeof(__pyx_k_asctime_s_levelname_s_message_s), 0, 1, 0, 0},
-    {&__pyx_n_s_asset, __pyx_k_asset, sizeof(__pyx_k_asset), 0, 0, 1, 1},
-    {&__pyx_n_u_asset, __pyx_k_asset, sizeof(__pyx_k_asset), 0, 1, 0, 1},
+    {&__pyx_n_s_asset_id, __pyx_k_asset_id, sizeof(__pyx_k_asset_id), 0, 0, 1, 1},
+    {&__pyx_n_u_asset_id, __pyx_k_asset_id, sizeof(__pyx_k_asset_id), 0, 1, 0, 1},
     {&__pyx_n_s_asyncio, __pyx_k_asyncio, sizeof(__pyx_k_asyncio), 0, 0, 1, 1},
     {&__pyx_n_s_asyncio_coroutines, __pyx_k_asyncio_coroutines, sizeof(__pyx_k_asyncio_coroutines), 0, 0, 1, 1},
     {&__pyx_n_s_asyncio_tasks, __pyx_k_asyncio_tasks, sizeof(__pyx_k_asyncio_tasks), 0, 0, 1, 1},
@@ -8960,11 +8964,11 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "engine/matching_engine.pyx":29
  *             logger.info(f" SENT ORDER STATUS: {message}")
  * 
- *     async def send_wallet_transfer(self, from_user, to_user, asset, amount):             # <<<<<<<<<<<<<<
+ *     async def send_wallet_transfer(self, from_user, to_user, asset_id, amount):             # <<<<<<<<<<<<<<
  *         if self.post_wallet_transfer_prod:
  *             transfer = {
  */
-  __pyx_tuple__12 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_from_user, __pyx_n_s_to_user, __pyx_n_s_asset, __pyx_n_s_amount, __pyx_n_s_transfer); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_tuple__12 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_from_user, __pyx_n_s_to_user, __pyx_n_s_asset_id, __pyx_n_s_amount, __pyx_n_s_transfer); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 29, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
   __pyx_codeobj__2 = (PyObject*)__Pyx_PyCode_New(5, 0, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_COROUTINE, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_engine_matching_engine_pyx, __pyx_n_s_send_wallet_transfer, 29, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__2)) __PYX_ERR(0, 29, __pyx_L1_error)
@@ -9602,7 +9606,7 @@ if (!__Pyx_RefNanny) {
   /* "engine/matching_engine.pyx":29
  *             logger.info(f" SENT ORDER STATUS: {message}")
  * 
- *     async def send_wallet_transfer(self, from_user, to_user, asset, amount):             # <<<<<<<<<<<<<<
+ *     async def send_wallet_transfer(self, from_user, to_user, asset_id, amount):             # <<<<<<<<<<<<<<
  *         if self.post_wallet_transfer_prod:
  *             transfer = {
  */

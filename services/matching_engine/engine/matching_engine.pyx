@@ -26,12 +26,12 @@ cdef class MatchingEngine:
             await self.change_order_status_prod.send_order_update(message)
             logger.info(f"📤 SENT ORDER STATUS: {message}")
 
-    async def send_wallet_transfer(self, from_user, to_user, asset, amount):
+    async def send_wallet_transfer(self, from_user, to_user, asset_id, amount):
         if self.post_wallet_transfer_prod:
             transfer = {
                 "from_user": from_user,
                 "to_user": to_user,
-                "asset": asset,
+                "asset_id": asset_id,
                 "amount": amount
             }
             await self.post_wallet_transfer_prod.send_wallet_update(transfer)
@@ -58,8 +58,8 @@ cdef class MatchingEngine:
         cdef Order best_sell
         cdef int trade_qty
         cdef int trade_value
-        cdef str base_asset
-        cdef str quote_asset
+        cdef int base_asset_id
+        cdef int quote_asset_id
 
         while True:
             best_buy = order_book.get_best_buy()
@@ -70,24 +70,24 @@ cdef class MatchingEngine:
 
             trade_qty = min(best_buy.qty, best_sell.qty)
             trade_value = trade_qty * best_sell.price
-            base_asset = best_buy.order_ticker
-            quote_asset = best_buy.payment_ticker
+            base_asset_id = best_buy.order_asset_id
+            quote_asset_id = best_buy.payment_asset_id
 
             best_buy.qty -= trade_qty
             best_sell.qty -= trade_qty
 
-            logger.info(f"🔄 TRADE EXECUTED: {trade_qty} {base_asset} @ {best_sell.price} {quote_asset}")
+            logger.info(f"🔄 TRADE EXECUTED: {trade_qty} {base_asset_id} @ {best_sell.price} {quote_asset_id}")
 
             asyncio.create_task(self.send_wallet_transfer(
                 from_user=best_buy.user_id,
                 to_user=best_sell.user_id,
-                asset=quote_asset,
+                asset_id=quote_asset_id,
                 amount=trade_value
             ))
             asyncio.create_task(self.send_wallet_transfer(
                 from_user=best_sell.user_id,
                 to_user=best_buy.user_id,
-                asset=base_asset,
+                asset_id=base_asset_id,
                 amount=trade_qty
             ))
 
@@ -109,8 +109,8 @@ cdef class MatchingEngine:
         cdef Order best_order
         cdef int trade_qty
         cdef int trade_value
-        cdef str base_asset
-        cdef str quote_asset
+        cdef int base_asset_id
+        cdef int quote_asset_id
 
         cdef str ticker_pair = f"{order.order_ticker}/{order.payment_ticker}"
 
@@ -127,28 +127,29 @@ cdef class MatchingEngine:
             asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "cancelled"))
             return
 
+        base_asset_id = order.order_asset_id
+        quote_asset_id = order.payment_asset_id
+
         while order.qty > 0 and orders:
             best_order = orders[0]
 
             trade_qty = min(order.qty, best_order.qty)
             trade_value = trade_qty * best_order.price
-            base_asset = order.order_ticker
-            quote_asset = order.payment_ticker
 
             order.qty -= trade_qty
             best_order.qty -= trade_qty
 
             logger.info(
-                f"✅ MARKET MATCH: {trade_qty} {base_asset} @ {best_order.price} {quote_asset} "
+                f"✅ MARKET MATCH: {trade_qty} {base_asset_id} @ {best_order.price} {quote_asset_id} "
                 f"[order_id={order.order_id} ⇄ {best_order.order_id}]"
             )
 
             if order.direction == "buy":
-                asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset, trade_value))
-                asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset, trade_qty))
+                asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset_id, trade_value))
+                asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset_id, trade_qty))
             else:
-                asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, base_asset, trade_qty))
-                asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset, trade_value))
+                asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, base_asset_id, trade_qty))
+                asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset_id, trade_value))
 
             if order.qty == 0:
                 asyncio.create_task(self.send_order_status(order.order_id, order.user_id, "filled"))
