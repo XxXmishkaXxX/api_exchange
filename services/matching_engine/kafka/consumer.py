@@ -39,16 +39,20 @@ class KafkaConsumerService:
                     status=data["status"],
                     type=data["type"],
                     direction=data["direction"],
-                    ticker_id=int(data["ticker_id"]),
-                    price=float(data["price"]) if "price" in data and data["price"] is not None else 0.0,
-                    qty=float(data["qty"])
+                    order_asset_id=int(data["order_asset_id"]),
+                    order_ticker=str(data["order_ticker"]),
+                    payment_ticker=str(data["payment_ticker"]),
+                    payment_asset_id=int(data["payment_asset_id"]),
+                    price=int(data["price"]) if data["price"] is not None else 0,
+                    qty=int(data["qty"])
                 )
 
                 self.engine.add_order(order)
             else:
                 self.engine.cancel_order(data["order_id"],
-                                         data["direction"],
-                                         data["ticker_id"])
+                                        data["direction"],
+                                        data["ticker"],
+                                        data["payment_ticker"])
 
         except Exception as e:
             logger.error(f"⚠️ Error processing order: {e}")

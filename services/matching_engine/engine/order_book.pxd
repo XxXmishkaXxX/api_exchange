@@ -2,7 +2,7 @@
 from engine.order cimport Order
 
 cdef class OrderBook:
-    cdef int ticker_id
+    cdef str ticker_pair_name
     cdef list buy_orders
     cdef list sell_orders
 
