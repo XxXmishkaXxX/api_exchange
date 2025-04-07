@@ -4,6 +4,9 @@ cdef class Order:
     cdef public str status
     cdef public str type
     cdef public str direction
-    cdef public int ticker_id
-    cdef public double price
-    cdef public double qty
+    cdef public int order_asset_id
+    cdef public int payment_asset_id
+    cdef public str order_ticker
+    cdef public str payment_ticker
+    cdef public int price
+    cdef public int qty

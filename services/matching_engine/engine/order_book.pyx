@@ -5,8 +5,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 cdef class OrderBook:
-    def __init__(self, int ticker_id):
-        self.ticker_id = ticker_id
+    def __init__(self, str ticker_pair_name):
+        self.ticker_pair_name = ticker_pair_name
         self.buy_orders = []
         self.sell_orders = []
 
