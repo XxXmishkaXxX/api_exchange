@@ -5,7 +5,9 @@ from app.core.config import settings
 from app.core.logger import logger
 from app.db.database import get_db, redis_pool
 from app.models.asset import Asset
-from app.repositories.asset_repo import AssetRepository 
+from app.models.wallet import  UserAssetBalance
+from app.repositories.asset_repo import AssetRepository
+from app.repositories.wallet_repo import WalletRepository 
 
 
 class BaseKafkaConsumerService:
@@ -56,6 +58,12 @@ class BaseKafkaConsumerService:
         """
         raise NotImplementedError("Метод process_message должен быть реализован в наследниках")
 
+    async def log_message(self, action: str, **kwargs):
+        """
+        Логирует информацию о сообщении.
+        """
+        logger.info(f"{action}: {kwargs}")
+
 
 # class ChangeAssetsConsumer(BaseKafkaConsumerService):
 
@@ -67,90 +75,115 @@ class BaseKafkaConsumerService:
 #         pass
 
 
-# class LockAssetsConsumer(BaseKafkaConsumerService):
-
-#     def __init__(self, topic: str, bootstrap_servers: str,):
-#         super().__init__(topic, bootstrap_servers)
-
-
-#     async def process_message(self, message):
-#         pass
-
-
-class AssetConsumer(BaseKafkaConsumerService):
+class LockAssetsConsumer(BaseKafkaConsumerService):
     def __init__(self, topic: str, bootstrap_servers: str, group_id: str):
         super().__init__(topic, bootstrap_servers, group_id)
 
     async def process_message(self, message):
-        """Обрабатываем сообщение о добавлении или удалении тикера."""
-        try:
-            data = self._parse_message(message)
-            if not data:
+        data = json.loads(message.value.decode("utf-8"))
+
+        action = data.get("action")
+        user_id = data.get("user_id")
+        asset_id = data.get("asset_id")
+        ticker = data.get("ticker")
+        amount = int(data.get("amount"))
+
+        if action == "lock":
+            await self.handle_assets(user_id, asset_id, ticker, amount, lock=True)
+        elif action == "unlock":
+            await self.handle_assets(user_id, asset_id, ticker, amount, lock=False)
+
+    async def handle_assets(self, user_id: str, asset_id: int, ticker: str, amount: int, lock: bool):
+        async for session in get_db():
+            repo = WalletRepository(session)
+            user_asset = await repo.get(user_id, asset_id)
+
+            if not user_asset:
+                logger.warning(f"User asset not found for user {user_id}, asset {ticker}")
                 return
 
-            action = data.get("action")
-            asset_id = int(data.get("asset_id"))
-            ticker = data.get("ticker")
-            name = data.get("name")
+            current_amount = user_asset.amount
+            locked_amount = user_asset.locked
 
-            if action == "ADD":
-                await self._handle_add_ticker(asset_id, ticker, name)
-            elif action == "REMOVE":
-                await self._handle_remove_ticker(ticker)
+            if lock:
+                if current_amount - locked_amount >= amount:
+                    await repo.lock(user_asset, amount)
+
+                    logger.info(f"Assets locked for user {user_id}, asset {ticker}, amount {amount}")
+                else:
+                    await self._fallback_lock(user_id, asset_id, ticker, amount, repo)
             else:
-                logger.warning(f"Неизвестное действие {action} для актива {asset_id}")
+                if locked_amount >= amount:
+                    await repo.unlock(user_asset, amount)
 
-        except Exception as e:
-            logger.error(f"Ошибка при обработке сообщения: {str(e)}")
+                    logger.info(f"Assets unlocked for user {user_id}, asset {ticker}, amount {amount}")
+                else:
+                    await self._fallback_unlock(user_id, asset_id, ticker, amount, repo)
 
-    def _parse_message(self, message):
-        """Парсим сообщение и возвращаем данные."""
-        try:
-            return json.loads(message.value.decode("utf-8"))
-        except json.JSONDecodeError as e:
-            logger.error(f"Ошибка при парсинге сообщения: {str(e)}")
-            return None
+    async def _fallback_lock(self, user_id: str, asset_id: int, ticker: str, amount: int, repo: WalletRepository):
+        user_asset = await repo.get(user_id, asset_id)
 
-    async def _handle_add_ticker(self, asset_id: int, ticker: str, name: str):
-        """Обрабатываем добавление тикера."""
-        if asset_id and ticker and name:
-            await self._add_ticker_to_db_and_redis(asset_id, ticker, name)
+        if user_asset and (user_asset.amount - user_asset.locked) >= amount:
+            await repo.lock(user_asset, amount)
+
+            logger.info(f"Assets locked (fallback) for user {user_id}, asset {ticker}, amount {amount}")
         else:
-            logger.warning(f"Недостаточно данных для добавления тикера: {asset_id}, {ticker}, {name}")
+            logger.warning(f"Insufficient funds to lock (fallback) for user {user_id}, asset {ticker}, amount {amount}")
 
-    async def _add_ticker_to_db_and_redis(self, asset_id: int, ticker: str, name: str):
-        """Добавляем тикер в базу данных и Redis."""
-        asset = Asset(id=asset_id, name=name, ticker=ticker)
+    async def _fallback_unlock(self, user_id: str, asset_id: int, ticker: str, amount: int, repo: WalletRepository):
+        user_asset = await repo.get(user_id, asset_id)
 
-        async for session in get_db():
-            repo = AssetRepository(session)
-            await repo.create(asset)
+        if user_asset and user_asset.locked >= amount:
+            await repo.unlock(user_asset, amount)
 
-        
+            logger.info(f"Assets unlocked (fallback) for user {user_id}, asset {ticker}, amount {amount}")
+        else:
+            logger.warning(f"Failed to unlock assets (fallback) for user {user_id}, asset {ticker}, amount {amount}: Insufficient locked funds")
+
+
+class AssetConsumer(BaseKafkaConsumerService):
+    """
+    Потребитель Kafka для обработки тикеров.
+    """
+
+    def __init__(self, topic: str, bootstrap_servers: str, group_id: str):
+        super().__init__(topic, bootstrap_servers, group_id)
+
+    async def process_message(self, message):
+        data = json.loads(message.value.decode("utf-8"))
+        action = data.get("action")
+        asset_id = data.get("asset_id")
+        ticker = data.get("ticker")
+        name = data.get("name")
+
+        if action == "ADD" and asset_id and ticker and name:
+            await self.add_asset_to_redis_and_db(asset_id, ticker, name)
+        elif action == "REMOVE" and ticker:
+            await self.remove_asset_from_redis_and_db(ticker)
+
+    async def add_asset_to_redis_and_db(self, asset_id: int, ticker: str, name: str):
         async with redis_pool.connection() as redis:
             asset_key = f"asset:{ticker}"
             await redis.hset(asset_key, mapping={"asset_id": asset_id, "name": name})
+            await self.log_message("Добавлен актив в Redis", ticker=ticker, name=name)
 
-        logger.info(f"Добавлен актив {asset.id} в базу данных и Redis")
+        async for session in get_db():
+            repo = AssetRepository(session)
+            asset = Asset(id=asset_id, name=name, ticker=ticker)
+            await repo.create(asset)
+            await self.log_message("Добавлен актив в DB", ticker=ticker, name=name)
 
-    async def _handle_remove_ticker(self, ticker: str):
-        """Обрабатываем удаление тикера."""
-        if ticker:
-            await self._remove_ticker_from_db_and_redis(ticker)
-        else:
-            logger.warning(f"Недостаточно данных для удаления актива: {ticker}")
+    async def remove_asset_from_redis_and_db(self, ticker: str):
+        async with redis_pool.connection() as redis:
+            asset_key = f"asset:{ticker}"
+            await redis.delete(asset_key)
+            await self.log_message("Удалён актив из Redis", ticker=ticker)
 
-    async def _remove_ticker_from_db_and_redis(self, ticker: str):
-        """Удаляем тикер из базы данных и Redis.""" 
         async for session in get_db():
             repo = AssetRepository(session)
             await repo.delete(ticker)
-
-        redis = await redis_pool.get_redis_connection()
-        asset_key = f"asset:{ticker}"
-        await redis.delete(asset_key)
-
-        logger.info(f"Удалён актив {ticker} из базы данных и Redis")
+            await self.log_message("Удалён актив из DB", ticker=ticker)
 
 # Инициализируем с группой потребителей
 assets_consumer = AssetConsumer(topic="tickers", bootstrap_servers=settings.BOOTSTRAP_SERVERS, group_id="assets_group")
+lock_asset_amount_consumer = LockAssetsConsumer(topic="lock_assets", bootstrap_servers=settings.BOOTSTRAP_SERVERS, group_id=None)
