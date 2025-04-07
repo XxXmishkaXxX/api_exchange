@@ -14,15 +14,11 @@ class OrderType(str, Enum):
     LIMIT = "limit"
 
 class StatusOrder(str, Enum):
-    NEW = "new"  # Новый ордер
-    FILLED = "filled"  # Выполнен
-    PENDING = "pending"  # Ожидает выполнения
-    REJECTED = "rejected"  # Отклонен
-
-
-from pydantic import BaseModel, Field, validator
-from typing import Optional
-from app.schemas.order import OrderType, Direction
+    NEW = "new"
+    FILLED = "filled"
+    PENDING = "pending"
+    REJECTED = "rejected"
+    PARTIALLY_FILLED = "partially_filled" 
 
 
 class OrderSchema(BaseModel):
