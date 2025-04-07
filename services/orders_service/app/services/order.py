@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+
 from app.db.database import get_db, redis_pool
 from app.repositories.order_repo import OrderRepository
 from app.schemas.order import (OrderSchema, 
@@ -15,20 +16,21 @@ from app.repositories.asset_repo import AssetRepository
 from app.services.wallet_client import wallet_client
 from app.core.logger import logger
 
+
 class OrderService:
     """
     Сервис для управления ордерами.
 
-    Этот класс предоставляет методы для создания, получения и отмены ордеров,
-    а также для проверки существования ордеров.
+    Этот класс предоставляет методы для создания, получения, отмены ордеров, а также для проверки существования ордеров.
     """
 
     def __init__(self, order_repo: OrderRepository, asset_repo: AssetRepository):
         """
-        Инициализация сервиса ордеров с репозиторием ордеров.
+        Инициализация сервиса ордеров с репозиторием ордеров и активов.
 
         Аргументы:
             order_repo (OrderRepository): Репозиторий для взаимодействия с данными ордеров.
+            asset_repo (AssetRepository): Репозиторий для работы с активами.
         """
         self.order_repo = order_repo
         self.asset_repo = asset_repo
@@ -75,13 +77,9 @@ class OrderService:
         Возвращает:
             OrderListResponse: Ответ, содержащий список ордеров.
         """
-        # Получаем ID пользователя
         user_id = int(user_data.get('sub'))
-        
-        # Получаем список ордеров для пользователя
         orders = await self.order_repo.get_list(user_id)
         
-        # Формируем и возвращаем ответ
         return OrderListResponse(
             orders=[
                 OrderResponse(
@@ -106,13 +104,23 @@ class OrderService:
                         order: OrderSchema, 
                         prod_order: OrderKafkaProducerService,
                         prod_lock: LockAssetsKafkaProducerService) -> OrderCreateResponse:
+        """
+        Создание нового ордера.
+
+        Аргументы:
+            user_data (dict): Данные пользователя, содержащие информацию о пользователе.
+            order (OrderSchema): Схема данных для создания ордера.
+            prod_order (OrderKafkaProducerService): Сервис для отправки ордера в Kafka.
+            prod_lock (LockAssetsKafkaProducerService): Сервис для блокировки активов в Kafka.
+
+        Возвращает:
+            OrderCreateResponse: Ответ, подтверждающий создание ордера.
+        """
         user_id = int(user_data.get("sub"))
 
-        # Получаем идентификаторы активов
         order_asset_id = await self.asset_repo.get_asset_by_ticker(order.ticker)
         payment_asset_id = await self.asset_repo.get_asset_by_ticker(order.payment_ticker)
-
-        # Если какой-то актив не найден, выбрасываем ошибку
+        logger.info(order_asset_id, payment_asset_id)
         if not order_asset_id or not payment_asset_id:
             missing_assets = []
             if not order_asset_id:
@@ -124,10 +132,8 @@ class OrderService:
                 detail=f"Asset(s) not found: {', '.join(missing_assets)}"
             )
 
-        # Проверка баланса пользователя
         await self.validate_balance_for_order(user_id, order)
         
-        # Создание сущности заказа
         order_entity = Order(
             user_id=user_id,
             type=order.type,
@@ -139,45 +145,47 @@ class OrderService:
             payment_asset_id=payment_asset_id
         )
 
-        # Сохранение заказа в репозитории
         order_entity = await self.order_repo.create(order_entity)
         
-        # Рассчитываем тикер и количество в зависимости от направления
         ticker = order.payment_ticker if order.direction == "buy" else order.ticker
         quantity = int(order.qty * order.price) if order.direction == "buy" else order.qty
-        
-        # Блокировка активов
+
         await self.order_repo.lock(user_id, ticker, quantity)
         
         try:
-            # Отправка заказа в Kafka
             await prod_order.send_order(order.ticker, order.payment_ticker, order=order_entity)
 
-            # Блокировка активов в зависимости от направления
             if order.direction == "buy":
                 await prod_lock.lock_assets(user_id, payment_asset_id, order.payment_ticker, quantity)
             else:
                 await prod_lock.lock_assets(user_id, order_asset_id, order.ticker, quantity)
 
         except Exception as e:
-            # Логирование и обработка ошибок при отправке в Kafka
             raise HTTPException(status_code=500, detail=f"Error sending order to Kafka: {e}")
         
-        # Возвращаем успешный ответ
         return OrderCreateResponse(success=True, order_id=order_entity.id)
-
-
-
 
     async def cancel_order(self, user_data: dict, 
                         order_id: int, 
                         prod_order: OrderKafkaProducerService,
                         prod_lock: LockAssetsKafkaProducerService) -> OrderCancelResponse:
+        """
+        Отмена ордера.
+
+        Аргументы:
+            user_data (dict): Данные пользователя.
+            order_id (int): ID ордера для отмены.
+            prod_order (OrderKafkaProducerService): Сервис для отмены ордера в Kafka.
+            prod_lock (LockAssetsKafkaProducerService): Сервис для разблокировки активов в Kafka.
+
+        Возвращает:
+            OrderCancelResponse: Ответ, подтверждающий отмену ордера.
+        """
         user_id = int(user_data.get('sub')) 
         order = await self.order_repo.get(order_id, user_id)
 
         if not order:
-            raise HTTPException(status_code=401, detail="Такого ордера не существует")
+            raise HTTPException(status_code=404, detail="Такого ордера не существует")
 
         if order.direction == 'buy':
             await self.order_repo.unlock(user_id=user_id, ticker=order.payment_asset.ticker, amount=order.qty * order.price)
@@ -196,15 +204,13 @@ class OrderService:
 
         return OrderCancelResponse(success=True)
 
-
-
     async def _get_balance(self, user_id: int, ticker: str) -> int:
         """
         Получение баланса пользователя из Redis.
         
         Аргументы:
             user_id (int): ID пользователя для получения баланса.
-            ticker (str): Тикер актива
+            ticker (str): Тикер актива.
         
         Возвращает:
             int: Баланс пользователя.
@@ -233,6 +239,16 @@ class OrderService:
         return int(amount)
     
     async def validate_balance_for_order(self, user_id: int, order: OrderSchema):
+        """
+        Проверка баланса пользователя для выполнения ордера.
+
+        Аргументы:
+            user_id (int): ID пользователя.
+            order (OrderSchema): Схема ордера, для которого проверяется баланс.
+
+        Исключения:
+            HTTPException: Если средств или активов недостаточно.
+        """
         if order.direction == "buy":
             balance = await self._get_balance(user_id, order.payment_ticker)
             required_amount = order.qty * order.price
