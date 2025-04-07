@@ -27,7 +27,7 @@ class OrderKafkaProducerService(BaseKafkaProducerService):
     def __init__(self, bootstrap_servers: str):
         super().__init__(bootstrap_servers, topic="orders")
 
-    async def send_order(self, ticker: str, order: Order) -> None:
+    async def send_order(self, order_ticker: str, payment_ticker: str, order: Order) -> None:
         data = {
             "action": "add",
             "order_id": order.id,
@@ -35,17 +35,21 @@ class OrderKafkaProducerService(BaseKafkaProducerService):
             "status": order.status,
             "type": order.type,
             "direction": order.direction,
-            "ticker": ticker,
+            "order_asset_id": order.order_asset_id,
+            "payment_asset_id": order.payment_asset_id,
+            "order_ticker": order_ticker,
+            "payment_ticker": payment_ticker,
             "qty": order.qty,
             "price": order.price,
         }
         await self.send_message(data)
 
-    async def cancel_order(self, order_id: int, direction: str, ticker: str) -> None:
+    async def cancel_order(self, order_id: int, asset_id: int, direction: str, ticker: str) -> None:
         data = {
             "action": "cancel",
             "order_id": order_id,
             "direction": direction,
+            "asset_id": asset_id,
             "ticker": ticker
         }
         await self.send_message(data)

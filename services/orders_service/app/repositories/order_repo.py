@@ -6,6 +6,7 @@ from typing import Optional, List
 
 from app.models.order import Order
 from app.db.database import redis_pool
+from app.core.logger import logger
 
 
 class OrderRepository:
@@ -37,7 +38,8 @@ class OrderRepository:
         """
         result = await self.db.execute(
             select(Order)
-            .options(selectinload(Order.asset))
+            .options(selectinload(Order.order_asset))
+            .options(selectinload(Order.payment_asset))
             .filter(Order.id == order_id, Order.user_id == user_id)
         )
         return result.scalars().first()
@@ -46,7 +48,10 @@ class OrderRepository:
     
     async def get_list(self, user_id: int) -> Optional[List[Order]]:
         result = await self.db.execute(
-            select(Order).options(selectinload(Order.asset)).filter(Order.user_id == user_id)
+            select(Order)            
+            .options(selectinload(Order.order_asset))
+            .options(selectinload(Order.payment_asset))
+            .filter(Order.user_id == user_id)
         )
         orders = result.scalars().all()
 
@@ -123,8 +128,8 @@ class OrderRepository:
 
             if data is None:
                 return False
-
-            locked = int( data["locked"])
+            logger.info(data)
+            locked = int(data["locked"])
             data["locked"] = amount + locked
 
             await redis.hset(key, mapping=data)
