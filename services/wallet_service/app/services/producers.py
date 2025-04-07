@@ -40,9 +40,9 @@ class ChangeBalanceKafkaProducerService(BaseKafkaProducerService):
     def __init__(self, bootstrap_servers: str):
         super().__init__(bootstrap_servers=bootstrap_servers)
     
-    async def send_message(self, data: dict):
-        
-        await self.producer.send_and_wait("change_balance", data)
+    async def send_message(self, data: dict) -> None:
+        message = json.dumps(data)
+        await self.producer.send_and_wait("change_balance", message.encode("utf-8"))
 
 
 change_balance_producer_service = ChangeBalanceKafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
