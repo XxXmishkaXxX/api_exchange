@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     # Секретный ключ для подписания JWT токенов
     SECRET_KEY: str 
     SESSION_KEY: str
+    INTERNAL_API_TOKEN: str
     ALGORITHM: str
     # Логирование
     LOG_LEVEL: str = "INFO"
