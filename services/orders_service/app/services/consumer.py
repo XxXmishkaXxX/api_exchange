@@ -46,6 +46,9 @@ class BaseKafkaConsumerService:
         logger.info(f"{action}: {kwargs}")
 
 
+import json
+from typing import Optional
+
 class OrderStatusConsumer(BaseKafkaConsumerService):
     """
     Потребитель Kafka для обработки обновлений статуса ордеров.
@@ -55,18 +58,38 @@ class OrderStatusConsumer(BaseKafkaConsumerService):
         super().__init__("orders_update", bootstrap_servers, group_id)
 
     async def process_message(self, message):
-        data = json.loads(message.value.decode("utf-8"))
-        order_id = int(data["order_id"])
-        user_id = int(data["user_id"])
-        status = str(data["status"])
-        await self.change_order_status(order_id, user_id, status)
+        data = self._parse_message(message)
+        if data:
+            order_id, user_id, status, filled = data
+            await self.update_order(order_id, user_id, status, filled)
 
-    async def change_order_status(self, order_id: int, user_id: int, status: str):
+    def _parse_message(self, message) -> Optional[tuple[int, int, str, int]]:
+        """Парсит сообщение и извлекает необходимые данные."""
+        try:
+            data = json.loads(message.value.decode("utf-8"))
+            order_id = int(data["order_id"])
+            user_id = int(data["user_id"])
+            status = str(data["status"])
+            filled = int(data["filled"])
+            return order_id, user_id, status, filled
+        except (KeyError, ValueError, json.JSONDecodeError) as e:
+            logger.error("Ошибка при парсинге сообщения")
+
+    async def update_order(self, order_id: int, user_id: int, status: str, filled: int):
+        """Обновляет статус и количество заполненных позиций для ордера."""
         async for session in get_db():
             order_repo = OrderRepository(session)
             order = await order_repo.get(order_id, user_id)
+
             if order:
-                await order_repo.update(order, {"status": status})
+                updates = {}
+                if status:
+                    updates["status"] = status
+                if filled is not None:
+                    updates["filled"] = filled
+                
+                if updates:
+                    await order_repo.update(order, updates)
 
 
 class AssetConsumer(BaseKafkaConsumerService):
