@@ -28,6 +28,8 @@ class Order(Base):
     payment_asset_id = Column(Integer, ForeignKey("assets.id"), nullable=False)
     payment_asset = relationship("Asset", back_populates="payment_orders", foreign_keys=[payment_asset_id])
 
+    filled = Column(Integer, default=0)
+
     def __repr__(self):
         return (
             f"<Order("
@@ -39,6 +41,7 @@ class Order(Base):
             f"price={self.price}, "
             f"payment_asset={self.payment_asset.ticker}, "
             f"created_at={self.created_at}, "
-            f"updated_at={self.updated_at}"
+            f"updated_at={self.updated_at},"
+            f"filled={self.filled}"
             f")>"
         )

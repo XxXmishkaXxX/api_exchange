@@ -67,7 +67,8 @@ class OrderService:
                     payment_order_ticker=order.payment_asset.ticker,
                     qty=order.qty,
                     price=order.price
-                )
+                ),
+                filled=order.filled
             )
 
     async def get_list_order(self, user_data: dict) -> OrderListResponse:
@@ -97,7 +98,8 @@ class OrderService:
                         payment_order_ticker=order.payment_asset.ticker,
                         qty=order.qty,
                         price=order.price
-                    )
+                    ),
+                    filled=order.filled
                 )
                 for order in orders
             ]
@@ -124,7 +126,7 @@ class OrderService:
 
         order_asset_id = await self.asset_repo.get_asset_by_ticker(order.ticker)
         payment_asset_id = await self.asset_repo.get_asset_by_ticker(order.payment_ticker)
-        logger.info(order_asset_id, payment_asset_id)
+
         if not order_asset_id or not payment_asset_id:
             missing_assets = []
             if not order_asset_id:
@@ -231,17 +233,21 @@ class OrderService:
                     locked = int(data["locked"])
                     await redis.hset(balance_key, mapping={
                         "amount": amount,
-                        "locked": locked})
+                        "locked": locked
+                    })
                 else:
                     raise HTTPException(status_code=400, detail=f"У вас нет актива - {ticker}, пополните кошелек таким активом")
             else:
                 amount = int(user_asset_balance["amount"])
                 locked = int(user_asset_balance["locked"])
-            
-        if amount < locked:
-            raise HTTPException(status_code=400, detail="Недостаточно доступных средств для выполнения операции")
-        return int(amount)
-    
+
+        available = amount - locked
+        if available < 0:
+            logger.warning(f"Баланс в минусе: user={user_id}, ticker={ticker}, amount={amount}, locked={locked}")
+            raise HTTPException(status_code=400, detail="Баланс в некорректном состоянии")
+
+        return available
+
     async def validate_balance_for_order(self, user_id: int, order: OrderSchema):
         """
         Проверка баланса пользователя для выполнения ордера.

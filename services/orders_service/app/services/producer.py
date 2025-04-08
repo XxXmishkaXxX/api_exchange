@@ -41,6 +41,7 @@ class OrderKafkaProducerService(BaseKafkaProducerService):
             "payment_ticker": payment_ticker,
             "qty": order.qty,
             "price": order.price,
+            "filled": order.filled
         }
         await self.send_message(data)
 
