@@ -10,3 +10,4 @@ cdef class Order:
     cdef public str payment_ticker
     cdef public int price
     cdef public int qty
+    cdef public int filled

@@ -1515,6 +1515,7 @@ struct __pyx_obj_6engine_5order_Order {
   PyObject *payment_ticker;
   int price;
   int qty;
+  int filled;
 };
 
 

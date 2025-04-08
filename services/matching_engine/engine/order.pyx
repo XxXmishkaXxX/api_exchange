@@ -10,7 +10,8 @@ cdef class Order:
                  str order_ticker,
                  str payment_ticker,
                  int price,
-                 int qty):
+                 int qty,
+                 int filled):
         self.order_id = order_id
         self.user_id = user_id
         self.status = status
@@ -22,3 +23,4 @@ cdef class Order:
         self.payment_ticker = payment_ticker
         self.price = price if price is not None else 0
         self.qty = qty
+        self.filled = filled
