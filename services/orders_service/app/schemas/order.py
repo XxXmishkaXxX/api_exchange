@@ -27,7 +27,7 @@ class OrderSchema(BaseModel):
     ticker: str = Field(description="Тикер актива для покупки/продажи")
     payment_ticker: Optional[str] = Field("RUB", description="Тикер актива для расчета (по умолчанию 'RUB')")
     qty: int = Field(gt=0, description="Количество должно быть положительным числом")
-    price: Optional[float] = Field(None, gt=0, description="Цена для лимитного ордера (должна быть положительной)")
+    price: Optional[int] = Field(None, gt=0, description="Цена для лимитного ордера (должна быть положительной)")
 
     @validator("price", pre=True, always=True)
     def price_required_for_limit_orders(cls, value, values):
@@ -63,6 +63,7 @@ class OrderResponse(BaseModel):
     status: StatusOrder = Field(description="Статус ордера")
     timestamp: datetime = Field(..., description="Дата и время создания ордера в формате ISO 8601")
     body: OrderSchema
+    filled: int = Field(description="Количество ордера, которое было выполнено.")
 
     class Config:
         from_attributes = True
