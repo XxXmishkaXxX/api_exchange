@@ -2,6 +2,8 @@ import logging
 import asyncio
 from engine.order cimport Order
 from engine.order_book cimport OrderBook
+from engine.price_level cimport PriceLevel
+
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -9,16 +11,19 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 cdef class MatchingEngine:
     cdef:
         dict order_books
         object change_order_status_prod
         object post_wallet_transfer_prod
+        object prod_market_data
 
-    def __init__(self, change_order_status_prod, post_wallet_transfer_prod):
+    def __init__(self, change_order_status_prod, post_wallet_transfer_prod, prod_market_data):
         self.order_books = {}
         self.post_wallet_transfer_prod = post_wallet_transfer_prod
         self.change_order_status_prod = change_order_status_prod
+        self.prod_market_data = prod_market_data
 
     async def send_order_status(self, order_id: int, user_id, filled: int, status: str):
         if self.change_order_status_prod:
@@ -37,6 +42,27 @@ cdef class MatchingEngine:
             await self.post_wallet_transfer_prod.send_wallet_update(transfer)
             logger.info(f"💸 WALLET TRANSFER: {transfer}")
 
+    async def send_market_data(self, order_book: OrderBook, ticker_pair):
+        bid_levels = self.aggregate_orders(order_book.buy_orders, reverse=True)[:5]
+        ask_levels = self.aggregate_orders(order_book.sell_orders, reverse=False)[:5]
+
+        bid_levels_dict = self.convert_to_dict(bid_levels)
+        ask_levels_dict = self.convert_to_dict(ask_levels)
+
+        best_sell = order_book.get_best_sell()
+        current_price = best_sell.price if best_sell else 0
+
+        message = {
+            "ticker_pair": ticker_pair,
+            "bid_levels": bid_levels_dict,
+            "ask_levels": ask_levels_dict,
+            "current_price": current_price
+        }
+
+        await self.prod_market_data.send_market_data_update(message)
+        logger.info(f"📈 MARKET DATA SENT: {message}")
+
+
     cpdef void add_order(self, Order order):
         cdef OrderBook order_book
         cdef str ticker_pair = f"{order.order_ticker}/{order.payment_ticker}"
@@ -46,6 +72,7 @@ cdef class MatchingEngine:
 
         order_book = self.order_books[ticker_pair]
         order_book.add_order(order)
+        asyncio.create_task(self.send_market_data(order_book, ticker_pair))
         self.match_orders(order_book)
 
     cpdef void cancel_order(self, order_id, direction, order_ticker, payment_ticker):
@@ -58,6 +85,8 @@ cdef class MatchingEngine:
         cdef Order best_sell
         cdef int trade_qty
         cdef int trade_value
+        cdef bint traded = False
+        cdef str ticker_pair = order_book.ticker_pair_name
 
         while True:
             best_buy = order_book.get_best_buy()
@@ -66,6 +95,7 @@ cdef class MatchingEngine:
             if not best_buy or not best_sell or best_buy.price < best_sell.price:
                 break
 
+            traded = True
             trade_qty = min(best_buy.qty, best_sell.qty)
             trade_value = trade_qty * best_sell.price
 
@@ -102,15 +132,16 @@ cdef class MatchingEngine:
             else:
                 asyncio.create_task(self.send_order_status(best_sell.order_id, best_sell.user_id, best_sell.filled, "partially_filled"))
 
+        if traded:
+            asyncio.create_task(self.send_market_data(order_book, ticker_pair))
+
+
     cdef void execute_market_order(self, Order order):
         cdef OrderBook order_book
         cdef list orders
         cdef Order best_order
         cdef int trade_qty
         cdef int trade_value
-        cdef int base_asset_id
-        cdef int quote_asset_id
-
         cdef str ticker_pair = f"{order.order_ticker}/{order.payment_ticker}"
 
         if ticker_pair not in self.order_books:
@@ -159,7 +190,7 @@ cdef class MatchingEngine:
                 asyncio.create_task(self.send_order_status(order.order_id, order.user_id, order.filled, "partially_filled"))
 
             if best_order.qty == 0:
-                asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, best_order.filled, "filled"))
+                asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "filled"))
                 orders.pop(0)
             else:
                 asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "partially_filled"))
@@ -167,3 +198,42 @@ cdef class MatchingEngine:
         if order.qty > 0:
             logger.warning(f"⚠️ Market order {order.order_id} partially or fully unfilled. Cancelling remainder.")
             asyncio.create_task(self.send_order_status(order.order_id, order.user_id, order.filled, "cancelled"))
+
+        asyncio.create_task(self.send_market_data(order_book, ticker_pair))
+
+    cdef list aggregate_orders(self, list orders, bint reverse=True):
+        cdef dict price_to_qty = {}
+        cdef list prices = []
+        cdef list result = []
+        cdef Order order
+        cdef PriceLevel level
+        cdef int price
+
+        # Агрегируем ордера по цене
+        for order in orders:
+            price = order.price
+            if price in price_to_qty:
+                price_to_qty[price] += order.qty
+            else:
+                price_to_qty[price] = order.qty
+                prices.append(price)
+
+        # Сортируем по цене
+        prices.sort(reverse=reverse)
+
+        # Наполняем список PriceLevel
+        for price in prices:
+            level = PriceLevel(price=price, qty=price_to_qty[price])
+            result.append(level)
+
+        return result
+
+
+    cdef list convert_to_dict(self, list price_levels):
+        cdef list result = []
+        cdef PriceLevel level
+
+        for level in price_levels:
+            result.append({"price": level.price, "qty": level.qty})
+
+        return result
