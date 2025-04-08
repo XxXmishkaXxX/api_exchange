@@ -1,8 +1,10 @@
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import update, delete
 from typing import Optional
+
 
 from app.models.asset import Asset 
 from app.db.database import redis_pool
@@ -27,7 +29,7 @@ class AssetRepository:
                 asset_obj = result.scalars().first()
                 
                 if asset_obj is None:
-                    raise ValueError(f"Asset with ticker {ticker} not found.")
+                    raise HTTPException(status_code=404, detail=f"Ассет {ticker} не найден")
                 
                 await redis.hset(asset_key, mapping={"asset_id":asset_obj.id,"name": asset_obj.name})
                 asset_id = asset_obj.id
