@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Response, Request
+from fastapi import APIRouter, Depends
 
 from app.deps.security import get_user_from_token
-from app.services.wallet import WalletService, get_wallet_service
+from app.services.wallet import WalletService
+from app.deps.fabric import get_wallet_service
 
 router = APIRouter()
 
