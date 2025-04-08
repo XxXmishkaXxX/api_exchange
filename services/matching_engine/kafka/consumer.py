@@ -44,10 +44,16 @@ class KafkaConsumerService:
                     payment_ticker=str(data["payment_ticker"]),
                     payment_asset_id=int(data["payment_asset_id"]),
                     price=int(data["price"]) if data["price"] is not None else 0,
-                    qty=int(data["qty"])
+                    qty=int(data["qty"]),
+                    filled=int(data["filled"])
                 )
 
-                self.engine.add_order(order)
+                if order.type == "market":
+                    logger.info(f"📈 MARKET ORDER DETECTED: {order}")
+                    await self.engine.execute_market_order(order)
+                else:
+                    self.engine.add_order(order)
+
             else:
                 self.engine.cancel_order(data["order_id"],
                                         data["direction"],
@@ -56,6 +62,7 @@ class KafkaConsumerService:
 
         except Exception as e:
             logger.error(f"⚠️ Error processing order: {e}")
+
 
     async def stop(self):
         await self.consumer.stop()
