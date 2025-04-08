@@ -14,7 +14,7 @@ from contextlib import asynccontextmanager
 import asyncio
 from app.db.database import redis_pool
 from app.core.logger import logger
-from app.services.consumers import assets_consumer, lock_asset_amount_consumer
+from app.services.consumers import assets_consumer, lock_asset_amount_consumer, change_balance_consumer
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -24,10 +24,15 @@ async def lifespan(app: FastAPI):
         
         await change_balance_producer_service.start()
         logger.info("✅ Kafka Producer started.")
+
+        await change_balance_consumer.start()
+        asyncio.create_task(change_balance_consumer.consume_messages())
+        logger.info("✅ ChangeBalance Consumer started.")
         
         await assets_consumer.start()
         asyncio.create_task(assets_consumer.consume_messages())
         logger.info("✅ Assets Consumer started.")
+
         
         await lock_asset_amount_consumer.start()
         asyncio.create_task(lock_asset_amount_consumer.consume_messages())
@@ -40,6 +45,9 @@ async def lifespan(app: FastAPI):
     yield
 
     try:
+        await change_balance_consumer.stop()
+        logger.info("🛑 Change Balance Consumer stopped.")
+
         await lock_asset_amount_consumer.stop()
         logger.info("🛑 Lock Asset Amount Consumer stopped.")
         
