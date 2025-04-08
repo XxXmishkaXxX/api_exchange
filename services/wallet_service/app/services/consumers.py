@@ -7,7 +7,8 @@ from app.db.database import get_db, redis_pool
 from app.models.asset import Asset
 from app.repositories.asset_repo import AssetRepository
 from app.repositories.wallet_repo import WalletRepository
-from app.services.wallet import get_wallet_service
+from app.deps.fabric import get_wallet_service 
+from app.schemas.wallet import DepositAssetsSchema, WithdrawAssetsSchema
 
 
 class BaseKafkaConsumerService:
@@ -76,23 +77,25 @@ class ChangeBalanceConsumer(BaseKafkaConsumerService):
 
         from_user = int(data.get("from_user"))
         to_user = int(data.get("to_user"))
-        asset_id = data.get("asset_id")
+        ticker = data.get("ticker")
         amount = int(data.get("amount", 0))
 
         logger.info(f"➡️ Обработка перевода: {data}")
 
         try:
             async for session in get_db():
-                repo = WalletRepository(session)
-                from_user_asset = await repo.get(from_user, asset_id)
-                to_user_asset = await repo.get(to_user, asset_id)
+                service = await get_wallet_service(session)
+                
+                asset_id = await service.asset_repo.get_asset_by_ticker(ticker)
+                from_user_asset = await service.wallet_repo.get(from_user, asset_id)
 
-                await repo.unlock(from_user_asset, amount)
-                await repo.withdraw(from_user_asset, amount)
-                if to_user_asset is None:
-                    await repo.create(to_user, asset_id, amount)
-                else:
-                    await repo.deposit(to_user_asset, amount)
+                await service.wallet_repo.unlock(from_user_asset, amount)
+                await service.withdraw_assets_user(WithdrawAssetsSchema(user_id=from_user, 
+                                                                        ticker=ticker,
+                                                                        amount=amount))
+                await service.deposit_assets_user(DepositAssetsSchema(user_id=to_user, 
+                                                                      ticker=ticker,
+                                                                      amount=amount))
                 logger.info("✅ Перевод завершён")
                 break
         except Exception as e:
