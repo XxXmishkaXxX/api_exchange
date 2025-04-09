@@ -7,7 +7,7 @@ from app.routers.api.v1 import wallet_users, wallet_admins
 from app.core.config import settings
 from app.core.logger import logger
 from app.services.consumers import assets_consumer, lock_asset_amount_consumer
-from app.services.producers import change_balance_producer_service
+from app.services.producers import lock_uab_resp_producer
 from app.db.database import redis_pool
 
 from contextlib import asynccontextmanager
@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
         await redis_pool.start()
         logger.info("✅ Redis started.")
         
-        await change_balance_producer_service.start()
+        await lock_uab_resp_producer.start()
         logger.info("✅ Kafka Producer started.")
 
         await change_balance_consumer.start()
@@ -51,7 +51,7 @@ async def lifespan(app: FastAPI):
         await lock_asset_amount_consumer.stop()
         logger.info("🛑 Lock Asset Amount Consumer stopped.")
         
-        await change_balance_producer_service.stop()
+        await lock_uab_resp_producer.stop()
         logger.info("🛑 Kafka Producer stopped.")
         
         await assets_consumer.stop()

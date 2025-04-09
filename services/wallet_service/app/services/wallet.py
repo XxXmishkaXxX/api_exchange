@@ -4,8 +4,6 @@ from fastapi import HTTPException
 from app.repositories.wallet_repo import WalletRepository
 from app.repositories.asset_repo import AssetRepository
 from app.schemas.wallet import WithdrawAssetsSchema, DepositAssetsSchema
-from app.services.producers import ChangeBalanceKafkaProducerService
-from app.models.wallet import UserAssetBalance
 from app.core.logger import logger
 
 
@@ -14,11 +12,9 @@ class WalletService:
         self,
         wallet_repo: WalletRepository,
         asset_repo: AssetRepository,
-        producer: ChangeBalanceKafkaProducerService
     ):
         self.wallet_repo = wallet_repo
         self.asset_repo = asset_repo
-        self.producer = producer
 
     async def get_all_assets_balance(self, user_id: int):
         return await self.wallet_repo.get_all(user_id)
@@ -71,7 +67,6 @@ class WalletService:
             else:
                 await self.wallet_repo.deposit(user_asset, data.amount)
 
-            await self._send_balance_update_message(user_asset, data.ticker)
             return {"success": True}
         except SQLAlchemyError as e:
             logger.error(f"Database error during deposit for user {data.user_id} and ticker {data.ticker}: {e}")
@@ -90,7 +85,6 @@ class WalletService:
 
         try:
             await self.wallet_repo.withdraw(user_asset, data.amount)
-            await self._send_balance_update_message(user_asset, data.ticker)
             return {"success": True}
         except SQLAlchemyError as e:
             logger.error(f"Database error during withdrawal for user {data.user_id} and ticker {data.ticker}: {e}")
@@ -112,19 +106,3 @@ class WalletService:
         except Exception as e:
             logger.error(f"Unexpected error while fetching asset for user {user_id} and ticker {ticker}: {e}")
             raise HTTPException(status_code=500, detail="Неизвестная ошибка при получении актива")
-
-    async def _send_balance_update_message(self, user_asset: UserAssetBalance, 
-                                           ticker: str):
-        """Отправка сообщения о изменении баланса через Kafka."""
-        try:
-            message = {
-                "user_id": user_asset.user_id,
-                "asset_id": user_asset.asset_id,
-                "ticker": ticker,
-                "amount": user_asset.amount,
-                "locked": user_asset.locked
-            }
-            await self.producer.send_message(message)
-        except Exception as e:
-            logger.error(f"Kafka error while sending balance update for user {user_asset.user_id}: {e}")
-            raise HTTPException(status_code=500, detail="Ошибка при отправке сообщения о балансе через Kafka")

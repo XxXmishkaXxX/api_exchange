@@ -9,6 +9,7 @@ from app.repositories.asset_repo import AssetRepository
 from app.repositories.wallet_repo import WalletRepository
 from app.deps.fabric import get_wallet_service 
 from app.schemas.wallet import DepositAssetsSchema, WithdrawAssetsSchema
+from app.services.producers import get_lock_uab_resp_producer_service
 
 
 class BaseKafkaConsumerService:
@@ -75,7 +76,8 @@ class ChangeBalanceConsumer(BaseKafkaConsumerService):
     async def process_message(self, message):
         data = json.loads(message.value.decode("utf-8"))
 
-        from_user = int(data.get("from_user"))
+        from_user_raw = data.get("from_user")
+        from_user = int(from_user_raw) if from_user_raw is not None else None
         to_user = int(data.get("to_user"))
         ticker = data.get("ticker")
         amount = int(data.get("amount", 0))
@@ -87,15 +89,22 @@ class ChangeBalanceConsumer(BaseKafkaConsumerService):
                 service = await get_wallet_service(session)
                 
                 asset_id = await service.asset_repo.get_asset_by_ticker(ticker)
-                from_user_asset = await service.wallet_repo.get(from_user, asset_id)
+                if from_user:
+                    from_user_asset = await service.wallet_repo.get(from_user, asset_id)
 
-                await service.wallet_repo.unlock(from_user_asset, amount)
-                await service.withdraw_assets_user(WithdrawAssetsSchema(user_id=from_user, 
+                    logger.info(f"Блокировка активов до перевода: {from_user_asset.locked}")
+                    await service.wallet_repo.unlock(from_user_asset, amount)
+                    logger.info(f"Блокировка активов после перевода: {from_user_asset.locked}")
+
+                    await service.withdraw_assets_user(WithdrawAssetsSchema(user_id=from_user, 
+                                                                            ticker=ticker,
+                                                                            amount=amount))
+                    await service.deposit_assets_user(DepositAssetsSchema(user_id=to_user, 
                                                                         ticker=ticker,
                                                                         amount=amount))
-                await service.deposit_assets_user(DepositAssetsSchema(user_id=to_user, 
-                                                                      ticker=ticker,
-                                                                      amount=amount))
+                else:
+                    to_user_asset = await service.wallet_repo.get(to_user, asset_id)
+                    await service.wallet_repo.unlock(to_user_asset, amount)
                 logger.info("✅ Перевод завершён")
                 break
         except Exception as e:
@@ -109,64 +118,56 @@ class LockAssetsConsumer(BaseKafkaConsumerService):
     async def process_message(self, message):
         data = json.loads(message.value.decode("utf-8"))
 
-        action = data.get("action")
+        correlation_id = data.get("correlation_id")
         user_id = data.get("user_id")
         asset_id = data.get("asset_id")
         ticker = data.get("ticker")
-        amount = int(data.get("amount"))
+        lock = int(data.get("amount"))
 
-        if action == "lock":
-            await self.handle_assets(user_id, asset_id, ticker, amount, lock=True)
-        elif action == "unlock":
-            await self.handle_assets(user_id, asset_id, ticker, amount, lock=False)
+        logger.info(f"Received lock request: user={user_id}, asset={ticker}, amount={lock}, correlation_id={correlation_id}")
 
-    async def handle_assets(self, user_id: str, asset_id: int, ticker: str, amount: int, lock: bool):
+        try:
+            success = await self.handle_assets(user_id, asset_id, ticker, lock)
+        except Exception as e:
+            logger.exception(f"Error handling lock for user {user_id}, asset {ticker}: {e}")
+            success = False
+
+        if correlation_id:
+            async for producer in get_lock_uab_resp_producer_service(): 
+                await producer.send_response(correlation_id, success)
+                break
+
+    async def handle_assets(self, user_id: str, asset_id: int, ticker: str, lock_amount: int) -> bool:
+        """
+        Обрабатывает блокировку активов для пользователя.
+
+        Аргументы:
+            user_id (str): Идентификатор пользователя.
+            asset_id (int): Идентификатор актива.
+            ticker (str): Тикер актива.
+            lock_amount (int): Количество средств для блокировки.
+
+        Возвращает:
+            bool: Успешность операции блокировки.
+        """
         async for session in get_db():
             repo = WalletRepository(session)
             user_asset = await repo.get(user_id, asset_id)
 
             if not user_asset:
                 logger.warning(f"User asset not found for user {user_id}, asset {ticker}")
-                return
+                return False
 
-            current_amount = user_asset.amount
-            locked_amount = user_asset.locked
-
-            if lock:
-                if current_amount - locked_amount >= amount:
-                    await repo.lock(user_asset, amount)
-
-                    logger.info(f"Assets locked for user {user_id}, asset {ticker}, amount {amount}")
-                else:
-                    await self._fallback_lock(user_id, asset_id, ticker, amount, repo)
+            # Проверка доступных средств для блокировки
+            available = user_asset.amount - user_asset.locked
+            if available >= lock_amount:
+                # Если доступных средств хватает, то блокируем
+                await repo.lock(user_asset, lock_amount)
+                logger.info(f"Assets locked for user {user_id}, asset {ticker}, amount {lock_amount}")
+                return True
             else:
-                if locked_amount >= amount:
-                    await repo.unlock(user_asset, amount)
-
-                    logger.info(f"Assets unlocked for user {user_id}, asset {ticker}, amount {amount}")
-                else:
-                    await self._fallback_unlock(user_id, asset_id, ticker, amount, repo)
-
-    async def _fallback_lock(self, user_id: str, asset_id: int, ticker: str, amount: int, repo: WalletRepository):
-        user_asset = await repo.get(user_id, asset_id)
-
-        if user_asset and (user_asset.amount - user_asset.locked) >= amount:
-            await repo.lock(user_asset, amount)
-
-            logger.info(f"Assets locked (fallback) for user {user_id}, asset {ticker}, amount {amount}")
-        else:
-            logger.warning(f"Insufficient funds to lock (fallback) for user {user_id}, asset {ticker}, amount {amount}")
-
-    async def _fallback_unlock(self, user_id: str, asset_id: int, ticker: str, amount: int, repo: WalletRepository):
-        user_asset = await repo.get(user_id, asset_id)
-
-        if user_asset and user_asset.locked >= amount:
-            await repo.unlock(user_asset, amount)
-
-            logger.info(f"Assets unlocked (fallback) for user {user_id}, asset {ticker}, amount {amount}")
-        else:
-            logger.warning(f"Failed to unlock assets (fallback) for user {user_id}, asset {ticker}, amount {amount}: Insufficient locked funds")
-
+                logger.warning(f"Insufficient funds to lock for user {user_id}, asset {ticker}, required {lock_amount}, available {available}")
+                return False
 
 class AssetConsumer(BaseKafkaConsumerService):
     """
