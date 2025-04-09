@@ -55,9 +55,10 @@ class KafkaConsumerService:
                     self.engine.add_order(order)
 
             else:
+                logger.info("CANCEL ORDER")
                 self.engine.cancel_order(data["order_id"],
                                         data["direction"],
-                                        data["ticker"],
+                                        data["order_ticker"],
                                         data["payment_ticker"])
 
         except Exception as e:
