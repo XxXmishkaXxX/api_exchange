@@ -45,13 +45,13 @@ class OrderKafkaProducerService(BaseKafkaProducerService):
         }
         await self.send_message(data)
 
-    async def cancel_order(self, order_id: int, asset_id: int, direction: str, ticker: str) -> None:
+    async def cancel_order(self, order_id: int, direction: str, order_ticker: str, payment_ticker: str) -> None:
         data = {
             "action": "cancel",
             "order_id": order_id,
             "direction": direction,
-            "asset_id": asset_id,
-            "ticker": ticker
+            "order_ticker": order_ticker,
+            "payment_ticker": payment_ticker
         }
         await self.send_message(data)
 
@@ -61,9 +61,9 @@ class LockAssetsKafkaProducerService(BaseKafkaProducerService):
     def __init__(self, bootstrap_servers: str):
         super().__init__(bootstrap_servers, topic="lock_assets")
 
-    async def lock_assets(self, user_id: int, asset_id: int, ticker: str, amount: int) -> None:
+    async def lock_assets(self, correlation_id, user_id: int, asset_id: int, ticker: str, amount: int) -> None:
         data = {
-            "action": "lock",
+            "correlation_id": correlation_id,
             "user_id": user_id,
             "asset_id": asset_id,
             "ticker": ticker,

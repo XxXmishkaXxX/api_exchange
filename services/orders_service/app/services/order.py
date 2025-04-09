@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +12,7 @@ from app.schemas.order import (OrderSchema,
                                OrderListResponse,
                                StatusOrder)
 from app.models.order import Order
+from app.services.lock_response_listener import lock_futures
 from app.services.producer import OrderKafkaProducerService, LockAssetsKafkaProducerService
 from app.repositories.asset_repo import AssetRepository
 from app.services.wallet_client import wallet_client
@@ -107,21 +109,9 @@ class OrderService:
     # пока не реализовано создание рыночного ордера, из-за незнания цены рынка!
     # пофиксить
     async def create_order(self, user_data: dict, 
-                        order: OrderSchema, 
-                        prod_order: OrderKafkaProducerService,
-                        prod_lock: LockAssetsKafkaProducerService) -> OrderCreateResponse:
-        """
-        Создание нового ордера.
-
-        Аргументы:
-            user_data (dict): Данные пользователя, содержащие информацию о пользователе.
-            order (OrderSchema): Схема данных для создания ордера.
-            prod_order (OrderKafkaProducerService): Сервис для отправки ордера в Kafka.
-            prod_lock (LockAssetsKafkaProducerService): Сервис для блокировки активов в Kafka.
-
-        Возвращает:
-            OrderCreateResponse: Ответ, подтверждающий создание ордера.
-        """
+                            order: OrderSchema, 
+                            prod_order: OrderKafkaProducerService,
+                            prod_lock: LockAssetsKafkaProducerService) -> OrderCreateResponse:
         user_id = int(user_data.get("sub"))
 
         order_asset_id = await self.asset_repo.get_asset_by_ticker(order.ticker)
@@ -138,8 +128,30 @@ class OrderService:
                 detail=f"Asset(s) not found: {', '.join(missing_assets)}"
             )
 
-        await self.validate_balance_for_order(user_id, order)
-        
+        ticker = order.payment_ticker if order.direction == "buy" else order.ticker
+        asset_id = payment_asset_id if order.direction == "buy" else order_asset_id
+        quantity = int(order.qty * order.price) if order.direction == "buy" else order.qty
+
+        try:
+            import uuid
+
+            correlation_id = str(uuid.uuid4())
+
+            await prod_lock.lock_assets(
+                user_id=user_id,
+                asset_id=asset_id,
+                ticker=ticker,
+                amount=quantity,
+                correlation_id=correlation_id
+            )
+
+            success = await self._wait_for_lock_confirmation(correlation_id)
+
+            if not success:
+                raise HTTPException(status_code=400, detail="Недостаточно средств для локации активов")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Ошибка при попытке локации активов: {e}")
+
         order_entity = Order(
             user_id=user_id,
             type=order.type,
@@ -152,29 +164,22 @@ class OrderService:
         )
 
         order_entity = await self.order_repo.create(order_entity)
-        
-        ticker = order.payment_ticker if order.direction == "buy" else order.ticker
-        quantity = int(order.qty * order.price) if order.direction == "buy" else order.qty
 
-        await self.order_repo.lock(user_id, ticker, quantity)
-        
         try:
-            await prod_order.send_order(order.ticker, order.payment_ticker, order=order_entity)
-
-            if order.direction == "buy":
-                await prod_lock.lock_assets(user_id, payment_asset_id, order.payment_ticker, quantity)
-            else:
-                await prod_lock.lock_assets(user_id, order_asset_id, order.ticker, quantity)
-
+            await prod_order.send_order(
+                order.ticker,
+                order.payment_ticker,
+                order=order_entity
+            )
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error sending order to Kafka: {e}")
-        
+            raise HTTPException(status_code=500, detail=f"Ошибка отправки ордера в Matching Engine: {e}")
+
         return OrderCreateResponse(success=True, order_id=order_entity.id)
+
 
     async def cancel_order(self, user_data: dict, 
                         order_id: int, 
-                        prod_order: OrderKafkaProducerService,
-                        prod_lock: LockAssetsKafkaProducerService) -> OrderCancelResponse:
+                        prod_order: OrderKafkaProducerService,) -> OrderCancelResponse:
         """
         Отмена ордера.
 
@@ -188,88 +193,29 @@ class OrderService:
             OrderCancelResponse: Ответ, подтверждающий отмену ордера.
         """
         user_id = int(user_data.get('sub')) 
-        order = await self.order_repo.get(order_id, user_id)
+        order = await self.order_repo.remove(user_id, order_id)
 
         if not order:
             raise HTTPException(status_code=404, detail="Такого ордера не существует")
 
-        if order.direction == 'buy':
-            await self.order_repo.unlock(user_id=user_id, ticker=order.payment_asset.ticker, amount=order.qty * order.price)
-        else:
-            await self.order_repo.unlock(user_id=user_id, ticker=order.order_asset.ticker, amount=order.qty)
-
-        await prod_order.cancel_order(order_id=order_id, 
-                                    asset_id=order.order_asset_id if order.direction == 'sell' else order.payment_asset_id,
-                                    direction=order.direction, 
-                                    ticker=order.order_asset.ticker if order.direction == 'sell' else order.payment_asset.ticker)
+        logger.info(order.order_asset.ticker)
+        logger.info(order.payment_asset.ticker)
+        await prod_order.cancel_order(order_id=order_id, direction=order.direction, 
+                                      order_ticker=order.order_asset.ticker,
+                                      payment_ticker=order.payment_asset.ticker)
         
-        if order.direction == 'buy':
-            await prod_lock.unlock_assets(user_id, order.payment_asset_id, order.payment_asset.ticker, order.qty * order.price)
-        else:
-            await prod_lock.unlock_assets(user_id, order.order_asset_id, order.order_asset.ticker, order.qty)
-
         return OrderCancelResponse(success=True)
 
-    async def _get_balance(self, user_id: int, ticker: str) -> int:
-        """
-        Получение баланса пользователя из Redis.
-        
-        Аргументы:
-            user_id (int): ID пользователя для получения баланса.
-            ticker (str): Тикер актива.
-        
-        Возвращает:
-            int: Баланс пользователя.
-        """
-        balance_key = f"user:{user_id}:asset:{ticker}"
-
-        async with redis_pool.connection() as redis:
-            user_asset_balance = await redis.hgetall(balance_key)
-
-            if not user_asset_balance:
-                data = await wallet_client.get_balance(user_id=user_id, ticker=ticker)
-                if data:
-                    amount = int(data["amount"])
-                    locked = int(data["locked"])
-                    await redis.hset(balance_key, mapping={
-                        "amount": amount,
-                        "locked": locked
-                    })
-                else:
-                    raise HTTPException(status_code=400, detail=f"У вас нет актива - {ticker}, пополните кошелек таким активом")
-            else:
-                amount = int(user_asset_balance["amount"])
-                locked = int(user_asset_balance["locked"])
-
-        available = amount - locked
-        if available < 0:
-            logger.warning(f"Баланс в минусе: user={user_id}, ticker={ticker}, amount={amount}, locked={locked}")
-            raise HTTPException(status_code=400, detail="Баланс в некорректном состоянии")
-
-        return available
-
-    async def validate_balance_for_order(self, user_id: int, order: OrderSchema):
-        """
-        Проверка баланса пользователя для выполнения ордера.
-
-        Аргументы:
-            user_id (int): ID пользователя.
-            order (OrderSchema): Схема ордера, для которого проверяется баланс.
-
-        Исключения:
-            HTTPException: Если средств или активов недостаточно.
-        """
-        if order.direction == "buy":
-            balance = await self._get_balance(user_id, order.payment_ticker)
-            required_amount = order.qty * order.price
-            if balance < required_amount:
-                raise HTTPException(status_code=400, detail="Недостаточно средств для выполнения ордера")
-
-        elif order.direction == "sell":
-            balance = await self._get_balance(user_id, order.ticker)
-            if balance < order.qty:
-                raise HTTPException(status_code=400, detail="Недостаточно активов для продажи")
-
+    async def _wait_for_lock_confirmation(self, correlation_id: str, timeout: int = 5) -> bool:
+        loop = asyncio.get_event_loop()
+        future = loop.create_future()
+        lock_futures[correlation_id] = future
+        try:
+            result = await asyncio.wait_for(future, timeout=timeout)
+            return result
+        except asyncio.TimeoutError:
+            lock_futures.pop(correlation_id, None)
+            return False
 
 def get_order_service(
     session: AsyncSession = Depends(get_db)

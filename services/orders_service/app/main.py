@@ -7,7 +7,7 @@ from app.routers.api.v1 import order
 from app.core.config import settings
 from app.core.logger import logger
 from app.services.producer import lock_assets_producer, order_producer
-from app.services.consumer import order_status_consumer, asset_consumer, change_balance_consumer
+from app.services.consumer import order_status_consumer, asset_consumer, lock_response_consumer
 from app.db.database import redis_pool
 
 
@@ -21,8 +21,8 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(order_status_consumer.consume_messages())
         await asset_consumer.start()
         asyncio.create_task(asset_consumer.consume_messages())
-        await change_balance_consumer.start()
-        asyncio.create_task(change_balance_consumer.consume_messages())
+        await lock_response_consumer.start()
+        asyncio.create_task(lock_response_consumer.consume_messages())
         logger.info("✅ Kafka Consumers started.")
         
         await lock_assets_producer.start()
@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
     await order_producer.stop()
     await lock_assets_producer.stop()
     
-    await change_balance_consumer.stop()
+    await lock_response_consumer.stop()
     await order_status_consumer.stop()
     await asset_consumer.stop()
     logger.info("🛑 Kafka Producer and Consumers stopped.")
