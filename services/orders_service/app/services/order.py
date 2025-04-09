@@ -1,9 +1,10 @@
 import asyncio
+import uuid
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-from app.db.database import get_db, redis_pool
+from app.db.database import get_db
 from app.repositories.order_repo import OrderRepository
 from app.schemas.order import (OrderSchema, 
                                OrderCancelResponse, 
@@ -15,7 +16,6 @@ from app.models.order import Order
 from app.services.lock_response_listener import lock_futures
 from app.services.producer import OrderKafkaProducerService, LockAssetsKafkaProducerService
 from app.repositories.asset_repo import AssetRepository
-from app.services.wallet_client import wallet_client
 from app.core.logger import logger
 
 
@@ -133,8 +133,6 @@ class OrderService:
         quantity = int(order.qty * order.price) if order.direction == "buy" else order.qty
 
         try:
-            import uuid
-
             correlation_id = str(uuid.uuid4())
 
             await prod_lock.lock_assets(
@@ -148,8 +146,14 @@ class OrderService:
             success = await self._wait_for_lock_confirmation(correlation_id)
 
             if not success:
-                raise HTTPException(status_code=400, detail="Недостаточно средств для локации активов")
+                raise HTTPException(status_code=400, detail=f"Недостаточно средств {ticker}")
+
+        except HTTPException as e:
+            logger.error(f"HTTPException: {e.detail}")
+            raise e
+
         except Exception as e:
+            logger.error(f"Ошибка при попытке локации активов: {e}")
             raise HTTPException(status_code=500, detail=f"Ошибка при попытке локации активов: {e}")
 
         order_entity = Order(

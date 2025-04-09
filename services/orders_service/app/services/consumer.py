@@ -123,6 +123,7 @@ class AssetConsumer(BaseKafkaConsumerService):
             asset = Asset(id=asset_id, name=name, ticker=ticker)
             await repo.create(asset)
             await self.log_message("Добавлен актив в DB", ticker=ticker, name=name)
+            break
 
     async def remove_asset_from_redis_and_db(self, ticker: str):
         async with redis_pool.connection() as redis:
@@ -134,7 +135,7 @@ class AssetConsumer(BaseKafkaConsumerService):
             repo = AssetRepository(session)
             await repo.delete(ticker)
             await self.log_message("Удалён актив из DB", ticker=ticker)
-
+            break
 
 class LockResponseKafkaConsumerService(BaseKafkaConsumerService):
     """
