@@ -109,7 +109,8 @@ class OrderRepository:
             Optional[Order]: Возвращает удалённый заказ, если он был найден и удалён, иначе None.
         """
         result = await self.db.execute(
-            select(Order).options(selectinload(Order.asset)).
+            select(Order).options(selectinload(Order.order_asset)).
+            options(selectinload(Order.payment_asset)).
             filter(Order.user_id == user_id, Order.id == order_id)
         )
         order = result.scalars().first()
@@ -117,37 +118,3 @@ class OrderRepository:
             await self.db.delete(order)
             await self.db.commit()
         return order
-
-
-    async def lock(self, user_id, ticker, amount):
-        key = f"user:{user_id}:asset:{ticker}"
-
-        
-        async with redis_pool.connection() as redis:
-            data = await redis.hgetall(key)
-
-            if data is None:
-                return False
-            logger.info(data)
-            locked = int(data["locked"])
-            data["locked"] = amount + locked
-
-            await redis.hset(key, mapping=data)
-
-            return True
-
-    async def unlock(self, user_id, ticker, amount):
-        key = f"user:{user_id}:asset:{ticker}"
-
-        async with redis_pool.connection() as redis:
-            data = await redis.hgetall(key)
-
-            if data is None:
-                return False
-
-            locked = int( data["locked"])
-            data["locked"] = locked - amount
-
-            await redis.hset(key, mapping=data)
-
-            return True
