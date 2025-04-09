@@ -30,9 +30,3 @@ def get_user_from_token(token: str = Security(oauth2_scheme)) -> dict:
 def admin_required(user_info: dict = Depends(get_user_from_token)) -> None:
     if user_info["role"] != "ADMIN":
         raise HTTPException(status_code=403, detail="You do not have permission to access this resource")
-    
-
-
-def verify_internal_token(authorization: str = Header(...)):
-    if authorization != f"Bearer {settings.INTERNAL_API_TOKEN}":
-        raise HTTPException(status_code=403, detail="Forbidden")
