@@ -10,6 +10,13 @@ cdef class OrderBook:
         self.buy_orders = []
         self.sell_orders = []
 
+    cdef Order get_order(self, int order_id, str direction):
+        cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
+        for order in orders:
+            if order.order_id == order_id:
+                return order
+        return None
+
     cdef void add_order(self, Order order):
         """Добавляет ордер в книгу заявок."""
         if order.direction == "buy":

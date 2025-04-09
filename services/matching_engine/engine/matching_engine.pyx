@@ -77,8 +77,45 @@ cdef class MatchingEngine:
 
     cpdef void cancel_order(self, order_id, direction, order_ticker, payment_ticker):
         cdef str ticker_pair = f"{order_ticker}/{payment_ticker}"
-        if ticker_pair in self.order_books:
-            self.order_books[ticker_pair].remove_order(order_id, direction)
+        cdef OrderBook order_book
+        cdef Order order
+        cdef int remaining_qty
+        cdef int refund_amount
+
+        logger.info(ticker_pair)
+        logger.info(self.order_books)
+        if ticker_pair not in self.order_books:
+            return
+
+        order_book = self.order_books[ticker_pair]
+        order = order_book.get_order(order_id, direction)
+
+        if order is None:
+            logger.warning(f"❌ Order {order_id} not found for cancellation.")
+            return
+
+        remaining_qty = order.qty
+
+        if direction == "buy":
+            refund_amount = remaining_qty * order.price
+            asyncio.create_task(self.send_wallet_transfer(
+                from_user=None,
+                to_user=order.user_id,
+                ticker=order.payment_ticker,
+                amount=refund_amount
+            ))
+        else:
+            asyncio.create_task(self.send_wallet_transfer(
+                from_user=None,
+                to_user=order.user_id,
+                ticker=order.order_ticker,
+                amount=remaining_qty
+            ))
+
+        order_book.remove_order(order_id, direction)
+
+        asyncio.create_task(self.send_market_data(order_book, ticker_pair))
+        logger.info(f"🚫 CANCELLED ORDER {order_id}, returned unspent: {remaining_qty} ({'qty' if direction == 'sell' else 'value'})")
 
     cdef void match_orders(self, OrderBook order_book):
         cdef Order best_buy
