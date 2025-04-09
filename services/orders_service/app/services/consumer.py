@@ -5,9 +5,9 @@ from app.core.config import settings
 from app.core.logger import logger
 from app.db.database import get_db, redis_pool
 from app.repositories.order_repo import OrderRepository
-from app.services.wallet_client import wallet_client
 from app.repositories.asset_repo import AssetRepository
 from app.models.asset import Asset
+from app.services.lock_response_listener import lock_futures
 
 
 class BaseKafkaConsumerService:
@@ -136,56 +136,30 @@ class AssetConsumer(BaseKafkaConsumerService):
             await self.log_message("Удалён актив из DB", ticker=ticker)
 
 
-class ChangeBalanceConsumer(BaseKafkaConsumerService):
+class LockResponseKafkaConsumerService(BaseKafkaConsumerService):
     """
-    Потребитель Kafka для обработки изменений баланса.
+    Kafka consumer для обработки ответов о локации средств из wallet-сервиса.
     """
-
-    def __init__(self, topic: str, bootstrap_servers: str, group_id: str):
-        super().__init__(topic=topic, bootstrap_servers=bootstrap_servers, group_id=group_id)
 
     async def process_message(self, message):
-        data = json.loads(message.value.decode('utf-8'))
-        user_id = data["user_id"]
-        asset_id = data["asset_id"]
-        ticker = data["ticker"]
-        amount = int(data["amount"])
-        locked = int(data["locked"])
+        try:
+            value = json.loads(message.value.decode("utf-8"))
+            correlation_id = value.get("correlation_id")
+            success = value.get("success", False)
 
-        balance_key = f"user:{user_id}:asset:{ticker}"
+            await self.log_message("Получен ответ от wallet", correlation_id=correlation_id, success=success)
 
-        async with redis_pool.connection() as redis:
-            exists = await redis.exists(balance_key)
+            if correlation_id and correlation_id in lock_futures:
+                future = lock_futures.pop(correlation_id)
+                future.set_result(success)
 
-            if not exists:
-                await self.initialize_balance(user_id, ticker, balance_key)
-            else:
-                await self.update_balance(redis, balance_key, amount, locked)
-
-    async def initialize_balance(self, user_id: int, ticker: str, balance_key: str):
-        wallet_data = await wallet_client.get_balance(user_id, ticker)
-        if wallet_data is None:
-            logger.warning(f"No wallet data found for user={user_id}, asset={ticker}")
-            return
-
-        async with redis_pool.connection() as redis:
-            await redis.hset(balance_key, mapping={
-                "amount": int(wallet_data["amount"]),
-                "locked": int(wallet_data["locked"])
-            })
-            await self.log_message("INIT", user_id=user_id, asset=ticker, amount=wallet_data["amount"], locked=wallet_data["locked"])
-
-    async def update_balance(self, redis, balance_key: str, amount: int, locked: int):
-        await redis.hset(balance_key, mapping={
-            "amount": amount,
-            "locked": locked
-        })
-        await self.log_message("UPDATE", amount=amount, locked=locked)
+        except Exception as e:
+            await self.log_message("Ошибка обработки сообщения", error=str(e))
 
 
 
 # Инициализация потребителей
-change_balance_consumer = ChangeBalanceConsumer("change_balance", settings.BOOTSTRAP_SERVERS, group_id=None)
+lock_response_consumer = LockResponseKafkaConsumerService("lock_assets.response", settings.BOOTSTRAP_SERVERS, group_id=None)
 order_status_consumer = OrderStatusConsumer(settings.BOOTSTRAP_SERVERS, group_id=None)
 asset_consumer = AssetConsumer(settings.BOOTSTRAP_SERVERS, group_id="orders_group")
 
