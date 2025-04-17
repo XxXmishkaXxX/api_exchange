@@ -11,5 +11,8 @@ cdef class OrderBook:
     cdef void remove_order(self, int order_id, str direction)
     cdef Order get_best_buy(self)
     cdef Order get_best_sell(self)
+    cdef int get_available_sell_liquidity(self)
+    cdef int get_available_buy_liquidity(self)
+    cdef int calculate_payment_for_buy(self, int amount)
     cdef void log_order_book(self)
     

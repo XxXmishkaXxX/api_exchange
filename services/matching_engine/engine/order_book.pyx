@@ -38,6 +38,35 @@ cdef class OrderBook:
     cdef Order get_best_sell(self):
         """Возвращает лучший ордер на продажу."""
         return self.sell_orders[0] if self.sell_orders else None
+    
+    cdef int get_available_sell_liquidity(self):
+        """Возвращает общую доступную ликвидность на продажу (сколько можно купить)."""
+        cdef int total = 0
+        for order in self.sell_orders:
+            total += order.qty
+        return total
+
+    cdef int get_available_buy_liquidity(self):
+        """Возвращает общую доступную ликвидность на покупку (сколько можно продать)."""
+        cdef int total = 0
+        for order in self.buy_orders:
+            total += order.qty
+        return total
+
+    cdef int calculate_payment_for_buy(self, int amount):
+        """
+        Рассчитывает, сколько нужно заплатить за покупку `amount` актива,
+        проходясь по лучшим ордерам на продажу.
+        """
+        cdef int remaining = amount
+        cdef int cost = 0
+        for order in self.sell_orders:
+            if remaining <= 0:
+                break
+            tradable = min(remaining, order.qty)
+            cost += tradable * order.price
+            remaining -= tradable
+        return cost if remaining <= 0 else -1
 
     cdef void log_order_book(self):
         """Логирует текущее состояние книги заявок."""

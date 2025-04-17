@@ -1550,6 +1550,9 @@ struct __pyx_vtabstruct_6engine_10order_book_OrderBook {
   void (*remove_order)(struct __pyx_obj_6engine_10order_book_OrderBook *, int, PyObject *);
   struct __pyx_obj_6engine_5order_Order *(*get_best_buy)(struct __pyx_obj_6engine_10order_book_OrderBook *);
   struct __pyx_obj_6engine_5order_Order *(*get_best_sell)(struct __pyx_obj_6engine_10order_book_OrderBook *);
+  int (*get_available_sell_liquidity)(struct __pyx_obj_6engine_10order_book_OrderBook *);
+  int (*get_available_buy_liquidity)(struct __pyx_obj_6engine_10order_book_OrderBook *);
+  int (*calculate_payment_for_buy)(struct __pyx_obj_6engine_10order_book_OrderBook *, int);
   void (*log_order_book)(struct __pyx_obj_6engine_10order_book_OrderBook *);
 };
 static struct __pyx_vtabstruct_6engine_10order_book_OrderBook *__pyx_vtabptr_6engine_10order_book_OrderBook;
@@ -2279,6 +2282,9 @@ static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
 
+/* CIntFromPy.proto */
+static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
+
 /* FormatTypeName.proto */
 #if CYTHON_COMPILING_IN_LIMITED_API
 typedef PyObject *__Pyx_TypeName;
@@ -2291,9 +2297,6 @@ typedef const char *__Pyx_TypeName;
 #define __Pyx_PyType_GetName(tp) ((tp)->tp_name)
 #define __Pyx_DECREF_TypeName(obj)
 #endif
-
-/* CIntFromPy.proto */
-static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
 
 /* FastTypeChecks.proto */
 #if CYTHON_COMPILING_IN_CPYTHON
@@ -2325,6 +2328,9 @@ static void __pyx_f_6engine_10order_book_9OrderBook_add_order(struct __pyx_obj_6
 static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, int __pyx_v_order_id, PyObject *__pyx_v_direction); /* proto*/
 static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9OrderBook_get_best_buy(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self); /* proto*/
 static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9OrderBook_get_best_sell(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self); /* proto*/
+static int __pyx_f_6engine_10order_book_9OrderBook_get_available_sell_liquidity(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self); /* proto*/
+static int __pyx_f_6engine_10order_book_9OrderBook_get_available_buy_liquidity(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self); /* proto*/
+static int __pyx_f_6engine_10order_book_9OrderBook_calculate_payment_for_buy(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, int __pyx_v_amount); /* proto*/
 static void __pyx_f_6engine_10order_book_9OrderBook_log_order_book(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self); /* proto*/
 
 /* Module declarations from "engine.order" */
@@ -3792,7 +3798,7 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
  *         """    ."""
  *         return self.sell_orders[0] if self.sell_orders else None             # <<<<<<<<<<<<<<
  * 
- *     cdef void log_order_book(self):
+ *     cdef int get_available_sell_liquidity(self):
  */
   __Pyx_XDECREF((PyObject *)__pyx_r);
   __pyx_t_2 = (__pyx_v_self->sell_orders != Py_None)&&(PyList_GET_SIZE(__pyx_v_self->sell_orders) != 0);
@@ -3838,6 +3844,483 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
 /* "engine/order_book.pyx":42
  *         return self.sell_orders[0] if self.sell_orders else None
  * 
+ *     cdef int get_available_sell_liquidity(self):             # <<<<<<<<<<<<<<
+ *         """      (  )."""
+ *         cdef int total = 0
+ */
+
+static int __pyx_f_6engine_10order_book_9OrderBook_get_available_sell_liquidity(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self) {
+  int __pyx_v_total;
+  PyObject *__pyx_v_order = NULL;
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  Py_ssize_t __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  int __pyx_t_6;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("get_available_sell_liquidity", 1);
+
+  /* "engine/order_book.pyx":44
+ *     cdef int get_available_sell_liquidity(self):
+ *         """      (  )."""
+ *         cdef int total = 0             # <<<<<<<<<<<<<<
+ *         for order in self.sell_orders:
+ *             total += order.qty
+ */
+  __pyx_v_total = 0;
+
+  /* "engine/order_book.pyx":45
+ *         """      (  )."""
+ *         cdef int total = 0
+ *         for order in self.sell_orders:             # <<<<<<<<<<<<<<
+ *             total += order.qty
+ *         return total
+ */
+  if (unlikely(__pyx_v_self->sell_orders == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
+    __PYX_ERR(0, 45, __pyx_L1_error)
+  }
+  __pyx_t_1 = __pyx_v_self->sell_orders; __Pyx_INCREF(__pyx_t_1);
+  __pyx_t_2 = 0;
+  for (;;) {
+    {
+      Py_ssize_t __pyx_temp = __Pyx_PyList_GET_SIZE(__pyx_t_1);
+      #if !CYTHON_ASSUME_SAFE_MACROS
+      if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 45, __pyx_L1_error)
+      #endif
+      if (__pyx_t_2 >= __pyx_temp) break;
+    }
+    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    __pyx_t_3 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_3); __pyx_t_2++; if (unlikely((0 < 0))) __PYX_ERR(0, 45, __pyx_L1_error)
+    #else
+    __pyx_t_3 = __Pyx_PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 45, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    #endif
+    __Pyx_XDECREF_SET(__pyx_v_order, __pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "engine/order_book.pyx":46
+ *         cdef int total = 0
+ *         for order in self.sell_orders:
+ *             total += order.qty             # <<<<<<<<<<<<<<
+ *         return total
+ * 
+ */
+    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_total); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 46, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_order, __pyx_n_s_qty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 46, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_5 = PyNumber_InPlaceAdd(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 46, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 46, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_v_total = __pyx_t_6;
+
+    /* "engine/order_book.pyx":45
+ *         """      (  )."""
+ *         cdef int total = 0
+ *         for order in self.sell_orders:             # <<<<<<<<<<<<<<
+ *             total += order.qty
+ *         return total
+ */
+  }
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "engine/order_book.pyx":47
+ *         for order in self.sell_orders:
+ *             total += order.qty
+ *         return total             # <<<<<<<<<<<<<<
+ * 
+ *     cdef int get_available_buy_liquidity(self):
+ */
+  __pyx_r = __pyx_v_total;
+  goto __pyx_L0;
+
+  /* "engine/order_book.pyx":42
+ *         return self.sell_orders[0] if self.sell_orders else None
+ * 
+ *     cdef int get_available_sell_liquidity(self):             # <<<<<<<<<<<<<<
+ *         """      (  )."""
+ *         cdef int total = 0
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_AddTraceback("engine.order_book.OrderBook.get_available_sell_liquidity", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_order);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "engine/order_book.pyx":49
+ *         return total
+ * 
+ *     cdef int get_available_buy_liquidity(self):             # <<<<<<<<<<<<<<
+ *         """      (  )."""
+ *         cdef int total = 0
+ */
+
+static int __pyx_f_6engine_10order_book_9OrderBook_get_available_buy_liquidity(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self) {
+  int __pyx_v_total;
+  PyObject *__pyx_v_order = NULL;
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  Py_ssize_t __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  int __pyx_t_6;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("get_available_buy_liquidity", 1);
+
+  /* "engine/order_book.pyx":51
+ *     cdef int get_available_buy_liquidity(self):
+ *         """      (  )."""
+ *         cdef int total = 0             # <<<<<<<<<<<<<<
+ *         for order in self.buy_orders:
+ *             total += order.qty
+ */
+  __pyx_v_total = 0;
+
+  /* "engine/order_book.pyx":52
+ *         """      (  )."""
+ *         cdef int total = 0
+ *         for order in self.buy_orders:             # <<<<<<<<<<<<<<
+ *             total += order.qty
+ *         return total
+ */
+  if (unlikely(__pyx_v_self->buy_orders == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
+    __PYX_ERR(0, 52, __pyx_L1_error)
+  }
+  __pyx_t_1 = __pyx_v_self->buy_orders; __Pyx_INCREF(__pyx_t_1);
+  __pyx_t_2 = 0;
+  for (;;) {
+    {
+      Py_ssize_t __pyx_temp = __Pyx_PyList_GET_SIZE(__pyx_t_1);
+      #if !CYTHON_ASSUME_SAFE_MACROS
+      if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 52, __pyx_L1_error)
+      #endif
+      if (__pyx_t_2 >= __pyx_temp) break;
+    }
+    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    __pyx_t_3 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_3); __pyx_t_2++; if (unlikely((0 < 0))) __PYX_ERR(0, 52, __pyx_L1_error)
+    #else
+    __pyx_t_3 = __Pyx_PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 52, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    #endif
+    __Pyx_XDECREF_SET(__pyx_v_order, __pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "engine/order_book.pyx":53
+ *         cdef int total = 0
+ *         for order in self.buy_orders:
+ *             total += order.qty             # <<<<<<<<<<<<<<
+ *         return total
+ * 
+ */
+    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_total); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 53, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_order, __pyx_n_s_qty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 53, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_5 = PyNumber_InPlaceAdd(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 53, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 53, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_v_total = __pyx_t_6;
+
+    /* "engine/order_book.pyx":52
+ *         """      (  )."""
+ *         cdef int total = 0
+ *         for order in self.buy_orders:             # <<<<<<<<<<<<<<
+ *             total += order.qty
+ *         return total
+ */
+  }
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "engine/order_book.pyx":54
+ *         for order in self.buy_orders:
+ *             total += order.qty
+ *         return total             # <<<<<<<<<<<<<<
+ * 
+ *     cdef int calculate_payment_for_buy(self, int amount):
+ */
+  __pyx_r = __pyx_v_total;
+  goto __pyx_L0;
+
+  /* "engine/order_book.pyx":49
+ *         return total
+ * 
+ *     cdef int get_available_buy_liquidity(self):             # <<<<<<<<<<<<<<
+ *         """      (  )."""
+ *         cdef int total = 0
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_AddTraceback("engine.order_book.OrderBook.get_available_buy_liquidity", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_order);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "engine/order_book.pyx":56
+ *         return total
+ * 
+ *     cdef int calculate_payment_for_buy(self, int amount):             # <<<<<<<<<<<<<<
+ *         """
+ *         ,      `amount` ,
+ */
+
+static int __pyx_f_6engine_10order_book_9OrderBook_calculate_payment_for_buy(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, int __pyx_v_amount) {
+  int __pyx_v_remaining;
+  int __pyx_v_cost;
+  PyObject *__pyx_v_order = NULL;
+  PyObject *__pyx_v_tradable = NULL;
+  int __pyx_r;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  Py_ssize_t __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  int __pyx_t_4;
+  int __pyx_t_5;
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *__pyx_t_7 = NULL;
+  PyObject *__pyx_t_8 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("calculate_payment_for_buy", 1);
+
+  /* "engine/order_book.pyx":61
+ *              .
+ *         """
+ *         cdef int remaining = amount             # <<<<<<<<<<<<<<
+ *         cdef int cost = 0
+ *         for order in self.sell_orders:
+ */
+  __pyx_v_remaining = __pyx_v_amount;
+
+  /* "engine/order_book.pyx":62
+ *         """
+ *         cdef int remaining = amount
+ *         cdef int cost = 0             # <<<<<<<<<<<<<<
+ *         for order in self.sell_orders:
+ *             if remaining <= 0:
+ */
+  __pyx_v_cost = 0;
+
+  /* "engine/order_book.pyx":63
+ *         cdef int remaining = amount
+ *         cdef int cost = 0
+ *         for order in self.sell_orders:             # <<<<<<<<<<<<<<
+ *             if remaining <= 0:
+ *                 break
+ */
+  if (unlikely(__pyx_v_self->sell_orders == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
+    __PYX_ERR(0, 63, __pyx_L1_error)
+  }
+  __pyx_t_1 = __pyx_v_self->sell_orders; __Pyx_INCREF(__pyx_t_1);
+  __pyx_t_2 = 0;
+  for (;;) {
+    {
+      Py_ssize_t __pyx_temp = __Pyx_PyList_GET_SIZE(__pyx_t_1);
+      #if !CYTHON_ASSUME_SAFE_MACROS
+      if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 63, __pyx_L1_error)
+      #endif
+      if (__pyx_t_2 >= __pyx_temp) break;
+    }
+    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    __pyx_t_3 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_3); __pyx_t_2++; if (unlikely((0 < 0))) __PYX_ERR(0, 63, __pyx_L1_error)
+    #else
+    __pyx_t_3 = __Pyx_PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 63, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    #endif
+    __Pyx_XDECREF_SET(__pyx_v_order, __pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "engine/order_book.pyx":64
+ *         cdef int cost = 0
+ *         for order in self.sell_orders:
+ *             if remaining <= 0:             # <<<<<<<<<<<<<<
+ *                 break
+ *             tradable = min(remaining, order.qty)
+ */
+    __pyx_t_4 = (__pyx_v_remaining <= 0);
+    if (__pyx_t_4) {
+
+      /* "engine/order_book.pyx":65
+ *         for order in self.sell_orders:
+ *             if remaining <= 0:
+ *                 break             # <<<<<<<<<<<<<<
+ *             tradable = min(remaining, order.qty)
+ *             cost += tradable * order.price
+ */
+      goto __pyx_L4_break;
+
+      /* "engine/order_book.pyx":64
+ *         cdef int cost = 0
+ *         for order in self.sell_orders:
+ *             if remaining <= 0:             # <<<<<<<<<<<<<<
+ *                 break
+ *             tradable = min(remaining, order.qty)
+ */
+    }
+
+    /* "engine/order_book.pyx":66
+ *             if remaining <= 0:
+ *                 break
+ *             tradable = min(remaining, order.qty)             # <<<<<<<<<<<<<<
+ *             cost += tradable * order.price
+ *             remaining -= tradable
+ */
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_order, __pyx_n_s_qty); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_5 = __pyx_v_remaining;
+    __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_8 = PyObject_RichCompare(__pyx_t_3, __pyx_t_7, Py_LT); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely((__pyx_t_4 < 0))) __PYX_ERR(0, 66, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    if (__pyx_t_4) {
+      __Pyx_INCREF(__pyx_t_3);
+      __pyx_t_6 = __pyx_t_3;
+    } else {
+      __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_t_5); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 66, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_8);
+      __pyx_t_6 = __pyx_t_8;
+      __pyx_t_8 = 0;
+    }
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_3 = __pyx_t_6;
+    __Pyx_INCREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_tradable, __pyx_t_3);
+    __pyx_t_3 = 0;
+
+    /* "engine/order_book.pyx":67
+ *                 break
+ *             tradable = min(remaining, order.qty)
+ *             cost += tradable * order.price             # <<<<<<<<<<<<<<
+ *             remaining -= tradable
+ *         return cost if remaining <= 0 else -1
+ */
+    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_cost); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 67, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_order, __pyx_n_s_price); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 67, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_8 = PyNumber_Multiply(__pyx_v_tradable, __pyx_t_6); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 67, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_t_6 = PyNumber_InPlaceAdd(__pyx_t_3, __pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 67, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_6); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 67, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_v_cost = __pyx_t_5;
+
+    /* "engine/order_book.pyx":68
+ *             tradable = min(remaining, order.qty)
+ *             cost += tradable * order.price
+ *             remaining -= tradable             # <<<<<<<<<<<<<<
+ *         return cost if remaining <= 0 else -1
+ * 
+ */
+    __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_remaining); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 68, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_8 = PyNumber_InPlaceSubtract(__pyx_t_6, __pyx_v_tradable); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 68, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_8); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 68, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __pyx_v_remaining = __pyx_t_5;
+
+    /* "engine/order_book.pyx":63
+ *         cdef int remaining = amount
+ *         cdef int cost = 0
+ *         for order in self.sell_orders:             # <<<<<<<<<<<<<<
+ *             if remaining <= 0:
+ *                 break
+ */
+  }
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  goto __pyx_L6_for_end;
+  __pyx_L4_break:;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  goto __pyx_L6_for_end;
+  __pyx_L6_for_end:;
+
+  /* "engine/order_book.pyx":69
+ *             cost += tradable * order.price
+ *             remaining -= tradable
+ *         return cost if remaining <= 0 else -1             # <<<<<<<<<<<<<<
+ * 
+ *     cdef void log_order_book(self):
+ */
+  __pyx_t_4 = (__pyx_v_remaining <= 0);
+  if (__pyx_t_4) {
+    __pyx_t_5 = __pyx_v_cost;
+  } else {
+    __pyx_t_5 = -1;
+  }
+  __pyx_r = __pyx_t_5;
+  goto __pyx_L0;
+
+  /* "engine/order_book.pyx":56
+ *         return total
+ * 
+ *     cdef int calculate_payment_for_buy(self, int amount):             # <<<<<<<<<<<<<<
+ *         """
+ *         ,      `amount` ,
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_AddTraceback("engine.order_book.OrderBook.calculate_payment_for_buy", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_order);
+  __Pyx_XDECREF(__pyx_v_tradable);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "engine/order_book.pyx":71
+ *         return cost if remaining <= 0 else -1
+ * 
  *     cdef void log_order_book(self):             # <<<<<<<<<<<<<<
  *         """    ."""
  *         buy_orders_info = [{"order_id": o.order_id, "price": o.price, "qty": o.qty} for o in self.buy_orders]
@@ -3861,7 +4344,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_log_order_book(struct __pyx_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("log_order_book", 1);
 
-  /* "engine/order_book.pyx":44
+  /* "engine/order_book.pyx":73
  *     cdef void log_order_book(self):
  *         """    ."""
  *         buy_orders_info = [{"order_id": o.order_id, "price": o.price, "qty": o.qty} for o in self.buy_orders]             # <<<<<<<<<<<<<<
@@ -3869,11 +4352,11 @@ static void __pyx_f_6engine_10order_book_9OrderBook_log_order_book(struct __pyx_
  *         logger.info(f"OrderBook {self.ticker_pair_name} - Buy Orders: {buy_orders_info}, Sell Orders: {sell_orders_info}")
  */
   { /* enter inner scope */
-    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L5_error)
+    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 73, __pyx_L5_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (unlikely(__pyx_v_self->buy_orders == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-      __PYX_ERR(0, 44, __pyx_L5_error)
+      __PYX_ERR(0, 73, __pyx_L5_error)
     }
     __pyx_t_2 = __pyx_v_self->buy_orders; __Pyx_INCREF(__pyx_t_2);
     __pyx_t_3 = 0;
@@ -3881,33 +4364,33 @@ static void __pyx_f_6engine_10order_book_9OrderBook_log_order_book(struct __pyx_
       {
         Py_ssize_t __pyx_temp = __Pyx_PyList_GET_SIZE(__pyx_t_2);
         #if !CYTHON_ASSUME_SAFE_MACROS
-        if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 44, __pyx_L5_error)
+        if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 73, __pyx_L5_error)
         #endif
         if (__pyx_t_3 >= __pyx_temp) break;
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-      __pyx_t_4 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_4); __pyx_t_3++; if (unlikely((0 < 0))) __PYX_ERR(0, 44, __pyx_L5_error)
+      __pyx_t_4 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_4); __pyx_t_3++; if (unlikely((0 < 0))) __PYX_ERR(0, 73, __pyx_L5_error)
       #else
-      __pyx_t_4 = __Pyx_PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 44, __pyx_L5_error)
+      __pyx_t_4 = __Pyx_PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 73, __pyx_L5_error)
       __Pyx_GOTREF(__pyx_t_4);
       #endif
       __Pyx_XDECREF_SET(__pyx_8genexpr1__pyx_v_o, __pyx_t_4);
       __pyx_t_4 = 0;
-      __pyx_t_4 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 44, __pyx_L5_error)
+      __pyx_t_4 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 73, __pyx_L5_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_8genexpr1__pyx_v_o, __pyx_n_s_order_id); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 44, __pyx_L5_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_8genexpr1__pyx_v_o, __pyx_n_s_order_id); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 73, __pyx_L5_error)
       __Pyx_GOTREF(__pyx_t_5);
-      if (PyDict_SetItem(__pyx_t_4, __pyx_n_u_order_id, __pyx_t_5) < 0) __PYX_ERR(0, 44, __pyx_L5_error)
+      if (PyDict_SetItem(__pyx_t_4, __pyx_n_u_order_id, __pyx_t_5) < 0) __PYX_ERR(0, 73, __pyx_L5_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_8genexpr1__pyx_v_o, __pyx_n_s_price); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 44, __pyx_L5_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_8genexpr1__pyx_v_o, __pyx_n_s_price); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 73, __pyx_L5_error)
       __Pyx_GOTREF(__pyx_t_5);
-      if (PyDict_SetItem(__pyx_t_4, __pyx_n_u_price, __pyx_t_5) < 0) __PYX_ERR(0, 44, __pyx_L5_error)
+      if (PyDict_SetItem(__pyx_t_4, __pyx_n_u_price, __pyx_t_5) < 0) __PYX_ERR(0, 73, __pyx_L5_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_8genexpr1__pyx_v_o, __pyx_n_s_qty); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 44, __pyx_L5_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_8genexpr1__pyx_v_o, __pyx_n_s_qty); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 73, __pyx_L5_error)
       __Pyx_GOTREF(__pyx_t_5);
-      if (PyDict_SetItem(__pyx_t_4, __pyx_n_u_qty, __pyx_t_5) < 0) __PYX_ERR(0, 44, __pyx_L5_error)
+      if (PyDict_SetItem(__pyx_t_4, __pyx_n_u_qty, __pyx_t_5) < 0) __PYX_ERR(0, 73, __pyx_L5_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_4))) __PYX_ERR(0, 44, __pyx_L5_error)
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_4))) __PYX_ERR(0, 73, __pyx_L5_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -3921,18 +4404,18 @@ static void __pyx_f_6engine_10order_book_9OrderBook_log_order_book(struct __pyx_
   __pyx_v_buy_orders_info = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "engine/order_book.pyx":45
+  /* "engine/order_book.pyx":74
  *         """    ."""
  *         buy_orders_info = [{"order_id": o.order_id, "price": o.price, "qty": o.qty} for o in self.buy_orders]
  *         sell_orders_info = [{"order_id": o.order_id, "price": o.price, "qty": o.qty} for o in self.sell_orders]             # <<<<<<<<<<<<<<
  *         logger.info(f"OrderBook {self.ticker_pair_name} - Buy Orders: {buy_orders_info}, Sell Orders: {sell_orders_info}")
  */
   { /* enter inner scope */
-    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 45, __pyx_L12_error)
+    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 74, __pyx_L12_error)
     __Pyx_GOTREF(__pyx_t_1);
     if (unlikely(__pyx_v_self->sell_orders == Py_None)) {
       PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-      __PYX_ERR(0, 45, __pyx_L12_error)
+      __PYX_ERR(0, 74, __pyx_L12_error)
     }
     __pyx_t_2 = __pyx_v_self->sell_orders; __Pyx_INCREF(__pyx_t_2);
     __pyx_t_3 = 0;
@@ -3940,33 +4423,33 @@ static void __pyx_f_6engine_10order_book_9OrderBook_log_order_book(struct __pyx_
       {
         Py_ssize_t __pyx_temp = __Pyx_PyList_GET_SIZE(__pyx_t_2);
         #if !CYTHON_ASSUME_SAFE_MACROS
-        if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 45, __pyx_L12_error)
+        if (unlikely((__pyx_temp < 0))) __PYX_ERR(0, 74, __pyx_L12_error)
         #endif
         if (__pyx_t_3 >= __pyx_temp) break;
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-      __pyx_t_4 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_4); __pyx_t_3++; if (unlikely((0 < 0))) __PYX_ERR(0, 45, __pyx_L12_error)
+      __pyx_t_4 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_4); __pyx_t_3++; if (unlikely((0 < 0))) __PYX_ERR(0, 74, __pyx_L12_error)
       #else
-      __pyx_t_4 = __Pyx_PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 45, __pyx_L12_error)
+      __pyx_t_4 = __Pyx_PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 74, __pyx_L12_error)
       __Pyx_GOTREF(__pyx_t_4);
       #endif
       __Pyx_XDECREF_SET(__pyx_8genexpr2__pyx_v_o, __pyx_t_4);
       __pyx_t_4 = 0;
-      __pyx_t_4 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 45, __pyx_L12_error)
+      __pyx_t_4 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 74, __pyx_L12_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_8genexpr2__pyx_v_o, __pyx_n_s_order_id); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 45, __pyx_L12_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_8genexpr2__pyx_v_o, __pyx_n_s_order_id); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 74, __pyx_L12_error)
       __Pyx_GOTREF(__pyx_t_5);
-      if (PyDict_SetItem(__pyx_t_4, __pyx_n_u_order_id, __pyx_t_5) < 0) __PYX_ERR(0, 45, __pyx_L12_error)
+      if (PyDict_SetItem(__pyx_t_4, __pyx_n_u_order_id, __pyx_t_5) < 0) __PYX_ERR(0, 74, __pyx_L12_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_8genexpr2__pyx_v_o, __pyx_n_s_price); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 45, __pyx_L12_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_8genexpr2__pyx_v_o, __pyx_n_s_price); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 74, __pyx_L12_error)
       __Pyx_GOTREF(__pyx_t_5);
-      if (PyDict_SetItem(__pyx_t_4, __pyx_n_u_price, __pyx_t_5) < 0) __PYX_ERR(0, 45, __pyx_L12_error)
+      if (PyDict_SetItem(__pyx_t_4, __pyx_n_u_price, __pyx_t_5) < 0) __PYX_ERR(0, 74, __pyx_L12_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_8genexpr2__pyx_v_o, __pyx_n_s_qty); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 45, __pyx_L12_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_8genexpr2__pyx_v_o, __pyx_n_s_qty); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 74, __pyx_L12_error)
       __Pyx_GOTREF(__pyx_t_5);
-      if (PyDict_SetItem(__pyx_t_4, __pyx_n_u_qty, __pyx_t_5) < 0) __PYX_ERR(0, 45, __pyx_L12_error)
+      if (PyDict_SetItem(__pyx_t_4, __pyx_n_u_qty, __pyx_t_5) < 0) __PYX_ERR(0, 74, __pyx_L12_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_4))) __PYX_ERR(0, 45, __pyx_L12_error)
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_4))) __PYX_ERR(0, 74, __pyx_L12_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -3980,17 +4463,17 @@ static void __pyx_f_6engine_10order_book_9OrderBook_log_order_book(struct __pyx_
   __pyx_v_sell_orders_info = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "engine/order_book.pyx":46
+  /* "engine/order_book.pyx":75
  *         buy_orders_info = [{"order_id": o.order_id, "price": o.price, "qty": o.qty} for o in self.buy_orders]
  *         sell_orders_info = [{"order_id": o.order_id, "price": o.price, "qty": o.qty} for o in self.sell_orders]
  *         logger.info(f"OrderBook {self.ticker_pair_name} - Buy Orders: {buy_orders_info}, Sell Orders: {sell_orders_info}")             # <<<<<<<<<<<<<<
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_logger); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_logger); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_info); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_info); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = 0;
   __pyx_t_6 = 127;
@@ -3998,7 +4481,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_log_order_book(struct __pyx_
   __pyx_t_3 += 10;
   __Pyx_GIVEREF(__pyx_kp_u_OrderBook);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_kp_u_OrderBook);
-  __pyx_t_5 = __Pyx_PyUnicode_Unicode(__pyx_v_self->ticker_pair_name); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyUnicode_Unicode(__pyx_v_self->ticker_pair_name); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) > __pyx_t_6) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) : __pyx_t_6;
   __pyx_t_3 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_5);
@@ -4009,7 +4492,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_log_order_book(struct __pyx_
   __pyx_t_3 += 15;
   __Pyx_GIVEREF(__pyx_kp_u_Buy_Orders);
   PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_kp_u_Buy_Orders);
-  __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_v_buy_orders_info, __pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_v_buy_orders_info, __pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) > __pyx_t_6) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) : __pyx_t_6;
   __pyx_t_3 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_5);
@@ -4020,14 +4503,14 @@ static void __pyx_f_6engine_10order_book_9OrderBook_log_order_book(struct __pyx_
   __pyx_t_3 += 15;
   __Pyx_GIVEREF(__pyx_kp_u_Sell_Orders);
   PyTuple_SET_ITEM(__pyx_t_2, 4, __pyx_kp_u_Sell_Orders);
-  __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_v_sell_orders_info, __pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_FormatSimple(__pyx_v_sell_orders_info, __pyx_empty_unicode); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = (__Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) > __pyx_t_6) ? __Pyx_PyUnicode_MAX_CHAR_VALUE(__pyx_t_5) : __pyx_t_6;
   __pyx_t_3 += __Pyx_PyUnicode_GET_LENGTH(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_2, 5, __pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyUnicode_Join(__pyx_t_2, 6, __pyx_t_3, __pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyUnicode_Join(__pyx_t_2, 6, __pyx_t_3, __pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -4049,14 +4532,14 @@ static void __pyx_f_6engine_10order_book_9OrderBook_log_order_book(struct __pyx_
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_4, __pyx_callargs+1-__pyx_t_7, 1+__pyx_t_7);
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 46, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 75, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "engine/order_book.pyx":42
- *         return self.sell_orders[0] if self.sell_orders else None
+  /* "engine/order_book.pyx":71
+ *         return cost if remaining <= 0 else -1
  * 
  *     cdef void log_order_book(self):             # <<<<<<<<<<<<<<
  *         """    ."""
@@ -5355,6 +5838,9 @@ static int __Pyx_modinit_type_init_code(void) {
   __pyx_vtable_6engine_10order_book_OrderBook.remove_order = (void (*)(struct __pyx_obj_6engine_10order_book_OrderBook *, int, PyObject *))__pyx_f_6engine_10order_book_9OrderBook_remove_order;
   __pyx_vtable_6engine_10order_book_OrderBook.get_best_buy = (struct __pyx_obj_6engine_5order_Order *(*)(struct __pyx_obj_6engine_10order_book_OrderBook *))__pyx_f_6engine_10order_book_9OrderBook_get_best_buy;
   __pyx_vtable_6engine_10order_book_OrderBook.get_best_sell = (struct __pyx_obj_6engine_5order_Order *(*)(struct __pyx_obj_6engine_10order_book_OrderBook *))__pyx_f_6engine_10order_book_9OrderBook_get_best_sell;
+  __pyx_vtable_6engine_10order_book_OrderBook.get_available_sell_liquidity = (int (*)(struct __pyx_obj_6engine_10order_book_OrderBook *))__pyx_f_6engine_10order_book_9OrderBook_get_available_sell_liquidity;
+  __pyx_vtable_6engine_10order_book_OrderBook.get_available_buy_liquidity = (int (*)(struct __pyx_obj_6engine_10order_book_OrderBook *))__pyx_f_6engine_10order_book_9OrderBook_get_available_buy_liquidity;
+  __pyx_vtable_6engine_10order_book_OrderBook.calculate_payment_for_buy = (int (*)(struct __pyx_obj_6engine_10order_book_OrderBook *, int))__pyx_f_6engine_10order_book_9OrderBook_calculate_payment_for_buy;
   __pyx_vtable_6engine_10order_book_OrderBook.log_order_book = (void (*)(struct __pyx_obj_6engine_10order_book_OrderBook *))__pyx_f_6engine_10order_book_9OrderBook_log_order_book;
   #if CYTHON_USE_TYPE_SPECS
   __pyx_ptype_6engine_10order_book_OrderBook = (PyTypeObject *) __Pyx_PyType_FromModuleAndSpec(__pyx_m, &__pyx_type_6engine_10order_book_OrderBook_spec, NULL); if (unlikely(!__pyx_ptype_6engine_10order_book_OrderBook)) __PYX_ERR(0, 7, __pyx_L1_error)
@@ -10272,22 +10758,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
     }
 }
 
-/* FormatTypeName */
-#if CYTHON_COMPILING_IN_LIMITED_API
-static __Pyx_TypeName
-__Pyx_PyType_GetName(PyTypeObject* tp)
-{
-    PyObject *name = __Pyx_PyObject_GetAttrStr((PyObject *)tp,
-                                               __pyx_n_s_name);
-    if (unlikely(name == NULL) || unlikely(!PyUnicode_Check(name))) {
-        PyErr_Clear();
-        Py_XDECREF(name);
-        name = __Pyx_NewRef(__pyx_n_s__10);
-    }
-    return name;
-}
-#endif
-
 /* CIntFromPy */
 static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *x) {
 #ifdef __Pyx_HAS_GCC_DIAGNOSTIC
@@ -10554,6 +11024,22 @@ raise_neg_overflow:
         "can't convert negative value to int");
     return (int) -1;
 }
+
+/* FormatTypeName */
+#if CYTHON_COMPILING_IN_LIMITED_API
+static __Pyx_TypeName
+__Pyx_PyType_GetName(PyTypeObject* tp)
+{
+    PyObject *name = __Pyx_PyObject_GetAttrStr((PyObject *)tp,
+                                               __pyx_n_s_name);
+    if (unlikely(name == NULL) || unlikely(!PyUnicode_Check(name))) {
+        PyErr_Clear();
+        Py_XDECREF(name);
+        name = __Pyx_NewRef(__pyx_n_s__10);
+    }
+    return name;
+}
+#endif
 
 /* FastTypeChecks */
 #if CYTHON_COMPILING_IN_CPYTHON
