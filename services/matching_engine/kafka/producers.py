@@ -31,14 +31,6 @@ class KafkaWalletProducer(BaseKafkaProducer):
         await self.send(transfer)
 
 
-class KafkaMarketDataProducer(BaseKafkaProducer):
-    def __init__(self):
-        super().__init__(topic="market_data")
-
-    async def send_market_data_update(self, transfer: dict):
-        await self.send(transfer)
-
-
 class KafkaMarketQuoteResponseProducer(BaseKafkaProducer):
     def __init__(self):
         super().__init__(topic="market_quote.response")

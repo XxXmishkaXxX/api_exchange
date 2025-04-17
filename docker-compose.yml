@@ -148,6 +148,7 @@ services:
       - "8004:8004"
     depends_on:
       - kafka
+      - redis_me
     environment:
       - PYTHONPATH=/app
     volumes:
@@ -216,6 +217,15 @@ services:
     restart: always
     ports:
       - "6377:6379"
+    networks:
+      - exchange
+
+  redis_me:
+    image: redis:alpine
+    container_name: redis_me
+    restart: always
+    ports:
+      - "6376:6379"
     networks:
       - exchange
 
