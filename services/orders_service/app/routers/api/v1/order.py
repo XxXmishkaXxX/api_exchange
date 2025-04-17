@@ -4,9 +4,11 @@ from app.schemas.order import OrderSchema, OrderCreateResponse, OrderListRespons
 from app.deps.security import get_user_from_token
 from app.services.order import OrderService, get_order_service
 from app.services.producer import (get_lock_assets_producer, 
-                                   get_order_producer_service, 
+                                   get_order_producer_service,
+                                   get_market_qoute_producer, 
                                    OrderKafkaProducerService, 
-                                   LockAssetsKafkaProducerService)
+                                   LockAssetsKafkaProducerService,
+                                   MarketQuoteKafkaProducerService)
 
 router = APIRouter()
 
@@ -36,6 +38,7 @@ async def create_order(
     service: OrderService = Depends(get_order_service),
     prod_order: OrderKafkaProducerService = Depends(get_order_producer_service),
     prod_lock: LockAssetsKafkaProducerService = Depends(get_lock_assets_producer),
+    prod_market_quote: MarketQuoteKafkaProducerService = Depends(get_market_qoute_producer) 
 ) -> OrderCreateResponse:
     """
     Создать новый заказ.
@@ -49,7 +52,7 @@ async def create_order(
     Возвращает:
         OrderCreateResponse: Ответ с информацией о созданном заказе.
     """
-    return await service.create_order(user_data, order, prod_order=prod_order, prod_lock=prod_lock)
+    return await service.create_order(user_data, order, prod_order=prod_order, prod_lock=prod_lock, prod_get_market_quote=prod_market_quote)
 
 
 @router.get("/{order_id}", response_model=OrderResponse | None)
