@@ -7,7 +7,7 @@ from app.db.database import get_db, redis_pool
 from app.repositories.order_repo import OrderRepository
 from app.repositories.asset_repo import AssetRepository
 from app.models.asset import Asset
-from app.services.lock_response_listener import lock_futures
+from app.services.response_listeners import lock_futures, market_quote_futures
 
 
 class BaseKafkaConsumerService:
@@ -158,8 +158,24 @@ class LockResponseKafkaConsumerService(BaseKafkaConsumerService):
             await self.log_message("Ошибка обработки сообщения", error=str(e))
 
 
+class MarketQuoteResponseKafkaConsumerServcie(BaseKafkaConsumerService):
+    async def process_message(self, message):
+        try:
+            value = json.loads(message.value.decode("utf-8"))
+            correlation_id = value.get("correlation_id")
+            status = value.get("status", "error")
+
+            await self.log_message("Получен маркет-респонс", correlation_id=correlation_id, status=status)
+
+            if correlation_id and correlation_id in market_quote_futures:
+                    future = market_quote_futures.pop(correlation_id)
+                    future.set_result(value)
+
+        except Exception as e:
+            await self.log_message("Ошибка обработки маркет-респонса", error=str(e))
 
 # Инициализация потребителей
+market_quote_response_consumer = MarketQuoteResponseKafkaConsumerServcie("market_quote.response", settings.BOOTSTRAP_SERVERS, group_id=None)
 lock_response_consumer = LockResponseKafkaConsumerService("lock_assets.response", settings.BOOTSTRAP_SERVERS, group_id=None)
 order_status_consumer = OrderStatusConsumer(settings.BOOTSTRAP_SERVERS, group_id=None)
 asset_consumer = AssetConsumer(settings.BOOTSTRAP_SERVERS, group_id="orders_group")
