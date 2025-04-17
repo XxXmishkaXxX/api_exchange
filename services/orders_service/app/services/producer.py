@@ -82,6 +82,22 @@ class LockAssetsKafkaProducerService(BaseKafkaProducerService):
         await self.send_message(data)
 
 
+class MarketQuoteKafkaProducerService(BaseKafkaProducerService):
+    def __init__(self, bootstrap_servers: str):
+        super().__init__(bootstrap_servers=bootstrap_servers, topic="market_quote.request")
+    
+    async def send_request(self, correlation_id, order_ticker: str, payment_ticker: str, amount: int, direction: str):
+        data = {
+            "correlation_id": correlation_id,
+            "order_ticker": order_ticker,
+            "payment_ticker": payment_ticker,
+            "amount": amount,
+            "direction": direction
+        }
+        await self.send_message(data)
+
+
+market_quote_producer = MarketQuoteKafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
 lock_assets_producer = LockAssetsKafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
 order_producer = OrderKafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
 
@@ -98,3 +114,6 @@ async def get_order_producer_service() -> AsyncGenerator[OrderKafkaProducerServi
 
 async def get_lock_assets_producer() -> AsyncGenerator[LockAssetsKafkaProducerService, None]:
     yield lock_assets_producer
+
+async def get_market_qoute_producer() -> AsyncGenerator[MarketQuoteKafkaProducerService, None]:
+    yield market_quote_producer
