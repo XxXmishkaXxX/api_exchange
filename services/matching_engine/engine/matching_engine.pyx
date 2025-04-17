@@ -18,12 +18,14 @@ cdef class MatchingEngine:
         object change_order_status_prod
         object post_wallet_transfer_prod
         object prod_market_data
+        object prod_market_quote
 
-    def __init__(self, change_order_status_prod, post_wallet_transfer_prod, prod_market_data):
+    def __init__(self, change_order_status_prod, post_wallet_transfer_prod, prod_market_data, prod_market_quote):
         self.order_books = {}
         self.post_wallet_transfer_prod = post_wallet_transfer_prod
         self.change_order_status_prod = change_order_status_prod
         self.prod_market_data = prod_market_data
+        self.prod_market_quote = prod_market_quote
 
     async def send_order_status(self, order_id: int, user_id, filled: int, status: str):
         if self.change_order_status_prod:
@@ -61,7 +63,51 @@ cdef class MatchingEngine:
 
         await self.prod_market_data.send_market_data_update(message)
         logger.info(f"📈 MARKET DATA SENT: {message}")
+    
+    async def send_market_quote(self, response: dict):
+        await self.prod_market_quote.send_market_quote_response(response)
 
+    cpdef void handle_market_quote_request(self, correlation_id, order_ticker, payment_ticker, direction, amount):
+        cdef OrderBook order_book
+        cdef str ticker_pair = f"{order_ticker}/{payment_ticker}"
+        cdef dict response = {"correlation_id":correlation_id}
+        cdef int available_liquidity
+        cdef int required_payment
+
+        if ticker_pair not in self.order_books:
+            self.order_books[ticker_pair] = OrderBook(ticker_pair)
+
+        order_book = self.order_books[ticker_pair]
+
+        if direction == "buy":
+            available_liquidity = order_book.get_available_sell_liquidity()
+
+            if available_liquidity < amount:
+                response["status"] = "error"
+                response["reason"] = "insufficient_liquidity"
+                response["details"] = f"Available sell liquidity is {available_liquidity}, but requested {amount}."
+            else:
+                required_payment = order_book.calculate_payment_for_buy(amount)
+                response["status"] = "ok"
+                response["amount_to_pay"] = required_payment
+
+        elif direction == "sell":
+            available_liquidity = order_book.get_available_buy_liquidity()
+
+            if available_liquidity < amount:
+                response["status"] = "error"
+                response["reason"] = "insufficient_liquidity"
+                response["details"] = f"Available buy liquidity is {available_liquidity}, but requested {amount}."
+            else:
+                response["status"] = "ok"
+                response["liquidity"] = available_liquidity
+
+        else:
+            response["status"] = "error"
+            response["reason"] = "invalid_direction"
+            response["details"] = "Direction must be 'buy' or 'sell'."
+
+        asyncio.create_task(self.send_market_quote(response=response))
 
     cpdef void add_order(self, Order order):
         cdef OrderBook order_book
@@ -173,17 +219,19 @@ cdef class MatchingEngine:
             asyncio.create_task(self.send_market_data(order_book, ticker_pair))
 
 
-    cdef void execute_market_order(self, Order order):
+    cpdef void execute_market_order(self, Order order):
         cdef OrderBook order_book
         cdef list orders
         cdef Order best_order
         cdef int trade_qty
         cdef int trade_value
         cdef str ticker_pair = f"{order.order_ticker}/{order.payment_ticker}"
+        cdef int remaining_qty = order.qty
+        cdef int available_qty = 0
 
         if ticker_pair not in self.order_books:
             logger.warning(f"❌ No order book found for {ticker_pair}. Cancelling market order.")
-            asyncio.create_task(self.send_order_status(order.order_id, order.user_id, order.filled, "cancelled"))
+            asyncio.create_task(self.send_order_status(order.order_id, order.user_id, 0, "cancelled"))
             return
 
         order_book = self.order_books[ticker_pair]
@@ -191,15 +239,26 @@ cdef class MatchingEngine:
 
         if not orders:
             logger.warning(f"❌ No counter orders in book for market order {order.order_id}. Cancelling.")
-            asyncio.create_task(self.send_order_status(order.order_id, order.user_id, order.filled, "cancelled"))
+            asyncio.create_task(self.send_order_status(order.order_id, order.user_id, 0, "cancelled"))
             return
 
+        # 🔍 Dry-run: проверяем, хватит ли объёма
+        for o in orders:
+            available_qty += o.qty
+            if available_qty >= order.qty:
+                break
+
+        if available_qty < order.qty:
+            logger.warning(f"⚠️ Not enough liquidity to fill market order {order.order_id}. Cancelling.")
+            asyncio.create_task(self.send_order_status(order.order_id, order.user_id, 0, "cancelled"))
+            return
+
+        # ✅ Полное исполнение — ликвидность есть
         base_asset_ticker = order.order_ticker
         quote_asset_ticker = order.payment_ticker
 
         while order.qty > 0 and orders:
             best_order = orders[0]
-
             trade_qty = min(order.qty, best_order.qty)
             trade_value = trade_qty * best_order.price
 
@@ -214,6 +273,7 @@ cdef class MatchingEngine:
                 f"[order_id={order.order_id} ⇄ {best_order.order_id}]"
             )
 
+            # 💸 Балансные переводы
             if order.direction == "buy":
                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset_ticker, trade_value))
                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset_ticker, trade_qty))
@@ -221,22 +281,17 @@ cdef class MatchingEngine:
                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, base_asset_ticker, trade_qty))
                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset_ticker, trade_value))
 
-            if order.qty == 0:
-                asyncio.create_task(self.send_order_status(order.order_id, order.user_id, order.filled, "filled"))
-            else:
-                asyncio.create_task(self.send_order_status(order.order_id, order.user_id, order.filled, "partially_filled"))
-
+            # Обновление статусов
             if best_order.qty == 0:
                 asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "filled"))
                 orders.pop(0)
             else:
                 asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "partially_filled"))
 
-        if order.qty > 0:
-            logger.warning(f"⚠️ Market order {order.order_id} partially or fully unfilled. Cancelling remainder.")
-            asyncio.create_task(self.send_order_status(order.order_id, order.user_id, order.filled, "cancelled"))
-
+        # За пределами цикла — ордер исполнен полностью
+        asyncio.create_task(self.send_order_status(order.order_id, order.user_id, order.filled, "filled"))
         asyncio.create_task(self.send_market_data(order_book, ticker_pair))
+
 
     cdef list aggregate_orders(self, list orders, bint reverse=True):
         cdef dict price_to_qty = {}
