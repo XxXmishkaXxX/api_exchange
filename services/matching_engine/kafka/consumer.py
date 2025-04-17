@@ -1,14 +1,7 @@
 import json
 import logging
 from aiokafka import AIOKafkaConsumer
-from engine.matching_engine import MatchingEngine
 from engine.order import Order
-
-logger = logging.getLogger(__name__)
-
-import json
-import logging
-from aiokafka import AIOKafkaConsumer
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +31,6 @@ class BaseKafkaConsumer:
         """To be implemented by subclasses"""
         raise NotImplementedError("process_message must be implemented by subclasses")
 
-
-from engine.order import Order
 
 class OrderConsumerService(BaseKafkaConsumer):
     def __init__(self, engine, kafka_broker="kafka:9092", topic="orders"):
