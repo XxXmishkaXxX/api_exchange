@@ -80,8 +80,7 @@ async def cancel_order(
     order_id: int,
     user_data: dict = Depends(get_user_from_token),
     service: OrderService = Depends(get_order_service),
-    prod_order: OrderKafkaProducerService = Depends(get_order_producer_service),
-    prod_lock: LockAssetsKafkaProducerService = Depends(get_lock_assets_producer)
+    prod_order: OrderKafkaProducerService = Depends(get_order_producer_service)
 ) -> OrderCancelResponse:
     """
     Отменить заказ по ID.
@@ -95,4 +94,4 @@ async def cancel_order(
     Возвращает:
         OrderCancelResponse: Ответ с информацией об успешной отмене заказа.
     """
-    return await service.cancel_order(user_data, order_id, prod_order=prod_order, prod_lock=prod_lock)
+    return await service.cancel_order(user_data, order_id, prod_order=prod_order)
