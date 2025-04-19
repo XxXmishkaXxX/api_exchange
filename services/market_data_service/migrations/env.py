@@ -9,6 +9,7 @@ from alembic import context
 from app.core.config import settings
 from app.db.database import Base
 from app.models.asset import Asset
+from app.models.transaction import Transaction
 
 
 # this is the Alembic Config object, which provides
