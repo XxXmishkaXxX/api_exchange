@@ -1,4 +1,5 @@
 import json
+from typing import Optional
 from aiokafka import AIOKafkaConsumer
 
 from app.core.config import settings
@@ -18,7 +19,11 @@ class BaseKafkaConsumerService:
     def __init__(self, topic: str, bootstrap_servers: str, group_id: str):
         self.topic = topic
         self.bootstrap_servers = bootstrap_servers
-        self.consumer = AIOKafkaConsumer(self.topic, bootstrap_servers=self.bootstrap_servers, group_id=group_id)
+        self.consumer = AIOKafkaConsumer(self.topic, 
+                                        bootstrap_servers=self.bootstrap_servers, 
+                                        group_id=group_id,
+                                        auto_offset_reset="latest",
+                                        enable_auto_commit=True)
 
     async def start(self):
         """Запускает потребителя Kafka."""
@@ -46,16 +51,13 @@ class BaseKafkaConsumerService:
         logger.info(f"{action}: {kwargs}")
 
 
-import json
-from typing import Optional
-
 class OrderStatusConsumer(BaseKafkaConsumerService):
     """
     Потребитель Kafka для обработки обновлений статуса ордеров.
     """
 
-    def __init__(self, bootstrap_servers: str, group_id: str):
-        super().__init__("orders_update", bootstrap_servers, group_id)
+    def __init__(self, topic: str, bootstrap_servers: str, group_id: str):
+        super().__init__(topic, bootstrap_servers, group_id)
 
     async def process_message(self, message):
         data = self._parse_message(message)
@@ -97,8 +99,8 @@ class AssetConsumer(BaseKafkaConsumerService):
     Потребитель Kafka для обработки тикеров.
     """
 
-    def __init__(self, bootstrap_servers: str, group_id: str):
-        super().__init__("tickers", bootstrap_servers, group_id)
+    def __init__(self, topic: str, bootstrap_servers: str, group_id: str):
+        super().__init__(topic, bootstrap_servers, group_id)
 
     async def process_message(self, message):
         data = json.loads(message.value.decode("utf-8"))
@@ -174,10 +176,22 @@ class MarketQuoteResponseKafkaConsumerServcie(BaseKafkaConsumerService):
         except Exception as e:
             await self.log_message("Ошибка обработки маркет-респонса", error=str(e))
 
-# Инициализация потребителей
-market_quote_response_consumer = MarketQuoteResponseKafkaConsumerServcie("market_quote.response", settings.BOOTSTRAP_SERVERS, group_id=None)
-lock_response_consumer = LockResponseKafkaConsumerService("lock_assets.response", settings.BOOTSTRAP_SERVERS, group_id=None)
-order_status_consumer = OrderStatusConsumer(settings.BOOTSTRAP_SERVERS, group_id=None)
-asset_consumer = AssetConsumer(settings.BOOTSTRAP_SERVERS, group_id="orders_group")
+
+market_quote_response_consumer = MarketQuoteResponseKafkaConsumerServcie(
+    "market_quote.response", settings.BOOTSTRAP_SERVERS, group_id="market_quote_group"
+)
+
+lock_response_consumer = LockResponseKafkaConsumerService(
+    "lock_assets.response", settings.BOOTSTRAP_SERVERS, group_id="lock_assets_group"
+)
+
+order_status_consumer = OrderStatusConsumer(
+    "orders_update", settings.BOOTSTRAP_SERVERS, group_id="orders_group"
+)
+
+asset_consumer = AssetConsumer(
+    "tickers", settings.BOOTSTRAP_SERVERS, group_id="assets_group"
+)
+
 
 
