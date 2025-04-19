@@ -309,15 +309,32 @@ cdef class MatchingEngine:
                 f"[order_id={order.order_id} ⇄ {best_order.order_id}]"
             )
 
-            # 💸 Балансные переводы
             if order.direction == "buy":
                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset_ticker, trade_value))
                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset_ticker, trade_qty))
+
+                asyncio.create_task(self.send_transaction(
+                    from_user_id=order.user_id,
+                    to_user_id=best_order.user_id,
+                    order_asset_id=order.order_asset_id,
+                    payment_asset_id=best_order.payment_asset_id,
+                    price=best_order.price,
+                    amount=trade_qty
+                ))
+
             else:
                 asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, base_asset_ticker, trade_qty))
                 asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset_ticker, trade_value))
 
-            # Обновление статусов
+                asyncio.create_task(self.send_transaction(
+                    from_user_id=order.user_id,
+                    to_user_id=best_order.user_id,
+                    order_asset_id=order.order_asset_id,
+                    payment_asset_id=best_order.payment_asset_id,
+                    price=best_order.price,
+                    amount=trade_value
+                ))
+
             if best_order.qty == 0:
                 asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "filled"))
                 
@@ -327,7 +344,6 @@ cdef class MatchingEngine:
             else:
                 asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "partially_filled"))
 
-        # За пределами цикла — ордер исполнен полностью
         asyncio.create_task(self.send_order_status(order.order_id, order.user_id, order.filled, "filled"))
         asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
     
