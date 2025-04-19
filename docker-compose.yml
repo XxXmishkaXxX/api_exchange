@@ -112,7 +112,9 @@ services:
     env_file:
       - ./services/wallet_service/.env
     depends_on:
-      - wallet_db    
+      - wallet_db
+      - kafka
+      - redis_wallets    
     ports:
       - "8002:8002"
     volumes:
@@ -131,6 +133,7 @@ services:
     depends_on:
       - orders_db
       - kafka
+      - redis_orders
     ports:
       - "8003:8003"
     volumes:

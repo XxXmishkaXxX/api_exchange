@@ -9,3 +9,4 @@ echo "⚙️ 2. Компилируем Cython код..."
 python setup.py build_ext --inplace
 
 echo "✅ Билд завершен!"
+
