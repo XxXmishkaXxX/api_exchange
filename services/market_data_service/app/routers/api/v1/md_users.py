@@ -17,12 +17,6 @@ def get_offset(page: int, limit: int) -> int:
 async def get_assets_list(service: AssetsService = Depends(get_assets_service)):
     return await service.get_list_assets()
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> 6b8e14e81f439359d94ed24f71f576b9ee9349ff
-
 @router.get("/orderbook/{ticker}", response_model=OrderBookResponse | OrderBookErrorResponse)
 async def get_orderbook(
     ticker: str = Path(..., description="Тикер актива (например BTC)"),
