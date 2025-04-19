@@ -1,26 +1,27 @@
 #!/bin/sh
 
-# Функция ожидания доступности базы данных
-wait_for_db() {
-  echo "Ожидание доступности БД $1..."
-  until nc -z -v -w30 $1 5432
+wait_for_service() {
+  local name="$1"
+  local host="$2"
+  local port="$3"
+
+  echo "Ожидание доступности $name ($host:$port)..."
+  until nc -z -v -w30 "$host" "$port"
   do
-    echo "Ожидание БД $1..."
+    echo "$name ($host:$port) пока недоступен, ждем..."
     sleep 1
   done
 }
 
-# Ждем доступности md_db
-wait_for_db md_db
+wait_for_service "PostgreSQL" "md_db" 5432
 
-# Проверяем наличие миграций для md_db
+wait_for_service "Kafka" "kafka" 9092
+
 if [ -z "$(ls -A migrations/versions/ 2>/dev/null)" ]; then
   echo "Миграции не найдены, создаем первую миграцию..."
   alembic revision --autogenerate -m "Initial migration"
 fi
 
-# Применяем миграции для md_db
 alembic upgrade head
 
-# Запускаем приложение
 exec uvicorn app.main:app --host 0.0.0.0 --port 8005 --reload
