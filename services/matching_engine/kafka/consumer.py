@@ -6,10 +6,14 @@ from engine.order import Order
 logger = logging.getLogger(__name__)
 
 class BaseKafkaConsumer:
-    def __init__(self, topic, kafka_broker="kafka:9092"):
+    def __init__(self, topic, kafka_broker="kafka:9092", group_id=None):
         self.kafka_broker = kafka_broker
         self.topic = topic
-        self.consumer = AIOKafkaConsumer(self.topic, bootstrap_servers=self.kafka_broker)
+        self.consumer = AIOKafkaConsumer(self.topic, 
+                                        bootstrap_servers=self.kafka_broker,
+                                        group_id=group_id,
+                                        auto_offset_reset="latest",
+                                        enable_auto_commit=True)
 
     async def start(self):
         await self.consumer.start()
@@ -33,8 +37,8 @@ class BaseKafkaConsumer:
 
 
 class OrderConsumerService(BaseKafkaConsumer):
-    def __init__(self, engine, kafka_broker="kafka:9092", topic="orders"):
-        super().__init__(topic, kafka_broker)
+    def __init__(self, engine, kafka_broker="kafka:9092", topic="orders",  group_id="order_engine"):
+        super().__init__(topic, kafka_broker, group_id=group_id)
         self.engine = engine
 
     async def process_message(self, msg):
@@ -79,8 +83,8 @@ class OrderConsumerService(BaseKafkaConsumer):
 
 
 class MarketQuoteRequestConsumer(BaseKafkaConsumer):
-    def __init__(self, engine, kafka_broker="kafka:9092", topic="market_quote.request"):
-        super().__init__(topic, kafka_broker)
+    def __init__(self, engine, kafka_broker="kafka:9092", topic="market_quote.request", group_id="market_quote_engine"):
+        super().__init__(topic, kafka_broker, group_id=group_id)
         self.engine = engine
 
     async def process_message(self, msg):
