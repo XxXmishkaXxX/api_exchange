@@ -20,7 +20,7 @@ class AssetRepository:
         result = await self.session.execute(select(Asset).filter(Asset.id == asset_id))
         return result.scalars().first()
     
-    async def get_asset_by_ticker(self, ticker: str) -> int:
+    async def get_asset_by_ticker(self, ticker: str) -> Optional[Asset]:
         result = await self.session.execute(select(Asset).filter(Asset.ticker == ticker))
         return result.scalars().first()
 
