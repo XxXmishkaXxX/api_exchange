@@ -7,9 +7,9 @@ from sqlalchemy import or_, and_
 from app.models.transaction import Transaction
 
 
-
 class MarketDataRepository:
     def __init__(self, session: AsyncSession, redis_session = None):
+
         self.session = session
         self.redis_session = redis_session
 
@@ -73,7 +73,6 @@ class MarketDataRepository:
         )
         result = await self.session.execute(stmt)
         return result.scalars().all()
-
 
     async def get_orderbook(self, ticker_pair: str):
         

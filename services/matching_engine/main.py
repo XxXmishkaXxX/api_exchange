@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from kafka.consumer import OrderConsumerService, MarketQuoteRequestConsumer
-from kafka.producers import KafkaOrderProducer, KafkaWalletProducer, KafkaMarketQuoteResponseProducer
+from kafka.producers import KafkaOrderProducer, KafkaWalletProducer, KafkaMarketQuoteResponseProducer, KafkaSendTransactionProducer
 from redis_client.redis_client import AsyncRedisOrderClient
 from engine.matching_engine import MatchingEngine
 
@@ -18,7 +18,9 @@ async def create_producers():
         await prod_wallet.start()
         prod_market_quote = KafkaMarketQuoteResponseProducer()
         await prod_market_quote.start()
-        return prod_order, prod_wallet, prod_market_quote
+        prod_transaction = KafkaSendTransactionProducer()
+        await prod_transaction.start()
+        return prod_order, prod_wallet, prod_market_quote, prod_transaction
     except Exception as e:
         logger.error(f"❌ Error starting Kafka producers: {e}")
         raise
@@ -35,13 +37,14 @@ async def create_redis_client():
         logger.error(f"❌ Error connecting to Redis: {e}")
         raise
 
-async def create_matching_engine(prod_order, prod_wallet, prod_market_quote, redis_client):
+async def create_matching_engine(prod_order, prod_wallet, prod_market_quote, prod_transaction, redis_client):
     """Создаёт экземпляр MatchingEngine и восстанавливает ордербуки из Redis."""
     try:
         engine = MatchingEngine(
             change_order_status_prod=prod_order, 
             post_wallet_transfer_prod=prod_wallet, 
-            prod_market_quote=prod_market_quote, 
+            prod_market_quote=prod_market_quote,
+            prod_transaction=prod_transaction,
             redis=redis_client
         )
         logger.info("Движок создан")
@@ -71,13 +74,13 @@ async def main():
     """Основной асинхронный процесс приложения."""
     try:
         # Создаём продюсеров
-        prod_order, prod_wallet, prod_market_quote = await create_producers()
+        prod_order, prod_wallet, prod_market_quote, prod_transaction = await create_producers()
         
         # Создаём Redis клиент
         redis_client = await create_redis_client()
         
         # Создаём MatchingEngine с подключением к Redis
-        engine = await create_matching_engine(prod_order, prod_wallet, prod_market_quote, redis_client)
+        engine = await create_matching_engine(prod_order, prod_wallet, prod_market_quote, prod_transaction, redis_client)
         
         # Запускаем сервисы потребителей Kafka
         await start_consumers_services(engine)

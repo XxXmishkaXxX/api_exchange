@@ -1,19 +1,27 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path, Query
+from typing import List
 
-
-from app.services.market_data import MarketDataService, get_market_data_service
-
-
+from app.services.assets import AssetsService, get_assets_service
+from app.services.market_data import get_market_data_service, MarketDataService
+from app.schemas.orderbook import OrderBookRequest, OrderBookResponse, OrderBookErrorResponse
+from app.schemas.transactions import Transaction
 
 router = APIRouter()
 
 
-@router.get("/instrument")
-async def get_assets_list(service: MarketDataService = Depends(get_market_data_service)):
+def get_offset(page: int, limit: int) -> int:
+    return (page - 1) * limit
+
+
+@router.get("/instrument", response_model=List[dict])
+async def get_assets_list(service: AssetsService = Depends(get_assets_service)):
     return await service.get_list_assets()
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
+=======
+>>>>>>> 6b8e14e81f439359d94ed24f71f576b9ee9349ff
 
 @router.get("/orderbook/{ticker}", response_model=OrderBookResponse | OrderBookErrorResponse)
 async def get_orderbook(
@@ -63,4 +71,3 @@ async def get_all_user_transactions(
     market_data_service: MarketDataService = Depends(get_market_data_service)
 ):
     return await market_data_service.get_all_user_transactions(user_id, limit, get_offset(page, limit))
->>>>>>> Stashed changes

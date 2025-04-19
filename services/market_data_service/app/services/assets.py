@@ -24,7 +24,6 @@ class AssetsService:
             raise HTTPException(status_code=404, detail="One or both tickers not found")
 
         return asset1_id.id, asset2_id.id
-        
 
     async def create_asset(self, asset: AssetSchema, producer: KafkaProducerService) -> dict:
 
