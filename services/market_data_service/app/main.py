@@ -6,19 +6,43 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.routers.api.v1 import md_admins, md_users
 from app.services.producer import producer_service
+from app.db.database import redis_pool
+from app.services.consumer import transaction_consumer
+from app.core.logger import logger
 
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    try:
+        await redis_pool.start()
+        logger.info("✅ Redis connected.")
 
-    yield
+        await transaction_consumer.start()
+        logger.info("✅ Kafka consumer started.")
 
-    await producer_service.close()
+        asyncio.create_task(transaction_consumer.consume_messages())
+        logger.info("⏳ Kafka consumer message loop started.")
+
+        yield
+
+    except Exception as e:
+        logger.error(f"❌ Ошибка в lifespan: {e}", exc_info=True)
+        raise
+
+    finally:
+        await producer_service.close()
+        logger.info("🛑 Kafka producer закрыт.")
+
+        await transaction_consumer.stop()
+        logger.info("🛑 Kafka consumer остановлен.")
+
+        await redis_pool.close()
+        logger.info("🛑 Redis отключён.")
 
 
 
-app = FastAPI(title="Market Data Service")
+app = FastAPI(title="Market Data Service", lifespan=lifespan)
 
 app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_KEY)
 app.include_router(md_users.router, prefix="/api/v1/public", tags=["market_data"])
