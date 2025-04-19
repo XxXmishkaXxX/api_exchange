@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
@@ -16,7 +16,7 @@ from app.schemas.order import (
 )
 from app.models.order import Order
 from app.services.response_listeners import lock_futures, market_quote_futures
-from app.services.producer import (
+from app.services.producers import (
     OrderKafkaProducerService,
     LockAssetsKafkaProducerService,
     MarketQuoteKafkaProducerService,

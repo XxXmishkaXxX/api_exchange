@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from app.schemas.order import OrderSchema, OrderCreateResponse, OrderListResponse, OrderResponse, OrderCancelResponse
 from app.deps.security import get_user_from_token
 from app.services.order import OrderService, get_order_service
-from app.services.producer import (get_lock_assets_producer, 
+from app.services.producers import (get_lock_assets_producer, 
                                    get_order_producer_service,
                                    get_market_qoute_producer, 
                                    OrderKafkaProducerService, 

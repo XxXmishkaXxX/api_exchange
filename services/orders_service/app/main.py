@@ -6,8 +6,8 @@ from contextlib import asynccontextmanager
 from app.routers.api.v1 import order
 from app.core.config import settings
 from app.core.logger import logger
-from app.services.producer import lock_assets_producer, order_producer, market_quote_producer
-from app.services.consumer import order_status_consumer, asset_consumer, lock_response_consumer, market_quote_response_consumer
+from app.services.producers import lock_assets_producer, order_producer, market_quote_producer
+from app.services.consumers import order_status_consumer, asset_consumer, lock_response_consumer, market_quote_response_consumer
 from app.db.database import redis_pool
 
 
