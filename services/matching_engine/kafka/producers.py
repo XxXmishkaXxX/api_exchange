@@ -37,3 +37,11 @@ class KafkaMarketQuoteResponseProducer(BaseKafkaProducer):
     
     async def send_market_quote_response(self, market_quote: dict):
         await self.send(market_quote)
+
+
+class KafkaSendTransactionProducer(BaseKafkaProducer):
+    def __init__(self):
+        super().__init__(topic="transactions")
+    
+    async def send_transaction(self, transaction: dict):
+        await self.send(transaction)
