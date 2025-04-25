@@ -1,26 +1,23 @@
 import jwt
-from fastapi import HTTPException, Response, Request, status, Depends
+from fastapi import HTTPException, Response, Request, status
 from datetime import datetime, timedelta
-from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
 
 
-from app.models.user import User
+from app.models.user import User, Role
 from app.repositories.user_repository import UserRepository
-from app.services.email import EmailService, get_email_service
 from app.schemas.auth import LoginRequest, RegisterRequest, Token
 from app.core.config import settings
-from app.db.database import get_db
 
 
 class AuthService:
     """Сервис аутентификации и авторизации пользователей."""
 
-    def __init__(self, user_repo: UserRepository, email_service: EmailService) -> None:
+    def __init__(self, user_repo: UserRepository) -> None:
         """Инициализация сервиса с настройками шифрования паролей."""
         self.user_repo = user_repo
-        self.email_service = email_service
 
-    async def register_user(self, data: RegisterRequest) -> tuple[dict[str, str], int]:
+    async def register_user(self, data: RegisterRequest) -> User:
         """Регистрирует нового пользователя.
         
         Args:
@@ -40,9 +37,8 @@ class AuthService:
         )
         
         user = await self.user_repo.create(user)
-        await self.email_service.send_verification_email(user.id, user.email)
 
-        return {"message": "User created successfully", "detail": "verify email"}, status.HTTP_201_CREATED
+        return user
 
     async def register_admin(self, data: RegisterRequest):
         
@@ -53,7 +49,7 @@ class AuthService:
             email=data.email,
             name=data.name,
             password=self.user_repo.get_password_hash(data.password),
-            role="ADMIN",
+            role=Role.ADMIN,
             is_verified=True
         )
 
@@ -107,7 +103,7 @@ class AuthService:
             )
             await self.user_repo.create(user)
 
-        return await self._generate_tokens(user.id, response)
+        return await self._generate_tokens(user.id, user.role, response)
 
     async def refresh_access_token(self, request: Request) -> Token:
         """Обновляет access token по refresh token.
@@ -125,16 +121,7 @@ class AuthService:
         user_id = await self._decode_jwt(refresh_token)
         return Token(access_token=await self._generate_jwt(user_id, days=1))
 
-    async def _generate_tokens(self, user_id: int, role: str, response: Response) -> Token:
-        """Создает access и refresh токены и устанавливает refresh token в cookies.
-        
-        Args:
-            user_id (int): ID пользователя.
-            response (Response): Объект ответа для установки cookies.
-        
-        Returns:
-            Token: Сгенерированный access token.
-        """
+    async def _generate_tokens(self, user_id: UUID, role: str, response: Response) -> Token:
         access_token = await self._generate_jwt(user_id, role, days=1)
         refresh_token = await self._generate_jwt(user_id, role, days=100)
         response.set_cookie(
@@ -145,54 +132,22 @@ class AuthService:
         )
         return Token(access_token=access_token)
 
-    async def _generate_jwt(self, user_id: int, role: str, minutes: int = 0, days: int = 0) -> str:
-        """Генерирует JWT токен.
-        
-        Args:
-            user_id (int): ID пользователя.
-            role (str): Роль пользователя.
-            minutes (int, optional): Количество минут до истечения токена. Defaults to 0.
-            days (int, optional): Количество дней до истечения токена. Defaults to 0.
-        
-        Returns:
-            str: Сгенерированный JWT токен.
-        """
+    async def _generate_jwt(self, user_id: UUID, role: str, minutes: int = 0, days: int = 0) -> str:
         expire = datetime.utcnow() + timedelta(minutes=minutes, days=days)
-        return jwt.encode({"sub": str(user_id), "role": role, "exp": expire}, settings.SECRET_KEY, algorithm="HS256")
+        return jwt.encode(
+            {"sub": str(user_id), "role": role, "exp": expire},
+            settings.SECRET_KEY,
+            algorithm="HS256"
+        )
 
-    async def _decode_jwt(self, token: str) -> str:
-        """Декодирует JWT токен и извлекает email.
-        
-        Args:
-            token (str): JWT токен.
-        
-        Returns:
-            int: ID пользователя.
-        
-        Raises:
-            HTTPException: Если токен недействителен или истек.
-        """
+    async def _decode_jwt(self, token: str) -> UUID:
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=settings.ALGORITHM)
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
             id = payload.get("sub")
             if not id:
                 raise HTTPException(status_code=401, detail="Invalid token")
-            return int(id)
+            return UUID(id)
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Refresh token expired")
         except jwt.InvalidTokenError:
             raise HTTPException(status_code=401, detail="Invalid refresh token")
-
-
-def get_auth_service(session: AsyncSession = Depends(get_db)) -> AuthService:
-    """Функция для получения экземпляра AuthService с зависимостями.
-    
-    Args:
-        session (AsyncSession, optional): Сессия базы данных. Defaults to Depends(get_db).
-    
-    Returns:
-        AuthService: Экземпляр сервиса аутентификации.
-    """
-    repository = UserRepository(session)
-    email_service = get_email_service(session)
-    return AuthService(repository, email_service)
