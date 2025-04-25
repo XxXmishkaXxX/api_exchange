@@ -1,18 +1,25 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
+import uuid
+from sqlalchemy import Column, String, Boolean, DateTime, func, Enum
+from sqlalchemy.dialects.postgresql import UUID
 from app.db.database import Base
 from sqlalchemy.orm import relationship
 from app.models.email import EmailVerification
 from app.models.password_reset import PasswordResetCode
+from enum import Enum as PyEnum
+
+class Role(str, PyEnum):
+    USER = "USER"
+    ADMIN = "ADMIN"
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, index=True)
     email = Column(String, nullable=False, unique=True)
     name = Column(String, nullable=False)
     password = Column(String, nullable=True)
-    role = Column(String, default="USER")
+    role = Column(Enum(Role), default=Role.USER)
     oauth_provider = Column(String, nullable=True)  
     oauth_id = Column(String, nullable=True, unique=True)
     is_verified = Column(Boolean, default=False)
