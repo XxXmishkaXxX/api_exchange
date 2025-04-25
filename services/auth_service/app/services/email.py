@@ -2,14 +2,11 @@ import random
 import string
 from datetime import datetime, timedelta
 
-from fastapi import HTTPException, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException
 
 from app.models.email import EmailVerification
-from app.repositories.user_repository import UserRepository
 from app.repositories.email_repository import EmailRepository
 from app.schemas.email import VerificationRequest, ResendVerificationRequest
-from app.db.database import get_db
 from app.tasks.tasks import send_email_task
 
 
@@ -21,19 +18,16 @@ class EmailService:
     для подтверждения учетной записи пользователя.
 
     Атрибуты:
-        user_repo (UserRepository): Репозиторий для работы с данными пользователей.
         email_repo (EmailRepository): Репозиторий для работы с данными о подтверждении электронной почты.
     """
 
-    def __init__(self, user_repo: UserRepository, email_repo: EmailRepository) -> None:
+    def __init__(self, email_repo: EmailRepository) -> None:
         """
         Инициализация сервиса для подтверждения электронной почты с использованием сессии базы данных.
 
         Аргументы:
-            user_repo (UserRepository): Репозиторий пользователей для взаимодействия с данными пользователей.
             email_repo (EmailRepository): Репозиторий электронной почты для работы с подтверждениями email.
         """
-        self.user_repo = user_repo
         self.email_repo = email_repo
 
     async def verify_email_code(self, data: VerificationRequest) -> dict:
@@ -57,13 +51,6 @@ class EmailService:
         if verification.expires_at < datetime.utcnow():
             raise HTTPException(status_code=400, detail="Код подтверждения истек")
 
-        user = await self.user_repo.get_user_by_id(verification.user_id)
-
-        if not user:
-            raise HTTPException(status_code=404, detail="Пользователь не найден")
-
-        user.is_verified = True
-        await self.user_repo.update_user(user.id)
         await self.email_repo.delete_verification(verification)
 
         return {"message": "Электронная почта успешно подтверждена"}
@@ -79,11 +66,6 @@ class EmailService:
         Исключения:
             HTTPException: Если пользователь не найден в базе данных.
         """
-        user = await self.user_repo.get_user_by_id(user_id)
-
-        if not user:
-            raise HTTPException(status_code=404, detail="Пользователь не найден")
-
         code = self.generate_new_code()
 
         verification = EmailVerification(
@@ -162,17 +144,3 @@ class EmailService:
             str: Сгенерированный код.
         """
         return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
-
-
-def get_email_service(session: AsyncSession = Depends(get_db)) -> EmailService:
-    """Функция для получения экземпляра VerificationEmailService с зависимостями.
-    
-    Аргументы:
-        session (AsyncSession, optional): Сессия базы данных. Defaults to Depends(get_db).
-    
-    Возвращает:
-        VerificationEmailService: Экземпляр сервиса подтверждения электронной почты.
-    """
-    user_repo = UserRepository(session)
-    email_repo = EmailRepository(session)
-    return EmailService(user_repo, email_repo)
