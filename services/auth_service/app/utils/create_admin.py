@@ -5,15 +5,14 @@ from sqlalchemy.future import select
 from app.models.user import User
 from app.core.config import settings, pwd_context
 from app.db.database import get_db
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from app.models.user import Role
+from app.core.logger import logger
 
 
 async def create_first_admin() -> None:
     try:
         async for session in get_db():
-            result = await session.execute(select(User).filter(User.role == 'ADMIN'))
+            result = await session.execute(select(User).filter(User.role == Role.ADMIN))
             superuser = result.scalars().first()
 
             if superuser is None:
@@ -22,7 +21,7 @@ async def create_first_admin() -> None:
                     email=settings.ADMIN_EMAIL,
                     name=settings.ADMIN_NAME, 
                     password=hashed_password, 
-                    role='ADMIN', 
+                    role=Role.ADMIN, 
                     is_verified=True
                 )
                 session.add(new_superuser)
