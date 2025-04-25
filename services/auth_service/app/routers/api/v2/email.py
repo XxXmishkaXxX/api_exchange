@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, Request
 from typing import Dict
 
-from app.services.email import EmailService, get_email_service
+from app.services.email import EmailService
+from app.services.user import UserService
+from app.deps.services import get_email_service, get_user_service
 from app.schemas.email import VerificationRequest, ResendVerificationRequest
 from app.core.limiter import limiter
 
@@ -12,8 +14,9 @@ router = APIRouter()
 @limiter.limit("3/15minutes")
 async def verify_email(
     request: Request,
-    data: VerificationRequest, 
-    service: EmailService = Depends(get_email_service)
+    data: VerificationRequest,
+    user_service: UserService = Depends(get_user_service),
+    email_service: EmailService = Depends(get_email_service)
 ) -> Dict[str, str]:
     """
     Верификация email пользователя по коду.
@@ -24,8 +27,10 @@ async def verify_email(
     :param service: Сервис для работы с верификацией email.
     :return: Ответ в виде словаря с результатом операции.
     """
-    return await service.verify_email_code(data)
-
+    
+    resp = await email_service.verify_email_code(data)
+    await user_service.verify_user(data.email)
+    return resp
 
 
 @router.post("/resend_verification_code", response_model=Dict[str, str])

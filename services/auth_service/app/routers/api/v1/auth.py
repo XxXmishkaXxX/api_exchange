@@ -2,14 +2,14 @@ from typing import Any
 from fastapi import APIRouter, Depends, Response, Request
 
 from app.core.limiter import limiter
-from app.services.auth import AuthService, get_auth_service
+from app.services.auth import AuthService
+from app.deps.services import get_auth_service
 
 
 router = APIRouter()
 
 
 @router.post("/register")
-@limiter.limit("5/10minutes")
 async def register(name: str , request: Request, service: AuthService = Depends(get_auth_service)) -> Any:
     """
     Регистрация нового пользователя.

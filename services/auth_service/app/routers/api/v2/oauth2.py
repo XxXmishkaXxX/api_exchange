@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, Response, Request, HTTPException
 from typing import Any
 
-from app.services.auth import AuthService, get_auth_service
+from app.services.auth import AuthService
+from app.deps.services import get_auth_service
 from app.core.config import oauth
 from app.schemas.auth import Token
 

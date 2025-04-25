@@ -16,7 +16,7 @@ def get_user_from_token(token: str = Security(oauth2_scheme)) -> dict:
         if not user_id or not role:
             raise HTTPException(status_code=401, detail="Invalid token payload")
         
-        return {"user_id": int(user_id), "role": role}
+        return {"user_id": user_id, "role": role}
     
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token has expired")
@@ -26,5 +26,5 @@ def get_user_from_token(token: str = Security(oauth2_scheme)) -> dict:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 def admin_required(user_info: dict = Depends(get_user_from_token)) -> None:
-    if user_info["role"] != "admin":
+    if user_info["role"] != "ADMIN":
         raise HTTPException(status_code=403, detail="You do not have permission to access this resource")

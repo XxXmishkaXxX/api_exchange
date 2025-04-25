@@ -1,11 +1,12 @@
 from typing import Dict
-from fastapi import APIRouter, Depends, Security, Request
+from fastapi import APIRouter, Depends, Request
 
-from app.schemas.user import ChangePasswordRequest, ForgotPasswordRequest, ResetCodeRequest
-from app.services.user import UserService, get_user_service
 from app.core.limiter import limiter
+from app.schemas.user import ChangePasswordRequest, ForgotPasswordRequest, ResetCodeRequest
+from app.services.user import UserService
 from app.deps.security import get_user_from_token
-
+from app.deps.services import get_email_service, get_user_service
+from app.services.email import EmailService
 
 
 router = APIRouter()
@@ -35,7 +36,8 @@ async def change_password(
 async def forgot_password(
     data: ForgotPasswordRequest,
     request: Request,
-    service: UserService = Depends(get_user_service)
+    user_service: UserService = Depends(get_user_service),
+    email_service: EmailService = Depends(get_email_service)
 ) -> Dict[str, str]:
     """
     Запрос на восстановление пароля.
@@ -45,7 +47,10 @@ async def forgot_password(
     :return: Ответ с результатом операции (словарь с сообщением).
     :raises HTTPException: В случае ошибок восстановления пароля.
     """
-    return await service.forgot_password(data=data)
+    code = await user_service.forgot_password(data=data)
+    await email_service.send_reset_email(data.email, code.reset_code)
+    
+    return {"detail": "Password reset code has been sent to your email."}
 
 
 
