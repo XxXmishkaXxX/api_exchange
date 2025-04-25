@@ -1,5 +1,13 @@
 from pydantic import BaseModel, EmailStr, Field, model_validator
 import re
+from uuid import UUID
+
+
+class User(BaseModel):
+    user_id: UUID
+    name: str
+    role: str
+
 
 class ChangePasswordRequest(BaseModel):
     old_password: str = Field(..., min_length=8, max_length=128)
