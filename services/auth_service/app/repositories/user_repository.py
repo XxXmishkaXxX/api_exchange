@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError
@@ -10,7 +11,7 @@ from datetime import datetime
 
 class UserRepository:
     """Репозиторий для управления пользователями в базе данных."""
-    
+
     def __init__(self, db: AsyncSession) -> None:
         """Инициализирует репозиторий с сессией базы данных.
         
@@ -40,11 +41,11 @@ class UserRepository:
             await self.db.rollback()
             raise ValueError(f"User with email {user.email} already exists.")
 
-    async def get_user_by_id(self, user_id: int) -> Optional[User]:
+    async def get_user_by_id(self, user_id: UUID) -> Optional[User]:
         """Получает пользователя по его ID.
         
         Args:
-            user_id (int): Идентификатор пользователя.
+            user_id (UUID): Идентификатор пользователя.
         
         Returns:
             Optional[User]: Найденный пользователь или None, если не найден.
@@ -79,7 +80,7 @@ class UserRepository:
             return res
         except:
             return False
-    
+
     def get_password_hash(self, password) -> str:
         """
         Функция для создания хэша пароля.
@@ -89,33 +90,17 @@ class UserRepository:
         """
         return pwd_context.hash(password)
 
-    async def update_user(self, user_id: int, name: Optional[str] = None, password: Optional[str] = None) -> Optional[User]:
-        """Обновляет данные пользователя (имя и/или пароль).
-        
-        Args:
-            user_id (int): Идентификатор пользователя.
-            name (Optional[str], optional): Новое имя. Defaults to None.
-            password (Optional[str], optional): Новый пароль. Defaults to None.
-        
-        Returns:
-            Optional[User]: Обновлённый пользователь или None, если пользователь не найден.
-        """
-        result = await self.db.execute(select(User).filter(User.id == user_id))
-        db_user = result.scalars().first()
-        if db_user:
-            if name:
-                db_user.name = name
-            if password:
-                db_user.password = password
-            await self.db.commit()
-            await self.db.refresh(db_user)
-        return db_user
+    async def update_user(self, user):
+        """Обновляет данные пользователя в базе данных."""
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
 
-    async def delete_user(self, user_id: int) -> Optional[User]:
+    async def delete_user(self, user_id: UUID) -> Optional[User]:
         """Удаляет пользователя из базы данных.
         
         Args:
-            user_id (int): Идентификатор пользователя.
+            user_id (UUID): Идентификатор пользователя.
         
         Returns:
             Optional[User]: Удалённый пользователь или None, если пользователь не найден.
@@ -127,12 +112,11 @@ class UserRepository:
             await self.db.commit()
         return db_user
 
-    
-    async def create_reset_code(self, user_id: int, reset_code: str, expires_at: datetime) -> PasswordResetCode:
+    async def create_reset_code(self, user_id: UUID, reset_code: str, expires_at: datetime) -> PasswordResetCode:
         """Создаёт код сброса пароля и сохраняет его в базе данных.
 
         Args:
-            user_id (int): Идентификатор пользователя.
+            user_id (UUID): Идентификатор пользователя.
             reset_code (str): Код сброса пароля.
             expires_at (datetime): Время истечения срока действия кода.
 
