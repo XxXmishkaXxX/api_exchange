@@ -40,8 +40,8 @@ async def rate_limit_handler(request, exc):
 
 app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_KEY)
 
-app.include_router(auth_v1.router, prefix="/api/v1/public")
-app.include_router(admin_v1.router, prefix="/api/v1/admin")
+app.include_router(auth_v1.router, prefix="/api/v1/public", tags=["test"])
+app.include_router(admin_v1.router, prefix="/api/v1/admin", tags=["test"])
 
 
 app.include_router(auth.router, prefix="/api/v2/auth", tags=["auth"])
