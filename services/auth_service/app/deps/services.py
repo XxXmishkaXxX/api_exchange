@@ -5,7 +5,9 @@ from app.db.database import get_db
 from app.services.auth import AuthService
 from app.services.email import EmailService
 from app.services.user import UserService
-from app.repositories import user_repository, email_repository
+from app.services.test_service import Service
+
+from app.repositories import user_repository, email_repository, test_repo
 
 
 def get_auth_service(session: AsyncSession = Depends(get_db)) -> AuthService:
@@ -45,3 +47,8 @@ def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
 
     user_repo = user_repository.UserRepository(db)
     return UserService(user_repo)
+
+
+def get_service(db: AsyncSession = Depends(get_db)) -> Service:
+    repo = test_repo.TestUserRepository(db)
+    return Service(repo)

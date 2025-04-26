@@ -11,6 +11,7 @@ from app.db.database import Base
 from app.models.user import User
 from app.models.email import EmailVerification
 from app.models.password_reset import PasswordResetCode
+from app.models.test_user import UserTest
 
 # Get the Alembic Config object, which provides access to the values in the .ini file
 config = context.config

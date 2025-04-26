@@ -1,21 +1,14 @@
 from typing import Any
-from fastapi import APIRouter, Depends, Response, Request
+from fastapi import APIRouter, Depends
 
-from app.core.limiter import limiter
-from app.services.auth import AuthService
-from app.deps.services import get_auth_service
+from app.services.test_service import Service
+from app.deps.services import get_service
+from app.schemas.auth import TestRegisterRequest
 
 
 router = APIRouter()
 
 
 @router.post("/register")
-async def register(name: str , request: Request, service: AuthService = Depends(get_auth_service)) -> Any:
-    """
-    Регистрация нового пользователя.
-
-    :param name: Имя пользователя
-    :param service: Сервис для аутентификации и регистрации пользователей.
-    :return: Ответ с результатами регистрации.
-    """
-    pass
+async def register(data: TestRegisterRequest, service: Service = Depends(get_service)) -> Any:
+    return await service.register_user(data.name)

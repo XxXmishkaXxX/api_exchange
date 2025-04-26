@@ -4,9 +4,11 @@ from uuid import UUID
 
 
 class User(BaseModel):
+    """Схема пользователя для тестов"""
     user_id: UUID
     name: str
     role: str
+    api_key: str
 
 
 class ChangePasswordRequest(BaseModel):
