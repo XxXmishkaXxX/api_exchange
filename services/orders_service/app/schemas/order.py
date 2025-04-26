@@ -1,14 +1,14 @@
 from pydantic import BaseModel, Field, validator
-from typing import Optional
+from typing import Optional, List
 from enum import Enum
+from uuid import UUID
 from datetime import datetime
 
-# Перечисление для направления ордера
+# Перечисления (всё правильно)
 class Direction(str, Enum):
     BUY = "buy"
     SELL = "sell"
 
-# Перечисление для типа ордера
 class OrderType(str, Enum):
     MARKET = "market"
     LIMIT = "limit"
@@ -18,9 +18,9 @@ class StatusOrder(str, Enum):
     FILLED = "filled"
     PENDING = "pending"
     REJECTED = "rejected"
-    PARTIALLY_FILLED = "partially_filled" 
+    PARTIALLY_FILLED = "partially_filled"
 
-
+# Схема создания ордера
 class OrderSchema(BaseModel):
     type: OrderType = Field(description="Тип ордера: 'market' или 'limit'")
     direction: Direction = Field(description="Направление ордера: 'buy' или 'sell'")
@@ -49,17 +49,16 @@ class OrderSchema(BaseModel):
     class Config:
         from_attributes = True
 
-    
 class OrderCreateResponse(BaseModel):
     success: bool = Field(description="Успешность выполнения заявки")
-    order_id: int = Field(description="Уникальный идентификатор заявки")
+    order_id: UUID = Field(description="Уникальный идентификатор заявки")  # <-- UUID
 
 class OrderCancelResponse(BaseModel):
     success: bool = Field(description="Успешность отмены заявки")
 
 class OrderResponse(BaseModel):
-    order_id: int = Field(description="id ордера")
-    user_id: int = Field(description="id пользователя")
+    order_id: UUID = Field(description="id ордера")
+    user_id: UUID = Field(description="id пользователя")
     status: StatusOrder = Field(description="Статус ордера")
     timestamp: datetime = Field(..., description="Дата и время создания ордера в формате ISO 8601")
     body: OrderSchema
@@ -69,4 +68,4 @@ class OrderResponse(BaseModel):
         from_attributes = True
 
 class OrderListResponse(BaseModel):
-    orders: list[OrderResponse] = Field(description="Список ордеров пользователя")
+    orders: List[OrderResponse] = Field(description="Список ордеров пользователя")

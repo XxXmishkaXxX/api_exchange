@@ -2,6 +2,7 @@ import jwt
 from fastapi import Depends, HTTPException, Security, Header
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError, PyJWTError
+from uuid import UUID
 
 from app.core.config import settings
 
@@ -18,7 +19,7 @@ def get_user_from_token(token: str = Security(oauth2_scheme)) -> dict:
         if not user_id or not role:
             raise HTTPException(status_code=401, detail="Invalid token payload")
         
-        return {"user_id": int(user_id), "role": role}
+        return {"user_id": UUID(user_id), "role": role}
     
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token has expired")

@@ -77,8 +77,8 @@ class ChangeBalanceConsumer(BaseKafkaConsumerService):
         data = json.loads(message.value.decode("utf-8"))
 
         from_user_raw = data.get("from_user")
-        from_user = int(from_user_raw) if from_user_raw is not None else None
-        to_user = int(data.get("to_user"))
+        from_user = from_user_raw if from_user_raw is not None else None
+        to_user = data.get("to_user")
         ticker = data.get("ticker")
         amount = int(data.get("amount", 0))
 
@@ -92,9 +92,7 @@ class ChangeBalanceConsumer(BaseKafkaConsumerService):
                 if from_user:
                     from_user_asset = await service.wallet_repo.get(from_user, asset_id)
 
-                    logger.info(f"Блокировка активов до перевода: {from_user_asset.locked}")
                     await service.wallet_repo.unlock(from_user_asset, amount)
-                    logger.info(f"Блокировка активов после перевода: {from_user_asset.locked}")
 
                     await service.withdraw_assets_user(WithdrawAssetsSchema(user_id=from_user, 
                                                                             ticker=ticker,
@@ -158,10 +156,8 @@ class LockAssetsConsumer(BaseKafkaConsumerService):
                 logger.warning(f"User asset not found for user {user_id}, asset {ticker}")
                 return False
 
-            # Проверка доступных средств для блокировки
             available = user_asset.amount - user_asset.locked
             if available >= lock_amount:
-                # Если доступных средств хватает, то блокируем
                 await repo.lock(user_asset, lock_amount)
                 logger.info(f"Assets locked for user {user_id}, asset {ticker}, amount {lock_amount}")
                 return True
@@ -215,5 +211,5 @@ class AssetConsumer(BaseKafkaConsumerService):
 
 
 change_balance_consumer = ChangeBalanceConsumer(topic="post_trade_processing", bootstrap_servers=settings.BOOTSTRAP_SERVERS, group_id=None)
-assets_consumer = AssetConsumer(topic="tickers", bootstrap_servers=settings.BOOTSTRAP_SERVERS, group_id="assets_group")
+assets_consumer = AssetConsumer(topic="tickers", bootstrap_servers=settings.BOOTSTRAP_SERVERS, group_id="wallet_assets_group")
 lock_asset_amount_consumer = LockAssetsConsumer(topic="lock_assets", bootstrap_servers=settings.BOOTSTRAP_SERVERS, group_id=None)

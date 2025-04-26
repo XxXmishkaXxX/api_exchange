@@ -1,7 +1,7 @@
 import json
 from aiokafka import AIOKafkaConsumer
 from typing import Optional
-
+from uuid import UUID
 
 from app.core.config import settings
 from app.core.logger import logger
@@ -59,8 +59,8 @@ class TransactionsConsumer(BaseKafkaConsumerService):
         
         order_asset_id = int(data.get("order_asset_id"))
         payment_asset_id = int(data.get("payment_asset_id"))
-        from_user_id = int(data.get("from_user_id"))
-        to_user_id = int(data.get("to_user_id"))
+        from_user_id = UUID(data.get("from_user_id"))
+        to_user_id = UUID(data.get("to_user_id"))
         price = int(data.get("price"))
         amount = int(data.get("amount"))
 

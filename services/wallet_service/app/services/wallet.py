@@ -1,5 +1,6 @@
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
+from uuid import UUID
 
 from app.repositories.wallet_repo import WalletRepository
 from app.repositories.asset_repo import AssetRepository
@@ -16,10 +17,10 @@ class WalletService:
         self.wallet_repo = wallet_repo
         self.asset_repo = asset_repo
 
-    async def get_all_assets_balance(self, user_id: int):
+    async def get_all_assets_balance(self, user_id: UUID):
         return await self.wallet_repo.get_all(user_id)
 
-    async def get_user_asset_balance(self, user_id: int, ticker: str) -> dict:
+    async def get_user_asset_balance(self, user_id: UUID, ticker: str) -> dict:
         """Получить баланс конкретного актива для пользователя."""
         try:
             user_asset, _ = await self._get_asset(user_id, ticker)
@@ -33,7 +34,7 @@ class WalletService:
             logger.error(f"Database error while fetching balance for user {user_id} and ticker {ticker}: {e}")
             raise HTTPException(status_code=500, detail="Внутренняя ошибка базы данных")
 
-    async def get_user_asset_balance_from_cache(self, user_id: int, ticker: str) -> dict:
+    async def get_user_asset_balance_from_cache(self, user_id: UUID, ticker: str) -> dict:
         """Получить баланс актива из Redis, с фолбэком на БД."""
         try:
             balance = await self.wallet_repo.get_hash(user_id, ticker)
@@ -93,7 +94,7 @@ class WalletService:
             logger.error(f"Unexpected error during withdrawal for user {data.user_id} and ticker {data.ticker}: {e}")
             raise HTTPException(status_code=500, detail="Неизвестная ошибка при снятии")
 
-    async def _get_asset(self, user_id: int, ticker: str):
+    async def _get_asset(self, user_id: UUID, ticker: str):
         try:
             asset_id = await self.asset_repo.get_asset_by_ticker(ticker)
             if asset_id is None:

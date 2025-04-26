@@ -1,5 +1,6 @@
 import json
 from typing import Optional
+from uuid import UUID
 from aiokafka import AIOKafkaConsumer
 
 from app.core.config import settings
@@ -65,19 +66,19 @@ class OrderStatusConsumer(BaseKafkaConsumerService):
             order_id, user_id, status, filled = data
             await self.update_order(order_id, user_id, status, filled)
 
-    def _parse_message(self, message) -> Optional[tuple[int, int, str, int]]:
+    def _parse_message(self, message) -> Optional[tuple[UUID, UUID, str, int]]:
         """Парсит сообщение и извлекает необходимые данные."""
         try:
             data = json.loads(message.value.decode("utf-8"))
-            order_id = int(data["order_id"])
-            user_id = int(data["user_id"])
+            order_id = UUID(data["order_id"])
+            user_id = UUID(data["user_id"])
             status = str(data["status"])
             filled = int(data["filled"])
             return order_id, user_id, status, filled
         except (KeyError, ValueError, json.JSONDecodeError) as e:
             logger.error("Ошибка при парсинге сообщения")
 
-    async def update_order(self, order_id: int, user_id: int, status: str, filled: int):
+    async def update_order(self, order_id: UUID, user_id: UUID, status: str, filled: int):
         """Обновляет статус и количество заполненных позиций для ордера."""
         async for session in get_db():
             order_repo = OrderRepository(session)
@@ -190,7 +191,7 @@ order_status_consumer = OrderStatusConsumer(
 )
 
 asset_consumer = AssetConsumer(
-    "tickers", settings.BOOTSTRAP_SERVERS, group_id="assets_group"
+    "tickers", settings.BOOTSTRAP_SERVERS, group_id="orders_assets_group"
 )
 
 

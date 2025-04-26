@@ -1,6 +1,6 @@
 cdef class Order:
-    cdef public int order_id
-    cdef public int user_id
+    cdef public str order_id
+    cdef public str user_id
     cdef public str status
     cdef public str type
     cdef public str direction

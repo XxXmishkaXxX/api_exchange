@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, HTTPException
 from typing import List
+from uuid import UUID
+
 from app.db.database import get_db, redis_pool
 from app.repositories.market_data import MarketDataRepository
 from app.schemas.orderbook import OrderBookRequest, OrderBookResponse, OrderBookErrorResponse, Order
@@ -36,13 +38,13 @@ class MarketDataService:
         transactions = await self.repo.get_all_transaction_by_pair(asset1_id, asset2_id, limit, offset)
         return self._format_transactions(transactions, "Transactions not found for the given asset pair.")
 
-    async def get_user_transactions_by_pair(self, asset1_id: int, asset2_id: int, user_id: int, limit: int, offset: int):
+    async def get_user_transactions_by_pair(self, asset1_id: int, asset2_id: int, user_id: UUID, limit: int, offset: int):
         transactions = await self.repo.get_all_user_transactions_by_pair(
             asset1_id=asset1_id, asset2_id=asset2_id, user_id=user_id, limit=limit, offset=offset
         )
         return self._format_transactions(transactions, "Transactions not found for the given asset pair and user id.")
 
-    async def get_all_user_transactions(self, user_id: int, limit: int, offset: int):
+    async def get_all_user_transactions(self, user_id: UUID, limit: int, offset: int):
         transactions = await self.repo.get_all_user_transactions(user_id, limit, offset)
         return self._format_transactions(transactions, "Transactions not found for the given user id.")
 

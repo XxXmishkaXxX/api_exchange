@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends
+from uuid import UUID
 
+from app.deps.services import get_order_service
 from app.schemas.order import OrderSchema, OrderCreateResponse, OrderListResponse, OrderResponse, OrderCancelResponse
 from app.deps.security import get_user_from_token
-from app.services.order import OrderService, get_order_service
+from app.services.order import OrderService
 from app.services.producers import (get_lock_assets_producer, 
                                    get_order_producer_service,
                                    get_market_qoute_producer, 
@@ -57,7 +59,7 @@ async def create_order(
 
 @router.get("/{order_id}", response_model=OrderResponse | None)
 async def get_order(
-    order_id: int,
+    order_id: UUID,
     user_data: dict = Depends(get_user_from_token),
     service: OrderService = Depends(get_order_service)
 ) -> OrderResponse:
@@ -65,7 +67,7 @@ async def get_order(
     Получить информацию о заказе по ID.
 
     Аргументы:
-        order_id (int): ID заказа.
+        order_id (UUID): ID заказа.
         user_data (dict): Данные пользователя, полученные через верификацию токена.
         service (OrderService): Сервис для работы с заказами.
 
@@ -77,7 +79,7 @@ async def get_order(
 
 @router.delete("/{order_id}", response_model=OrderCancelResponse)
 async def cancel_order(
-    order_id: int,
+    order_id: UUID,
     user_data: dict = Depends(get_user_from_token),
     service: OrderService = Depends(get_order_service),
     prod_order: OrderKafkaProducerService = Depends(get_order_producer_service)
@@ -86,7 +88,7 @@ async def cancel_order(
     Отменить заказ по ID.
 
     Аргументы:
-        order_id (int): ID заказа для отмены.
+        order_id (UUID): ID заказа для отмены.
         user_data (dict): Данные пользователя, полученные через верификацию токена.
         service (OrderService): Сервис для работы с заказами.
         prod (KafkaProducerService): Сервис для отправки сообщений в Kafka.

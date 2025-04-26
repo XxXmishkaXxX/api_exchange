@@ -1,9 +1,9 @@
 import asyncio
 import uuid
-from fastapi import Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
+from fastapi import HTTPException
 
-from app.db.database import get_db
+
 from app.repositories.order_repo import OrderRepository
 from app.repositories.asset_repo import AssetRepository
 from app.schemas.order import (
@@ -29,16 +29,15 @@ class OrderService:
         self.order_repo = order_repo
         self.asset_repo = asset_repo
 
-    async def get_order(self, user_data: dict, order_id: int) -> OrderResponse:
-        user_id = int(user_data["sub"])
+    async def get_order(self, user_data: dict, order_id: UUID) -> OrderResponse:
+        user_id = UUID(user_data["sub"])
         order = await self.order_repo.get(order_id, user_id)
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
-
         return self._build_order_response(order)
 
     async def get_list_order(self, user_data: dict) -> OrderListResponse:
-        user_id = int(user_data["sub"])
+        user_id = UUID(user_data["sub"])
         orders = await self.order_repo.get_list(user_id)
         return OrderListResponse(orders=[self._build_order_response(o) for o in orders])
 
@@ -50,7 +49,7 @@ class OrderService:
         prod_lock: LockAssetsKafkaProducerService,
         prod_get_market_quote: MarketQuoteKafkaProducerService,
     ) -> OrderCreateResponse:
-        user_id = int(user_data["sub"])
+        user_id = UUID(user_data["sub"])
         order_asset_id = await self.asset_repo.get_asset_by_ticker(order.ticker)
         payment_asset_id = await self.asset_repo.get_asset_by_ticker(order.payment_ticker)
 
@@ -96,10 +95,10 @@ class OrderService:
     async def cancel_order(
         self,
         user_data: dict,
-        order_id: int,
+        order_id: UUID,
         prod_order: OrderKafkaProducerService,
     ) -> OrderCancelResponse:
-        user_id = int(user_data["sub"])
+        user_id = UUID(user_data["sub"])
         order = await self.order_repo.remove(user_id, order_id)
 
         if not order:
@@ -192,9 +191,3 @@ class OrderService:
             ),
             filled=order.filled,
         )
-
-
-def get_order_service(session: AsyncSession = Depends(get_db)) -> OrderService:
-    asset_repo = AssetRepository(session)
-    order_repo = OrderRepository(session)
-    return OrderService(order_repo=order_repo, asset_repo=asset_repo)

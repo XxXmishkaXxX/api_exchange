@@ -1,4 +1,5 @@
 import json
+from uuid import UUID
 from aiokafka import AIOKafkaProducer
 from typing import AsyncGenerator
 
@@ -30,8 +31,8 @@ class OrderKafkaProducerService(BaseKafkaProducerService):
     async def send_order(self, order_ticker: str, payment_ticker: str, order: Order) -> None:
         data = {
             "action": "add",
-            "order_id": order.id,
-            "user_id": order.user_id,
+            "order_id": str(order.id),
+            "user_id": str(order.user_id),
             "status": order.status,
             "type": order.type,
             "direction": order.direction,
@@ -45,10 +46,10 @@ class OrderKafkaProducerService(BaseKafkaProducerService):
         }
         await self.send_message(data)
 
-    async def cancel_order(self, order_id: int, direction: str, order_ticker: str, payment_ticker: str) -> None:
+    async def cancel_order(self, order_id: UUID, direction: str, order_ticker: str, payment_ticker: str) -> None:
         data = {
             "action": "cancel",
-            "order_id": order_id,
+            "order_id": str(order_id),
             "direction": direction,
             "order_ticker": order_ticker,
             "payment_ticker": payment_ticker
@@ -61,20 +62,10 @@ class LockAssetsKafkaProducerService(BaseKafkaProducerService):
     def __init__(self, bootstrap_servers: str):
         super().__init__(bootstrap_servers, topic="lock_assets")
 
-    async def lock_assets(self, correlation_id, user_id: int, asset_id: int, ticker: str, amount: int) -> None:
+    async def lock_assets(self, correlation_id, user_id: UUID, asset_id: int, ticker: str, amount: int) -> None:
         data = {
             "correlation_id": correlation_id,
-            "user_id": user_id,
-            "asset_id": asset_id,
-            "ticker": ticker,
-            "amount": amount
-        }
-        await self.send_message(data)
-
-    async def unlock_assets(self, user_id: int, asset_id: int, ticker: str, amount: int) -> None:
-        data = {
-            "action": "unlock",
-            "user_id": user_id,
+            "user_id": str(user_id),
             "asset_id": asset_id,
             "ticker": ticker,
             "amount": amount

@@ -1,7 +1,7 @@
 cdef class Order:
     def __init__(self,
-                 int order_id,
-                 int user_id,
+                 str order_id,
+                 str user_id,
                  str status,
                  str type,
                  str direction,

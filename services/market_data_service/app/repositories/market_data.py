@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy import or_, and_
+from uuid import UUID
 
 from app.models.transaction import Transaction
 
@@ -33,7 +34,7 @@ class MarketDataRepository:
         result = await self.session.execute(query)
         return result.scalars().all()
 
-    async def get_all_user_transactions_by_pair(self, user_id: int, asset1_id: int, asset2_id: int, limit: int, offset: int):
+    async def get_all_user_transactions_by_pair(self, user_id: UUID, asset1_id: int, asset2_id: int, limit: int, offset: int):
         stmt = (
             select(Transaction)
             .options(selectinload(Transaction.order_asset))
@@ -58,7 +59,7 @@ class MarketDataRepository:
         return result.scalars().all()
 
 
-    async def get_all_user_transactions(self, user_id: int, limit: int, offset: int):
+    async def get_all_user_transactions(self, user_id: UUID, limit: int, offset: int):
         stmt = (
             select(Transaction)
             .options(selectinload(Transaction.order_asset))

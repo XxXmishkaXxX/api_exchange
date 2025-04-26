@@ -10,7 +10,7 @@ cdef class OrderBook:
         self.buy_orders = []
         self.sell_orders = []
 
-    cdef Order get_order(self, int order_id, str direction):
+    cdef Order get_order(self, str order_id, str direction):
         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
         for order in orders:
             if order.order_id == order_id:
@@ -26,7 +26,7 @@ cdef class OrderBook:
             self.sell_orders.append(order)
             self.sell_orders.sort(key=lambda o: o.price)
 
-    cdef void remove_order(self, int order_id, direction: str):
+    cdef void remove_order(self, str order_id, direction: str):
         """Удаляет ордер из книги заявок."""
         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
         orders[:] = [o for o in orders if o.order_id != order_id]

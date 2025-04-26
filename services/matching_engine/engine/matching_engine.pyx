@@ -32,8 +32,8 @@ cdef class MatchingEngine:
         self.prod_transaction = prod_transaction
         self.redis = redis
 
-    async def send_transaction(self, order_asset_id: int, payment_asset_id: int, from_user_id: int, 
-                                to_user_id: int, price: int, amount: int):
+    async def send_transaction(self, order_asset_id: int, payment_asset_id: int, from_user_id: str, 
+                                to_user_id: str, price: int, amount: int):
         
         transaction = {
             "order_asset_id": order_asset_id,
@@ -46,13 +46,13 @@ cdef class MatchingEngine:
         
         await self.prod_transaction.send_transaction(transaction)
 
-    async def send_order_status(self, order_id: int, user_id, filled: int, status: str):
+    async def send_order_status(self, order_id: str, user_id: str, filled: int, status: str):
         if self.change_order_status_prod:
             message = {"order_id": order_id, "user_id": user_id, "filled": filled, "status": status}
             await self.change_order_status_prod.send_order_update(message)
             logger.info(f"📤 SENT ORDER STATUS: {message}")
 
-    async def send_wallet_transfer(self, from_user, to_user, ticker, amount):
+    async def send_wallet_transfer(self, from_user: str, to_user: str, ticker: str, amount: int):
         if self.post_wallet_transfer_prod:
             transfer = {
                 "from_user": from_user,

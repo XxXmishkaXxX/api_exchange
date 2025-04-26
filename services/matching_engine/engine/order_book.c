@@ -1499,13 +1499,13 @@ struct __pyx_obj_6engine_10order_book_OrderBook;
 
 /* "engine/order.pxd":1
  * cdef class Order:             # <<<<<<<<<<<<<<
- *     cdef public int order_id
- *     cdef public int user_id
+ *     cdef public str order_id
+ *     cdef public str user_id
  */
 struct __pyx_obj_6engine_5order_Order {
   PyObject_HEAD
-  int order_id;
-  int user_id;
+  PyObject *order_id;
+  PyObject *user_id;
   PyObject *status;
   PyObject *type;
   PyObject *direction;
@@ -1545,9 +1545,9 @@ struct __pyx_obj_6engine_10order_book_OrderBook {
  */
 
 struct __pyx_vtabstruct_6engine_10order_book_OrderBook {
-  struct __pyx_obj_6engine_5order_Order *(*get_order)(struct __pyx_obj_6engine_10order_book_OrderBook *, int, PyObject *);
+  struct __pyx_obj_6engine_5order_Order *(*get_order)(struct __pyx_obj_6engine_10order_book_OrderBook *, PyObject *, PyObject *);
   void (*add_order)(struct __pyx_obj_6engine_10order_book_OrderBook *, struct __pyx_obj_6engine_5order_Order *);
-  void (*remove_order)(struct __pyx_obj_6engine_10order_book_OrderBook *, int, PyObject *);
+  void (*remove_order)(struct __pyx_obj_6engine_10order_book_OrderBook *, PyObject *, PyObject *);
   struct __pyx_obj_6engine_5order_Order *(*get_best_buy)(struct __pyx_obj_6engine_10order_book_OrderBook *);
   struct __pyx_obj_6engine_5order_Order *(*get_best_sell)(struct __pyx_obj_6engine_10order_book_OrderBook *);
   int (*get_available_sell_liquidity)(struct __pyx_obj_6engine_10order_book_OrderBook *);
@@ -2277,10 +2277,10 @@ static void __Pyx_AddTraceback(const char *funcname, int c_line,
 static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *);
 
 /* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
 
 /* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
 
 /* CIntFromPy.proto */
 static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
@@ -2323,9 +2323,9 @@ static int __Pyx_check_binary_version(unsigned long ct_version, unsigned long rt
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
 /* #### Code section: module_declarations ### */
-static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9OrderBook_get_order(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, int __pyx_v_order_id, PyObject *__pyx_v_direction); /* proto*/
+static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9OrderBook_get_order(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, PyObject *__pyx_v_order_id, PyObject *__pyx_v_direction); /* proto*/
 static void __pyx_f_6engine_10order_book_9OrderBook_add_order(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, struct __pyx_obj_6engine_5order_Order *__pyx_v_order); /* proto*/
-static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, int __pyx_v_order_id, PyObject *__pyx_v_direction); /* proto*/
+static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, PyObject *__pyx_v_order_id, PyObject *__pyx_v_direction); /* proto*/
 static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9OrderBook_get_best_buy(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self); /* proto*/
 static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9OrderBook_get_best_sell(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self); /* proto*/
 static int __pyx_f_6engine_10order_book_9OrderBook_get_available_sell_liquidity(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self); /* proto*/
@@ -2999,7 +2999,7 @@ static int __pyx_pf_6engine_10order_book_9OrderBook___init__(struct __pyx_obj_6e
  *         self.buy_orders = []
  *         self.sell_orders = []             # <<<<<<<<<<<<<<
  * 
- *     cdef Order get_order(self, int order_id, str direction):
+ *     cdef Order get_order(self, str order_id, str direction):
  */
   __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -3032,12 +3032,12 @@ static int __pyx_pf_6engine_10order_book_9OrderBook___init__(struct __pyx_obj_6e
 /* "engine/order_book.pyx":13
  *         self.sell_orders = []
  * 
- *     cdef Order get_order(self, int order_id, str direction):             # <<<<<<<<<<<<<<
+ *     cdef Order get_order(self, str order_id, str direction):             # <<<<<<<<<<<<<<
  *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
  *         for order in orders:
  */
 
-static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9OrderBook_get_order(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, int __pyx_v_order_id, PyObject *__pyx_v_direction) {
+static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9OrderBook_get_order(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, PyObject *__pyx_v_order_id, PyObject *__pyx_v_direction) {
   PyObject *__pyx_v_orders = 0;
   PyObject *__pyx_v_order = NULL;
   struct __pyx_obj_6engine_5order_Order *__pyx_r = NULL;
@@ -3046,8 +3046,6 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
   int __pyx_t_2;
   Py_ssize_t __pyx_t_3;
   PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  PyObject *__pyx_t_6 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -3055,7 +3053,7 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
 
   /* "engine/order_book.pyx":14
  * 
- *     cdef Order get_order(self, int order_id, str direction):
+ *     cdef Order get_order(self, str order_id, str direction):
  *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders             # <<<<<<<<<<<<<<
  *         for order in orders:
  *             if order.order_id == order_id:
@@ -3072,7 +3070,7 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
   __pyx_t_1 = 0;
 
   /* "engine/order_book.pyx":15
- *     cdef Order get_order(self, int order_id, str direction):
+ *     cdef Order get_order(self, str order_id, str direction):
  *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
  *         for order in orders:             # <<<<<<<<<<<<<<
  *             if order.order_id == order_id:
@@ -3110,13 +3108,8 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
  */
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_order, __pyx_n_s_order_id); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 16, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_order_id); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 16, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = PyObject_RichCompare(__pyx_t_4, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_6); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 16, __pyx_L1_error)
+    __pyx_t_2 = (__Pyx_PyUnicode_Equals(__pyx_t_4, __pyx_v_order_id, Py_EQ)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 16, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 16, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     if (__pyx_t_2) {
 
       /* "engine/order_book.pyx":17
@@ -3143,7 +3136,7 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
     }
 
     /* "engine/order_book.pyx":15
- *     cdef Order get_order(self, int order_id, str direction):
+ *     cdef Order get_order(self, str order_id, str direction):
  *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
  *         for order in orders:             # <<<<<<<<<<<<<<
  *             if order.order_id == order_id:
@@ -3166,7 +3159,7 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
   /* "engine/order_book.pyx":13
  *         self.sell_orders = []
  * 
- *     cdef Order get_order(self, int order_id, str direction):             # <<<<<<<<<<<<<<
+ *     cdef Order get_order(self, str order_id, str direction):             # <<<<<<<<<<<<<<
  *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
  *         for order in orders:
  */
@@ -3175,8 +3168,6 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_6);
   __Pyx_AddTraceback("engine.order_book.OrderBook.get_order", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
@@ -3327,7 +3318,7 @@ static PyObject *__pyx_lambda_funcdef_lambda(CYTHON_UNUSED PyObject *__pyx_self,
  *             self.sell_orders.append(order)
  *             self.sell_orders.sort(key=lambda o: o.price)             # <<<<<<<<<<<<<<
  * 
- *     cdef void remove_order(self, int order_id, direction: str):
+ *     cdef void remove_order(self, str order_id, direction: str):
  */
 
 /* Python wrapper */
@@ -3545,7 +3536,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_add_order(struct __pyx_obj_6
  *             self.sell_orders.append(order)
  *             self.sell_orders.sort(key=lambda o: o.price)             # <<<<<<<<<<<<<<
  * 
- *     cdef void remove_order(self, int order_id, direction: str):
+ *     cdef void remove_order(self, str order_id, direction: str):
  */
     __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->sell_orders, __pyx_n_s_sort); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 27, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
@@ -3585,12 +3576,12 @@ static void __pyx_f_6engine_10order_book_9OrderBook_add_order(struct __pyx_obj_6
 /* "engine/order_book.pyx":29
  *             self.sell_orders.sort(key=lambda o: o.price)
  * 
- *     cdef void remove_order(self, int order_id, direction: str):             # <<<<<<<<<<<<<<
+ *     cdef void remove_order(self, str order_id, direction: str):             # <<<<<<<<<<<<<<
  *         """    ."""
  *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
  */
 
-static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, int __pyx_v_order_id, PyObject *__pyx_v_direction) {
+static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, PyObject *__pyx_v_order_id, PyObject *__pyx_v_direction) {
   PyObject *__pyx_v_orders = 0;
   PyObject *__pyx_7genexpr__pyx_v_o = NULL;
   __Pyx_RefNannyDeclarations
@@ -3599,15 +3590,13 @@ static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_ob
   PyObject *__pyx_t_3 = NULL;
   Py_ssize_t __pyx_t_4;
   PyObject *__pyx_t_5 = NULL;
-  PyObject *__pyx_t_6 = NULL;
-  PyObject *__pyx_t_7 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("remove_order", 1);
 
   /* "engine/order_book.pyx":31
- *     cdef void remove_order(self, int order_id, direction: str):
+ *     cdef void remove_order(self, str order_id, direction: str):
  *         """    ."""
  *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders             # <<<<<<<<<<<<<<
  *         orders[:] = [o for o in orders if o.order_id != order_id]
@@ -3658,13 +3647,8 @@ static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_ob
       __pyx_t_5 = 0;
       __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_7genexpr__pyx_v_o, __pyx_n_s_order_id); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 32, __pyx_L5_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_order_id); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 32, __pyx_L5_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_7 = PyObject_RichCompare(__pyx_t_5, __pyx_t_6, Py_NE); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 32, __pyx_L5_error)
+      __pyx_t_2 = (__Pyx_PyUnicode_Equals(__pyx_t_5, __pyx_v_order_id, Py_NE)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 32, __pyx_L5_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 32, __pyx_L5_error)
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       if (__pyx_t_2) {
         if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_7genexpr__pyx_v_o))) __PYX_ERR(0, 32, __pyx_L5_error)
       }
@@ -3687,7 +3671,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_ob
   /* "engine/order_book.pyx":29
  *             self.sell_orders.sort(key=lambda o: o.price)
  * 
- *     cdef void remove_order(self, int order_id, direction: str):             # <<<<<<<<<<<<<<
+ *     cdef void remove_order(self, str order_id, direction: str):             # <<<<<<<<<<<<<<
  *         """    ."""
  *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
  */
@@ -3698,8 +3682,6 @@ static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_ob
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_XDECREF(__pyx_t_7);
   __Pyx_AddTraceback("engine.order_book.OrderBook.remove_order", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_orders);
@@ -5833,9 +5815,9 @@ static int __Pyx_modinit_type_init_code(void) {
   __Pyx_RefNannySetupContext("__Pyx_modinit_type_init_code", 0);
   /*--- Type init code ---*/
   __pyx_vtabptr_6engine_10order_book_OrderBook = &__pyx_vtable_6engine_10order_book_OrderBook;
-  __pyx_vtable_6engine_10order_book_OrderBook.get_order = (struct __pyx_obj_6engine_5order_Order *(*)(struct __pyx_obj_6engine_10order_book_OrderBook *, int, PyObject *))__pyx_f_6engine_10order_book_9OrderBook_get_order;
+  __pyx_vtable_6engine_10order_book_OrderBook.get_order = (struct __pyx_obj_6engine_5order_Order *(*)(struct __pyx_obj_6engine_10order_book_OrderBook *, PyObject *, PyObject *))__pyx_f_6engine_10order_book_9OrderBook_get_order;
   __pyx_vtable_6engine_10order_book_OrderBook.add_order = (void (*)(struct __pyx_obj_6engine_10order_book_OrderBook *, struct __pyx_obj_6engine_5order_Order *))__pyx_f_6engine_10order_book_9OrderBook_add_order;
-  __pyx_vtable_6engine_10order_book_OrderBook.remove_order = (void (*)(struct __pyx_obj_6engine_10order_book_OrderBook *, int, PyObject *))__pyx_f_6engine_10order_book_9OrderBook_remove_order;
+  __pyx_vtable_6engine_10order_book_OrderBook.remove_order = (void (*)(struct __pyx_obj_6engine_10order_book_OrderBook *, PyObject *, PyObject *))__pyx_f_6engine_10order_book_9OrderBook_remove_order;
   __pyx_vtable_6engine_10order_book_OrderBook.get_best_buy = (struct __pyx_obj_6engine_5order_Order *(*)(struct __pyx_obj_6engine_10order_book_OrderBook *))__pyx_f_6engine_10order_book_9OrderBook_get_best_buy;
   __pyx_vtable_6engine_10order_book_OrderBook.get_best_sell = (struct __pyx_obj_6engine_5order_Order *(*)(struct __pyx_obj_6engine_10order_book_OrderBook *))__pyx_f_6engine_10order_book_9OrderBook_get_best_sell;
   __pyx_vtable_6engine_10order_book_OrderBook.get_available_sell_liquidity = (int (*)(struct __pyx_obj_6engine_10order_book_OrderBook *))__pyx_f_6engine_10order_book_9OrderBook_get_available_sell_liquidity;
@@ -10617,77 +10599,6 @@ raise_neg_overflow:
 }
 
 /* CIntToPy */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-    const int neg_one = (int) -1, const_zero = (int) 0;
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic pop
-#endif
-    const int is_unsigned = neg_one > const_zero;
-    if (is_unsigned) {
-        if (sizeof(int) < sizeof(long)) {
-            return PyInt_FromLong((long) value);
-        } else if (sizeof(int) <= sizeof(unsigned long)) {
-            return PyLong_FromUnsignedLong((unsigned long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(int) <= sizeof(unsigned PY_LONG_LONG)) {
-            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
-#endif
-        }
-    } else {
-        if (sizeof(int) <= sizeof(long)) {
-            return PyInt_FromLong((long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(int) <= sizeof(PY_LONG_LONG)) {
-            return PyLong_FromLongLong((PY_LONG_LONG) value);
-#endif
-        }
-    }
-    {
-        unsigned char *bytes = (unsigned char *)&value;
-#if !CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x030d00A4
-        if (is_unsigned) {
-            return PyLong_FromUnsignedNativeBytes(bytes, sizeof(value), -1);
-        } else {
-            return PyLong_FromNativeBytes(bytes, sizeof(value), -1);
-        }
-#elif !CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX < 0x030d0000
-        int one = 1; int little = (int)*(unsigned char *)&one;
-        return _PyLong_FromByteArray(bytes, sizeof(int),
-                                     little, !is_unsigned);
-#else
-        int one = 1; int little = (int)*(unsigned char *)&one;
-        PyObject *from_bytes, *result = NULL;
-        PyObject *py_bytes = NULL, *arg_tuple = NULL, *kwds = NULL, *order_str = NULL;
-        from_bytes = PyObject_GetAttrString((PyObject*)&PyLong_Type, "from_bytes");
-        if (!from_bytes) return NULL;
-        py_bytes = PyBytes_FromStringAndSize((char*)bytes, sizeof(int));
-        if (!py_bytes) goto limited_bad;
-        order_str = PyUnicode_FromString(little ? "little" : "big");
-        if (!order_str) goto limited_bad;
-        arg_tuple = PyTuple_Pack(2, py_bytes, order_str);
-        if (!arg_tuple) goto limited_bad;
-        if (!is_unsigned) {
-            kwds = PyDict_New();
-            if (!kwds) goto limited_bad;
-            if (PyDict_SetItemString(kwds, "signed", __Pyx_NewRef(Py_True))) goto limited_bad;
-        }
-        result = PyObject_Call(from_bytes, arg_tuple, kwds);
-        limited_bad:
-        Py_XDECREF(kwds);
-        Py_XDECREF(arg_tuple);
-        Py_XDECREF(order_str);
-        Py_XDECREF(py_bytes);
-        Py_XDECREF(from_bytes);
-        return result;
-#endif
-    }
-}
-
-/* CIntToPy */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
 #ifdef __Pyx_HAS_GCC_DIAGNOSTIC
 #pragma GCC diagnostic push
@@ -10736,6 +10647,77 @@ static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
         from_bytes = PyObject_GetAttrString((PyObject*)&PyLong_Type, "from_bytes");
         if (!from_bytes) return NULL;
         py_bytes = PyBytes_FromStringAndSize((char*)bytes, sizeof(long));
+        if (!py_bytes) goto limited_bad;
+        order_str = PyUnicode_FromString(little ? "little" : "big");
+        if (!order_str) goto limited_bad;
+        arg_tuple = PyTuple_Pack(2, py_bytes, order_str);
+        if (!arg_tuple) goto limited_bad;
+        if (!is_unsigned) {
+            kwds = PyDict_New();
+            if (!kwds) goto limited_bad;
+            if (PyDict_SetItemString(kwds, "signed", __Pyx_NewRef(Py_True))) goto limited_bad;
+        }
+        result = PyObject_Call(from_bytes, arg_tuple, kwds);
+        limited_bad:
+        Py_XDECREF(kwds);
+        Py_XDECREF(arg_tuple);
+        Py_XDECREF(order_str);
+        Py_XDECREF(py_bytes);
+        Py_XDECREF(from_bytes);
+        return result;
+#endif
+    }
+}
+
+/* CIntToPy */
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+    const int neg_one = (int) -1, const_zero = (int) 0;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic pop
+#endif
+    const int is_unsigned = neg_one > const_zero;
+    if (is_unsigned) {
+        if (sizeof(int) < sizeof(long)) {
+            return PyInt_FromLong((long) value);
+        } else if (sizeof(int) <= sizeof(unsigned long)) {
+            return PyLong_FromUnsignedLong((unsigned long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(int) <= sizeof(unsigned PY_LONG_LONG)) {
+            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
+#endif
+        }
+    } else {
+        if (sizeof(int) <= sizeof(long)) {
+            return PyInt_FromLong((long) value);
+#ifdef HAVE_LONG_LONG
+        } else if (sizeof(int) <= sizeof(PY_LONG_LONG)) {
+            return PyLong_FromLongLong((PY_LONG_LONG) value);
+#endif
+        }
+    }
+    {
+        unsigned char *bytes = (unsigned char *)&value;
+#if !CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX >= 0x030d00A4
+        if (is_unsigned) {
+            return PyLong_FromUnsignedNativeBytes(bytes, sizeof(value), -1);
+        } else {
+            return PyLong_FromNativeBytes(bytes, sizeof(value), -1);
+        }
+#elif !CYTHON_COMPILING_IN_LIMITED_API && PY_VERSION_HEX < 0x030d0000
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        return _PyLong_FromByteArray(bytes, sizeof(int),
+                                     little, !is_unsigned);
+#else
+        int one = 1; int little = (int)*(unsigned char *)&one;
+        PyObject *from_bytes, *result = NULL;
+        PyObject *py_bytes = NULL, *arg_tuple = NULL, *kwds = NULL, *order_str = NULL;
+        from_bytes = PyObject_GetAttrString((PyObject*)&PyLong_Type, "from_bytes");
+        if (!from_bytes) return NULL;
+        py_bytes = PyBytes_FromStringAndSize((char*)bytes, sizeof(int));
         if (!py_bytes) goto limited_bad;
         order_str = PyUnicode_FromString(little ? "little" : "big");
         if (!order_str) goto limited_bad;

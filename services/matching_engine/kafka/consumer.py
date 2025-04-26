@@ -49,8 +49,8 @@ class OrderConsumerService(BaseKafkaConsumer):
                 logger.info(f"📩 ORDER RECEIVED: {data}")
 
                 order = Order(
-                    order_id=int(data["order_id"]),
-                    user_id=int(data["user_id"]),
+                    order_id=data["order_id"],
+                    user_id=data["user_id"],
                     status=data["status"],
                     type=data["type"],
                     direction=data["direction"],

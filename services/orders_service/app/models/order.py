@@ -1,6 +1,10 @@
-from sqlalchemy import Column, Integer, Float, DateTime, Enum, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, Enum, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+import uuid
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
+
 from app.db.database import Base
 from app.schemas.order import StatusOrder, Direction, OrderType
 from app.models.asset import Asset
@@ -9,8 +13,8 @@ from app.models.asset import Asset
 class Order(Base):
     __tablename__ = "orders"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, nullable=False)
+    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(PG_UUID(as_uuid=True), nullable=False)
 
     type = Column(Enum(OrderType), nullable=False)
     status = Column(Enum(StatusOrder), nullable=False, default=StatusOrder.NEW)
