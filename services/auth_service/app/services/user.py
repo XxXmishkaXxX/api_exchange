@@ -26,6 +26,10 @@ class UserService:
 
     async def delete_user(self, user_id: UUID) -> User:
         user = await self.user_repo.delete_user(user_id)
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
+
         return User(user_id=user.id, name=user.name, role=user.role)
     
     async def verify_user(self, user_email: str):
