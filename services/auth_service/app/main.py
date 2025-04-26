@@ -6,7 +6,7 @@ from starlette.responses import JSONResponse
 from contextlib import asynccontextmanager
 
 from app.routers.api.v1 import auth as auth_v1
-from app.routers.api.v1 import admin
+from app.routers.api.v1 import admin as admin_v1
 from app.routers.api.v2 import auth, oauth2, email, user, admin
 from app.utils.create_admin import create_first_admin
 from app.core.config import settings
@@ -41,7 +41,7 @@ async def rate_limit_handler(request, exc):
 app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_KEY)
 
 app.include_router(auth_v1.router, prefix="/api/v1/public")
-app.include_router(admin.router, prefix="/api/v1/admin")
+app.include_router(admin_v1.router, prefix="/api/v1/admin")
 
 
 app.include_router(auth.router, prefix="/api/v2/auth", tags=["auth"])
