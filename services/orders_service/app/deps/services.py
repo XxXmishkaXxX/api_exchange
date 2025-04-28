@@ -6,13 +6,17 @@ from app.services.order import OrderService
 from app.repositories.asset_repo import AssetRepository
 from app.repositories.order_repo import OrderRepository
 
-from app.services.producers import (
-    OrderKafkaProducerService,
+from app.kafka.producers.lock_assets_producer import (
     LockAssetsKafkaProducerService,
-    MarketQuoteKafkaProducerService,
-    get_order_producer,
     get_lock_assets_producer,
+)
+from app.kafka.producers.market_quote_producer import (
+    MarketQuoteKafkaProducerService,
     get_market_qoute_producer,
+)
+from app.kafka.producers.order_producer import (
+    OrderKafkaProducerService,
+    get_order_producer,
 )
 
 async def get_order_service(

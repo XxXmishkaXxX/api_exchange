@@ -6,8 +6,13 @@ from contextlib import asynccontextmanager
 from app.routers.api.v1 import order
 from app.core.config import settings
 from app.core.logger import logger
-from app.services.producers import lock_assets_producer, order_producer, market_quote_producer
-from app.services.consumers import order_status_consumer, asset_consumer, lock_response_consumer, market_quote_response_consumer
+from app.kafka.producers.lock_assets_producer import lock_assets_producer
+from app.kafka.producers.market_quote_producer import market_quote_producer
+from app.kafka.producers.order_producer import order_producer
+from app.kafka.consumers.lock_assets_consumer import lock_response_consumer 
+from app.kafka.consumers.order_status_consumer import order_status_consumer
+from app.kafka.consumers.assets_consumer import asset_consumer
+from app.kafka.consumers.market_quote_consumer import market_quote_response_consumer
 from app.db.database import redis_pool
 
 

@@ -1,38 +1,36 @@
-from sqlalchemy import Column, Integer, DateTime, Enum, ForeignKey
+from sqlalchemy import Integer, DateTime, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 import uuid
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
-
 
 from app.db.database import Base
 from app.schemas.order import StatusOrder, Direction, OrderType
 from app.models.asset import Asset
 
-
 class Order(Base):
     __tablename__ = "orders"
 
-    id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(PG_UUID(as_uuid=True), nullable=False)
+    id: Mapped[PG_UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[PG_UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False)
 
-    type = Column(Enum(OrderType), nullable=False)
-    status = Column(Enum(StatusOrder), nullable=False, default=StatusOrder.NEW)
-    direction = Column(Enum(Direction), nullable=False)
+    type: Mapped[OrderType] = mapped_column(Enum(OrderType), nullable=False)
+    status: Mapped[StatusOrder] = mapped_column(Enum(StatusOrder), nullable=False, default=StatusOrder.NEW)
+    direction: Mapped[Direction] = mapped_column(Enum(Direction), nullable=False)
 
-    qty = Column(Integer, nullable=False)
-    price = Column(Integer, nullable=True)
+    qty: Mapped[int] = mapped_column(Integer, nullable=False)
+    price: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    created_at: Mapped[DateTime] = mapped_column(DateTime, default=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
 
-    order_asset_id = Column(Integer, ForeignKey("assets.id"), nullable=False)
-    order_asset = relationship("Asset", back_populates="orders", foreign_keys=[order_asset_id])
+    order_asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id"), nullable=False)
+    order_asset: Mapped["Asset"] = relationship("Asset", back_populates="orders", foreign_keys=[order_asset_id])
 
-    payment_asset_id = Column(Integer, ForeignKey("assets.id"), nullable=False)
-    payment_asset = relationship("Asset", back_populates="payment_orders", foreign_keys=[payment_asset_id])
+    payment_asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id"), nullable=False)
+    payment_asset: Mapped["Asset"] = relationship("Asset", back_populates="payment_orders", foreign_keys=[payment_asset_id])
 
-    filled = Column(Integer, default=0)
+    filled: Mapped[int] = mapped_column(Integer, default=0)
 
     def __repr__(self):
         return (
@@ -49,3 +47,4 @@ class Order(Base):
             f"filled={self.filled}"
             f")>"
         )
+

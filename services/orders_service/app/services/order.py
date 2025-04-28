@@ -16,11 +16,9 @@ from app.schemas.order import (
 )
 from app.models.order import Order
 from app.services.response_listeners import lock_futures, market_quote_futures
-from app.services.producers import (
-    OrderKafkaProducerService,
-    LockAssetsKafkaProducerService,
-    MarketQuoteKafkaProducerService,
-)
+from app.kafka.producers.lock_assets_producer import LockAssetsKafkaProducerService
+from app.kafka.producers.market_quote_producer import MarketQuoteKafkaProducerService
+from app.kafka.producers.order_producer import OrderKafkaProducerService
 from app.core.logger import logger
 
 
