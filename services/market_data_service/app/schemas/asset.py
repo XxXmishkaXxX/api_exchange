@@ -1,8 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Annotated
 
 class AssetSchema(BaseModel):
-    ticker: str = Field(min_length=3, max_length=5, description="Тикер актива")
-    name: str = Field(min_length=2, max_length=255, description="Название актива")
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
+    ticker: Annotated[str, Field(min_length=3, max_length=5, description="Тикер актива")]
+    name: Annotated[str, Field(min_length=2, max_length=255, description="Название актива")]

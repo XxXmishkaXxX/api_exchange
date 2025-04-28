@@ -1,26 +1,24 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Annotated
 
-
 class Order(BaseModel):
-    price: int
-    amount: int
+    price: Annotated[int, Field(description="Цена заявки")]
+    amount: Annotated[int, Field(description="Количество в заявке")]
 
 class OrderBookErrorResponse(BaseModel):
-    detail: str
+    detail: Annotated[str, Field(description="Описание ошибки")]
 
 class OrderBookResponse(BaseModel):
-    bids: List[Order]
-    asks: List[Order]
-
+    bids: Annotated[List[Order], Field(description="Список заявок на покупку")]
+    asks: Annotated[List[Order], Field(description="Список заявок на продажу")]
 
 class OrderBookRequest(BaseModel):
     ticker: Annotated[str, Field(description="Базовый тикер, например BTC")]
-    pair: Annotated[Optional[str], Field(description="Пара к тикеру, например USDT. По умолчанию RUB")] = None
+    pair: Annotated[Optional[str], Field(default=None, description="Пара к тикеру, например USDT. По умолчанию RUB")]
     limit: Annotated[
         Optional[int],
-        Field(ge=1, le=1000, description="Максимальное количество заявок с каждой стороны")
-    ] = None
+        Field(default=None, ge=1, le=1000, description="Максимальное количество заявок с каждой стороны")
+    ]
 
     @property
     def ticker_pair(self) -> str:
