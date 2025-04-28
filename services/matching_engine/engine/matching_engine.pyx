@@ -52,7 +52,7 @@ cdef class MatchingEngine:
             await self.change_order_status_prod.send_order_update(message)
             logger.info(f"📤 SENT ORDER STATUS: {message}")
 
-    async def send_wallet_transfer(self, from_user: str, to_user: str, ticker: str, amount: int):
+    async def send_wallet_transfer(self, from_user, to_user: str, ticker: str, amount: int):
         if self.post_wallet_transfer_prod:
             transfer = {
                 "from_user": from_user,
@@ -150,8 +150,6 @@ cdef class MatchingEngine:
         cdef int remaining_qty
         cdef int refund_amount
 
-        logger.info(ticker_pair)
-        logger.info(self.order_books)
         if ticker_pair not in self.order_books:
             return
 
@@ -183,6 +181,7 @@ cdef class MatchingEngine:
         order_book.remove_order(order_id, direction)
         
         asyncio.create_task(self.redis.remove_order(order_id, ticker_pair, direction))
+        asyncio.create_task(self.send_order_status(order.order_id, order.user_id, order.filled, status="cancelled"))
         asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
 
         logger.info(f"🚫 CANCELLED ORDER {order_id}, returned unspent: {remaining_qty} ({'qty' if direction == 'sell' else 'value'})")
