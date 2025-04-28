@@ -93,7 +93,7 @@ lock_assets_producer = LockAssetsKafkaProducerService(bootstrap_servers=settings
 order_producer = OrderKafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
 
 
-async def get_order_producer_service() -> AsyncGenerator[OrderKafkaProducerService, None]:
+async def get_order_producer() -> AsyncGenerator[OrderKafkaProducerService, None]:
     """
     Асинхронный генератор для получения экземпляра сервиса Kafka продюсера.
 

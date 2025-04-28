@@ -25,9 +25,20 @@ from app.core.logger import logger
 
 
 class OrderService:
-    def __init__(self, order_repo: OrderRepository, asset_repo: AssetRepository):
+    def __init__(
+        self,
+        order_repo: OrderRepository,
+        asset_repo: AssetRepository,
+        order_producer: OrderKafkaProducerService,
+        lock_assets_producer: LockAssetsKafkaProducerService,
+        market_quote_producer: MarketQuoteKafkaProducerService,
+    ):
         self.order_repo = order_repo
         self.asset_repo = asset_repo
+
+        self.order_producer = order_producer
+        self.lock_assets_producer = lock_assets_producer
+        self.market_quote_producer = market_quote_producer
 
     async def get_order(self, user_data: dict, order_id: UUID) -> OrderResponse:
         user_id = UUID(user_data["sub"])
@@ -44,10 +55,7 @@ class OrderService:
     async def create_order(
         self,
         user_data: dict,
-        order: OrderSchema,
-        prod_order: OrderKafkaProducerService,
-        prod_lock: LockAssetsKafkaProducerService,
-        prod_get_market_quote: MarketQuoteKafkaProducerService,
+        order: OrderSchema
     ) -> OrderCreateResponse:
         user_id = UUID(user_data["sub"])
         order_asset_id = await self.asset_repo.get_asset_by_ticker(order.ticker)
@@ -62,7 +70,7 @@ class OrderService:
             raise HTTPException(status_code=404, detail=f"Asset(s) not found: {', '.join(missing)}")
 
         if order.type == "market":
-            price = await self._get_market_quote(order, prod_get_market_quote)
+            price = await self._get_market_quote(order)
             ticker, asset_id, amount = self._prepare_lock_params(
                 order, price, order_asset_id, payment_asset_id, is_total_price=True
             )
@@ -71,7 +79,7 @@ class OrderService:
                 order, order.price, order_asset_id, payment_asset_id
             )
 
-        await self._lock_assets(user_id, ticker, asset_id, amount, prod_lock)
+        await self._lock_assets(user_id, ticker, asset_id, amount)
 
         order_entity = Order(
             user_id=user_id,
@@ -86,7 +94,7 @@ class OrderService:
         order_entity = await self.order_repo.create(order_entity)
 
         try:
-            await prod_order.send_order(order.ticker, order.payment_ticker, order=order_entity)
+            await self.order_producer.send_order(order.ticker, order.payment_ticker, order=order_entity)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Ошибка отправки ордера в Matching Engine: {e}")
 
@@ -96,7 +104,6 @@ class OrderService:
         self,
         user_data: dict,
         order_id: UUID,
-        prod_order: OrderKafkaProducerService,
     ) -> OrderCancelResponse:
         user_id = UUID(user_data["sub"])
         order = await self.order_repo.get(order_id, user_id)
@@ -104,7 +111,7 @@ class OrderService:
         if not order:
             raise HTTPException(status_code=404, detail="Такого ордера не существует")
 
-        await prod_order.cancel_order(
+        await self.order_producer.cancel_order(
             order_id=order_id,
             direction=order.direction,
             order_ticker=order.order_asset.ticker,
@@ -112,10 +119,10 @@ class OrderService:
         )
         return OrderCancelResponse(success=True)
 
-    async def _lock_assets(self, user_id, ticker, asset_id, amount, prod_lock):
+    async def _lock_assets(self, user_id, ticker, asset_id, amount):
         correlation_id = str(uuid.uuid4())
         try:
-            await prod_lock.lock_assets(
+            await self.lock_assets_producer.lock_assets(
                 user_id=user_id,
                 asset_id=asset_id,
                 ticker=ticker,
@@ -125,15 +132,18 @@ class OrderService:
             success = await self._wait_for_lock_confirmation(correlation_id)
             if not success:
                 raise HTTPException(status_code=400, detail=f"Недостаточно средств {ticker}")
+        
+        except HTTPException as e:
+            raise e 
         except asyncio.TimeoutError:
             raise HTTPException(status_code=504, detail="Таймаут ожидания блокировки активов.")
         except Exception as e:
             logger.error(f"Ошибка локации активов: {e}")
             raise HTTPException(status_code=500, detail="Ошибка при попытке локации активов")
 
-    async def _get_market_quote(self, order, prod_get_market_quote) -> int:
+    async def _get_market_quote(self, order) -> int:
         correlation_id = str(uuid.uuid4())
-        await prod_get_market_quote.send_request(
+        await self.market_quote_producer.send_request(
             correlation_id=correlation_id,
             order_ticker=order.ticker,
             payment_ticker=order.payment_ticker,
@@ -151,12 +161,12 @@ class OrderService:
         is_buy = order.direction == "buy"
         ticker = order.payment_ticker if is_buy else order.ticker
         asset_id = payment_asset_id if is_buy else order_asset_id
-        amount = int(price) if is_total_price and is_buy else (int(order.qty * price) if is_buy else order.qty)
+        amount = int(price) if is_total_price and is_buy else (int(order.qty * price) if is_buy else int(order.qty))
         return ticker, asset_id, amount
 
 
     async def _wait_for_lock_confirmation(self, correlation_id: str, timeout: int = 5) -> bool:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         future = loop.create_future()
         lock_futures[correlation_id] = future
         try:
@@ -166,7 +176,7 @@ class OrderService:
             return False
 
     async def _wait_for_market_quote(self, correlation_id: str, timeout: int = 5):
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         future = loop.create_future()
         market_quote_futures[correlation_id] = future
         try:
