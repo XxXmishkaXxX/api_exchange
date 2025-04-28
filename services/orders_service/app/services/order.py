@@ -99,7 +99,7 @@ class OrderService:
         prod_order: OrderKafkaProducerService,
     ) -> OrderCancelResponse:
         user_id = UUID(user_data["sub"])
-        order = await self.order_repo.remove(user_id, order_id)
+        order = await self.order_repo.get(order_id, user_id)
 
         if not order:
             raise HTTPException(status_code=404, detail="Такого ордера не существует")

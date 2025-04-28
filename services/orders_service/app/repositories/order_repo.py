@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
-from app.models.order import Order
+from app.models.order import Order, StatusOrder
 
 class OrderRepository:
     def __init__(self, session: AsyncSession):
@@ -17,7 +17,9 @@ class OrderRepository:
             select(Order)
             .options(selectinload(Order.order_asset))
             .options(selectinload(Order.payment_asset))
-            .filter(Order.id == order_id, Order.user_id == user_id)
+            .filter(Order.id == order_id,
+                     Order.user_id == user_id,
+                     Order.status != StatusOrder.CANCELLED)
         )
         return result.scalars().first()
 
@@ -26,7 +28,8 @@ class OrderRepository:
             select(Order)
             .options(selectinload(Order.order_asset))
             .options(selectinload(Order.payment_asset))
-            .filter(Order.user_id == user_id)
+            .filter(Order.user_id == user_id,
+                    Order.status != StatusOrder.CANCELLED)
         )
         orders = result.scalars().all()
         return orders
