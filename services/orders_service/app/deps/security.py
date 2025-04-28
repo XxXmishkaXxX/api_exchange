@@ -1,29 +1,37 @@
-from fastapi import HTTPException, Security
-from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
+from fastapi import HTTPException, Header, Depends
+import jwt
+from uuid import UUID
+from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError, PyJWTError
+from typing import Optional
 
 from app.core.config import settings
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def get_user_from_token(token: str = Security(oauth2_scheme)):
-    """
-    Получить информацию о пользователе из токена JWT.
+def get_token(authorization: Optional[str] = Header(None)) -> str:
+    if authorization is None:
+        raise HTTPException(status_code=401, detail="Authorization token is missing")
+    
+    if not authorization.startswith("TOKEN "):
+        raise HTTPException(status_code=400, detail="Invalid token format. Expected 'TOKEN <your-token>'")
+    
+    token = authorization[len("TOKEN "):]
+    return token
 
-    Аргументы:
-        token (str): JWT токен, передаваемый в запросе.
-
-    Возвращает:
-        dict: Декодированное содержимое токена (payload).
-
-    Исключения:
-        HTTPException: Если токен недействителен или отсутствует.
-    """
+def get_user_from_token(token: str = Depends(get_token)) -> UUID:
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITM_JWT])
-        return payload
-    except JWTError:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITM])
+        user_id: UUID = UUID(payload.get("sub"))
+        role: str = payload.get("role")
+        
+        if not user_id or not role:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        
+        return user_id
+    
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except InvalidSignatureError:
+        raise HTTPException(status_code=401, detail="Invalid token signature")
+    except PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
