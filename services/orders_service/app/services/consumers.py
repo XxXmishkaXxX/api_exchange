@@ -179,19 +179,19 @@ class MarketQuoteResponseKafkaConsumerServcie(BaseKafkaConsumerService):
 
 
 market_quote_response_consumer = MarketQuoteResponseKafkaConsumerServcie(
-    "market_quote.response", settings.BOOTSTRAP_SERVERS, group_id="market_quote_group"
+    settings.MARKET_QUOTE_RESPONSE_TOPIC, settings.BOOTSTRAP_SERVERS, group_id="market_quote_group"
 )
 
 lock_response_consumer = LockResponseKafkaConsumerService(
-    "lock_assets.response", settings.BOOTSTRAP_SERVERS, group_id="lock_assets_group"
+    settings.LOCK_ASSETS_RESPONSE_TOPIC, settings.BOOTSTRAP_SERVERS, group_id="lock_assets_group"
 )
 
 order_status_consumer = OrderStatusConsumer(
-    "orders_update", settings.BOOTSTRAP_SERVERS, group_id="orders_group"
+    settings.OREDER_STATUS_TOPIC, settings.BOOTSTRAP_SERVERS, group_id="orders_group"
 )
 
 asset_consumer = AssetConsumer(
-    "tickers", settings.BOOTSTRAP_SERVERS, group_id="orders_assets_group"
+    settings.ASSET_TOPIC, settings.BOOTSTRAP_SERVERS, group_id="orders_assets_group"
 )
 
 

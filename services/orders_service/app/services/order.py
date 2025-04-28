@@ -40,24 +40,21 @@ class OrderService:
         self.lock_assets_producer = lock_assets_producer
         self.market_quote_producer = market_quote_producer
 
-    async def get_order(self, user_data: dict, order_id: UUID) -> OrderResponse:
-        user_id = UUID(user_data["sub"])
+    async def get_order(self, user_id: UUID, order_id: UUID) -> OrderResponse:
         order = await self.order_repo.get(order_id, user_id)
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
         return self._build_order_response(order)
 
-    async def get_list_order(self, user_data: dict) -> OrderListResponse:
-        user_id = UUID(user_data["sub"])
+    async def get_list_order(self, user_id: UUID) -> OrderListResponse:
         orders = await self.order_repo.get_list(user_id)
         return OrderListResponse(orders=[self._build_order_response(o) for o in orders])
 
     async def create_order(
         self,
-        user_data: dict,
+        user_id: UUID,
         order: OrderSchema
     ) -> OrderCreateResponse:
-        user_id = UUID(user_data["sub"])
         order_asset_id = await self.asset_repo.get_asset_by_ticker(order.ticker)
         payment_asset_id = await self.asset_repo.get_asset_by_ticker(order.payment_ticker)
 
@@ -102,10 +99,9 @@ class OrderService:
 
     async def cancel_order(
         self,
-        user_data: dict,
+        user_id: UUID,
         order_id: UUID,
     ) -> OrderCancelResponse:
-        user_id = UUID(user_data["sub"])
         order = await self.order_repo.get(order_id, user_id)
 
         if not order:
@@ -163,7 +159,6 @@ class OrderService:
         asset_id = payment_asset_id if is_buy else order_asset_id
         amount = int(price) if is_total_price and is_buy else (int(order.qty * price) if is_buy else int(order.qty))
         return ticker, asset_id, amount
-
 
     async def _wait_for_lock_confirmation(self, correlation_id: str, timeout: int = 5) -> bool:
         loop = asyncio.get_running_loop()

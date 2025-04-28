@@ -25,8 +25,8 @@ class BaseKafkaProducerService:
 
 
 class OrderKafkaProducerService(BaseKafkaProducerService):
-    def __init__(self, bootstrap_servers: str):
-        super().__init__(bootstrap_servers, topic="orders")
+    def __init__(self, topic: str, bootstrap_servers: str):
+        super().__init__(bootstrap_servers, topic=topic)
 
     async def send_order(self, order_ticker: str, payment_ticker: str, order: Order) -> None:
         data = {
@@ -59,8 +59,8 @@ class OrderKafkaProducerService(BaseKafkaProducerService):
 
 
 class LockAssetsKafkaProducerService(BaseKafkaProducerService):
-    def __init__(self, bootstrap_servers: str):
-        super().__init__(bootstrap_servers, topic="lock_assets")
+    def __init__(self, topic: str, bootstrap_servers: str):
+        super().__init__(bootstrap_servers, topic=topic)
 
     async def lock_assets(self, correlation_id, user_id: UUID, asset_id: int, ticker: str, amount: int) -> None:
         data = {
@@ -74,9 +74,9 @@ class LockAssetsKafkaProducerService(BaseKafkaProducerService):
 
 
 class MarketQuoteKafkaProducerService(BaseKafkaProducerService):
-    def __init__(self, bootstrap_servers: str):
-        super().__init__(bootstrap_servers=bootstrap_servers, topic="market_quote.request")
-    
+    def __init__(self, topic: str, bootstrap_servers: str):
+        super().__init__(bootstrap_servers=bootstrap_servers, topic=topic)
+
     async def send_request(self, correlation_id, order_ticker: str, payment_ticker: str, amount: int, direction: str):
         data = {
             "correlation_id": correlation_id,
@@ -88,20 +88,16 @@ class MarketQuoteKafkaProducerService(BaseKafkaProducerService):
         await self.send_message(data)
 
 
-market_quote_producer = MarketQuoteKafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
-lock_assets_producer = LockAssetsKafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
-order_producer = OrderKafkaProducerService(bootstrap_servers=settings.BOOTSTRAP_SERVERS)
+market_quote_producer = MarketQuoteKafkaProducerService(settings.MARKET_QUOTE_REQUEST_TOPIC,
+                                                        bootstrap_servers=settings.BOOTSTRAP_SERVERS)
+lock_assets_producer = LockAssetsKafkaProducerService(settings.LOCK_ASSETS_REQUEST_TOPIC,
+                                                      bootstrap_servers=settings.BOOTSTRAP_SERVERS)
+order_producer = OrderKafkaProducerService(settings.ORDERS_TOPIC,
+                                           bootstrap_servers=settings.BOOTSTRAP_SERVERS)
 
 
 async def get_order_producer() -> AsyncGenerator[OrderKafkaProducerService, None]:
-    """
-    Асинхронный генератор для получения экземпляра сервиса Kafka продюсера.
-
-    Возвращает:
-        OrderKafkaProducerService: Экземпляр сервиса Kafka продюсера.
-    """
     yield order_producer
-
 
 async def get_lock_assets_producer() -> AsyncGenerator[LockAssetsKafkaProducerService, None]:
     yield lock_assets_producer

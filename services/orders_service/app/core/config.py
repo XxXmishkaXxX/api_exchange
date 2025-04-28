@@ -3,29 +3,37 @@ from pydantic_settings import BaseSettings
 from passlib.context import CryptContext
 
 class Settings(BaseSettings):
+    
     # Конфигурация для подключения к базе данных
     DATABASE_URL: str 
     REDIS_URL: str
+
     # Секретный ключ для подписания JWT токенов
     SECRET_KEY: str 
     SESSION_KEY: str
     INTERNAL_API_TOKEN: str
-    ALGORITM_JWT: str
+    ALGORITM: str
 
+    #kafka
     BOOTSTRAP_SERVERS: str
+    
+    MARKET_QUOTE_RESPONSE_TOPIC: str
+    MARKET_QUOTE_REQUEST_TOPIC: str
+    
+    LOCK_ASSETS_RESPONSE_TOPIC: str
+    LOCK_ASSETS_REQUEST_TOPIC: str
 
-    # Логирование
+    OREDER_STATUS_TOPIC: str
+    ORDERS_TOPIC: str
+
+    ASSET_TOPIC: str
+
     LOG_LEVEL: str = "INFO"
 
-    DEBUG: bool = False
-    TESTING: bool = False
-
     class Config:
-        # Чтение значений из .env файла
         env_file = os.path.join(os.path.dirname(__file__), '..', '..', '.env')
 
 
-# Получение настроек через Pydantic
 settings = Settings()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
