@@ -30,6 +30,8 @@ class WalletService:
                 "amount": user_asset.amount,
                 "locked": user_asset.locked
             }
+        except HTTPException as e:
+            raise e
         except SQLAlchemyError as e:
             logger.error(f"Database error while fetching balance for user {user_id} and ticker {ticker}: {e}")
             raise HTTPException(status_code=500, detail="Внутренняя ошибка базы данных")
@@ -53,6 +55,8 @@ class WalletService:
                 "amount": user_asset.amount,
                 "locked": user_asset.locked
             }
+        except HTTPException as e:
+            raise e
         except SQLAlchemyError as e:
             logger.error(f"Database error while fetching balance from cache for user {user_id} and ticker {ticker}: {e}")
             raise HTTPException(status_code=500, detail="Внутренняя ошибка базы данных")
@@ -69,6 +73,8 @@ class WalletService:
                 await self.wallet_repo.deposit(user_asset, data.amount)
 
             return {"success": True}
+        except HTTPException as e:
+            raise e
         except SQLAlchemyError as e:
             logger.error(f"Database error during deposit for user {data.user_id} and ticker {data.ticker}: {e}")
             raise HTTPException(status_code=500, detail="Ошибка при пополнении баланса")
@@ -87,6 +93,7 @@ class WalletService:
         try:
             await self.wallet_repo.withdraw(user_asset, data.amount)
             return {"success": True}
+        
         except SQLAlchemyError as e:
             logger.error(f"Database error during withdrawal for user {data.user_id} and ticker {data.ticker}: {e}")
             raise HTTPException(status_code=500, detail="Ошибка при снятии активов")

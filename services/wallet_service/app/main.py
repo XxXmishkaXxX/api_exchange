@@ -6,15 +6,11 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.routers.api.v1 import wallet_users, wallet_admins
 from app.core.config import settings
 from app.core.logger import logger
-from app.services.consumers import assets_consumer, lock_asset_amount_consumer
-from app.services.producers import lock_uab_resp_producer
 from app.db.database import redis_pool
-
-from contextlib import asynccontextmanager
-import asyncio
-from app.db.database import redis_pool
-from app.core.logger import logger
-from app.services.consumers import assets_consumer, lock_asset_amount_consumer, change_balance_consumer
+from app.kafka.producers.lock_user_assets_producer import lock_uab_resp_producer
+from app.kafka.consumers.assets_consumer import assets_consumer 
+from app.kafka.consumers.lock_assets_consumer import  lock_asset_amount_consumer
+from app.kafka.consumers.change_balance_consumer import change_balance_consumer
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,7 +29,6 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(assets_consumer.consume_messages())
         logger.info("✅ Assets Consumer started.")
 
-        
         await lock_asset_amount_consumer.start()
         asyncio.create_task(lock_asset_amount_consumer.consume_messages())
         logger.info("✅ Lock Asset Amount Consumer started.")
@@ -51,11 +46,11 @@ async def lifespan(app: FastAPI):
         await lock_asset_amount_consumer.stop()
         logger.info("🛑 Lock Asset Amount Consumer stopped.")
         
-        await lock_uab_resp_producer.stop()
-        logger.info("🛑 Kafka Producer stopped.")
-        
         await assets_consumer.stop()
         logger.info("🛑 Assets Consumer stopped.")
+
+        await lock_uab_resp_producer.stop()
+        logger.info("🛑 Kafka Producer stopped.")
         
         await redis_pool.close()
         logger.info("🛑 Redis stopped.")
