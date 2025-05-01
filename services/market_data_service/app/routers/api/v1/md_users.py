@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Path, Query
 from typing import List, Annotated
+from uuid import UUID
 
 from app.services.assets import AssetsService
 from app.services.market_data import MarketDataService
@@ -44,7 +45,7 @@ async def get_all_transactions_by_pair(
 
 @router.get("/transactions/user/{user_id}/{ticker}", response_model=List[Transaction])
 async def get_user_transactions_by_pair(
-    user_id: Annotated[int, Path(description="ID пользователя")],
+    user_id: Annotated[UUID, Path(description="ID пользователя")],
     ticker: Annotated[str, Path(description="Тикер актива (например BTC)")],
     asset_service: Annotated[AssetsService, Depends(get_assets_service)],
     market_data_service: Annotated[MarketDataService, Depends(get_market_data_service)],
@@ -59,7 +60,7 @@ async def get_user_transactions_by_pair(
 
 @router.get("/transactions/user/{user_id}", response_model=List[Transaction])
 async def get_all_user_transactions(
-    user_id: Annotated[int, Path(description="ID пользователя")],
+    user_id: Annotated[UUID, Path(description="ID пользователя")],
     market_data_service: Annotated[MarketDataService, Depends(get_market_data_service)],
     limit: Annotated[int, Query(ge=1, le=1000)] = 10,
     page: Annotated[int, Query(ge=1)] = 1,

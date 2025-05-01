@@ -17,7 +17,7 @@ def get_token(authorization: Optional[str] = Header(None)) -> str:
     token = authorization[len("TOKEN "):]
     return token
 
-def get_user_from_token(token: str = Depends(get_token)) -> UUID:
+def get_user_from_token(token: str = Depends(get_token)) -> dict:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id: UUID = UUID(payload.get("sub"))
@@ -26,7 +26,7 @@ def get_user_from_token(token: str = Depends(get_token)) -> UUID:
         if not user_id or not role:
             raise HTTPException(status_code=401, detail="Invalid token payload")
         
-        return user_id
+        return {"user_id": user_id, "role": role}
     
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token has expired")
