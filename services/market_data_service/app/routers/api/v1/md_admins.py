@@ -13,7 +13,7 @@ router = APIRouter()
 @router.post("/instrument")
 async def create_instrument(
     asset: Annotated[AssetSchema, Depends()],
-    user_info: Annotated[dict, Depends(admin_required)],
+    admin_required: Annotated[None, Depends(admin_required)],
     service: Annotated[AssetsService, Depends(get_assets_service)]
 ):
     return await service.create_asset(asset)
@@ -22,7 +22,7 @@ async def create_instrument(
 @router.delete("/instrument/{ticker}")
 async def remove_instrument(
     ticker: Annotated[str, Path(description="Тикер актива")],
-    user_info: Annotated[dict, Depends(admin_required)],
+    admin_required: Annotated[None, Depends(admin_required)],
     service: Annotated[AssetsService, Depends(get_assets_service)]
 ):
     return await service.remove_asset(ticker)
