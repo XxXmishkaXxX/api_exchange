@@ -9,9 +9,11 @@ class Settings(BaseSettings):
     # Секретный ключ для подписания JWT токенов
     SECRET_KEY: str 
     SESSION_KEY: str
-    ALGORITM_JWT: str
+    ALGORITHM: str
 
     BOOTSTRAP_SERVERS: str
+    TRANSACTIONS_TOPIC: str
+    ASSET_TOPIC: str
 
     # Логирование
     LOG_LEVEL: str = "INFO"
@@ -20,11 +22,9 @@ class Settings(BaseSettings):
     TESTING: bool = False
 
     class Config:
-        # Чтение значений из .env файла
         env_file = os.path.join(os.path.dirname(__file__), '..', '..', '.env')
 
 
-# Получение настроек через Pydantic
 settings = Settings()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

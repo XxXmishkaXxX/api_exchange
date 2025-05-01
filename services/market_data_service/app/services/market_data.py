@@ -1,9 +1,7 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends, HTTPException
+from fastapi import HTTPException
 from typing import List
 from uuid import UUID
 
-from app.db.database import get_db, redis_pool
 from app.repositories.market_data import MarketDataRepository
 from app.schemas.orderbook import OrderBookRequest, OrderBookResponse, OrderBookErrorResponse, Order
 from app.schemas.transactions import Transaction
@@ -61,7 +59,3 @@ class MarketDataService:
             )
             for transaction in transactions
         ]
-
-def get_market_data_service(session: AsyncSession = Depends(get_db)):
-    repo = MarketDataRepository(session=session, redis_session=redis_pool)
-    return MarketDataService(repo)

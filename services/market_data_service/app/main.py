@@ -5,9 +5,9 @@ from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.routers.api.v1 import md_admins, md_users
-from app.services.producer import producer_service
+from app.kafka.producers.assets_producer import assets_producer
 from app.db.database import redis_pool
-from app.services.consumer import transaction_consumer
+from app.kafka.consumers.transactions_consumer import transaction_consumer
 from app.core.logger import logger
 
 
@@ -17,6 +17,9 @@ async def lifespan(app: FastAPI):
     try:
         await redis_pool.start()
         logger.info("✅ Redis connected.")
+
+        await assets_producer.start()
+        logger.info("✅ Kafka producer started.")
 
         await transaction_consumer.start()
         logger.info("✅ Kafka consumer started.")
@@ -31,7 +34,7 @@ async def lifespan(app: FastAPI):
         raise
 
     finally:
-        await producer_service.close()
+        await assets_producer.stop()
         logger.info("🛑 Kafka producer закрыт.")
 
         await transaction_consumer.stop()
