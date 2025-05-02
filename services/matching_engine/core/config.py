@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     TESTING: bool = False
 
     class Config:
-        env_file = os.path.join(os.path.dirname(__file__), '..', '..', '.env')
+        env_file = os.path.join(os.path.dirname(__file__), '..', '.env')
 
 
 settings = Settings()

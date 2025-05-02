@@ -1,7 +1,7 @@
 import json
 from engine.order import Order
 from core.logger import logger
-from consumers.base_consumer import BaseKafkaConsumer
+from kafka.consumers.base_consumer import BaseKafkaConsumer
 
 
 class OrderConsumerService(BaseKafkaConsumer):

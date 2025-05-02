@@ -1,9 +1,6 @@
 import json
-from aiokafka import AIOKafkaConsumer
-from engine.order import Order
-from core.config import settings
 from core.logger import logger
-from consumers.base_consumer import BaseKafkaConsumer
+from kafka.consumers.base_consumer import BaseKafkaConsumer
 
 class MarketQuoteRequestConsumer(BaseKafkaConsumer):
     def __init__(self, engine, bootstrap_servers: str, topic: str,  group_id: str):
