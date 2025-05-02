@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Annotated
 from fastapi import APIRouter, Depends, Request 
 from uuid import UUID
 from app.core.limiter import limiter
@@ -14,8 +14,8 @@ router = APIRouter()
 @router.post("/register/admin")
 async def register_admin(data: RegisterRequest, 
                          request: Request, 
-                         service: AuthService = Depends(get_auth_service),
-                         user_info: dict = Depends(admin_required)) -> Any:
+                         service: Annotated[AuthService, Depends(get_auth_service)],
+                         user_info: Annotated[dict, Depends(admin_required)]) -> Any:
     """
     Регистрация администратора. Доступно только другим администраторам.
 
@@ -28,6 +28,6 @@ async def register_admin(data: RegisterRequest,
 
 @router.delete("/user/{user_id}")
 async def delete_user(user_id: UUID, 
-                      admin_required = Depends(admin_required), 
-                      service: UserService = Depends(get_user_service)) -> User:
+                      admin_required: Annotated[None, Depends(admin_required)], 
+                      service: Annotated[UserService, Depends(get_user_service)]) -> User:
     return await service.delete_user(user_id)

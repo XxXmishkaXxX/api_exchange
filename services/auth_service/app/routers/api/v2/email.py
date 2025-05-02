@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Request
-from typing import Dict
+from typing import Dict, Annotated
 
 from app.services.email import EmailService
 from app.services.user import UserService
@@ -15,8 +15,8 @@ router = APIRouter()
 async def verify_email(
     request: Request,
     data: VerificationRequest,
-    user_service: UserService = Depends(get_user_service),
-    email_service: EmailService = Depends(get_email_service)
+    user_service: Annotated[UserService, Depends(get_user_service)],
+    email_service: Annotated[EmailService, Depends(get_email_service)]
 ) -> Dict[str, str]:
     """
     Верификация email пользователя по коду.
@@ -38,7 +38,7 @@ async def verify_email(
 async def resend_verification_code(
     data: ResendVerificationRequest,
     request: Request, 
-    service: EmailService = Depends(get_email_service)
+    service: Annotated[EmailService, Depends(get_email_service)]
 ) -> Dict[str, str]:
     """
     Отправка повторного кода верификации на email.

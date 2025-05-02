@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.services.test_service import Service
@@ -11,5 +11,6 @@ router = APIRouter()
 
 
 @router.post("/register", response_model=User)
-async def register(data: TestRegisterRequest, service: Service = Depends(get_service)) -> User:
+async def register(data: TestRegisterRequest, 
+                   service: Annotated[Service, Depends(get_service)]) -> User:
     return await service.register_user(data.name)

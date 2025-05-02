@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Response, Request, HTTPException
-from typing import Any
+from typing import Any, Annotated
 
 from app.services.auth import AuthService
 from app.deps.services import get_auth_service
@@ -25,7 +25,7 @@ async def login_google(request: Request) -> Any:
 async def auth_google(
     request: Request, 
     response: Response, 
-    service: AuthService = Depends(get_auth_service)
+    service: Annotated[AuthService, Depends(get_auth_service)]
 ) -> Token:
     """
     Обработка колбека от Google OAuth после успешной аутентификации.

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Annotated
 from fastapi import APIRouter, Depends, Response, Request, status
 from fastapi.responses import JSONResponse
 
@@ -17,8 +17,8 @@ router = APIRouter()
 @limiter.limit("5/10minutes")
 async def register(data: RegisterRequest, 
                    request: Request, 
-                   auth_service: AuthService = Depends(get_auth_service),
-                   email_service: EmailService = Depends(get_email_service)) -> JSONResponse:
+                   auth_service: Annotated[AuthService, Depends(get_auth_service)],
+                   email_service: Annotated[EmailService, Depends(get_email_service)]) -> JSONResponse:
     """
     Регистрация нового пользователя.
 
@@ -37,7 +37,10 @@ async def register(data: RegisterRequest,
 
 @router.post("/login", response_model=Token)
 @limiter.limit("5/10minutes")
-async def login(data: LoginRequest, request: Request, response: Response, service: AuthService = Depends(get_auth_service)) -> Token:
+async def login(data: LoginRequest, 
+                request: Request, 
+                response: Response, 
+                service: Annotated[AuthService, Depends(get_auth_service)]) -> Token:
     """
     Аутентификация пользователя.
 
@@ -51,7 +54,8 @@ async def login(data: LoginRequest, request: Request, response: Response, servic
 
 @router.post("/token/refresh", response_model=Token)
 @limiter.limit("10/10minutes")
-async def refresh(request: Request, service: AuthService = Depends(get_auth_service)) -> Token:
+async def refresh(request: Request,
+                   service: Annotated[AuthService, Depends(get_auth_service)]) -> Token:
     """
     Обновление токена доступа.
 

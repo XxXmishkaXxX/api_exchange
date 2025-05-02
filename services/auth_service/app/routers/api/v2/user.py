@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Annotated
 from fastapi import APIRouter, Depends, Request
 
 from app.core.limiter import limiter
@@ -17,8 +17,8 @@ router = APIRouter()
 async def change_password(
     data: ChangePasswordRequest,
     request: Request,
-    service: UserService = Depends(get_user_service),
-    user_info: dict = Depends(get_user_from_token) 
+    service: Annotated[UserService, Depends(get_user_service)],
+    user_info: Annotated[dict, Depends(get_user_from_token)] 
 ) -> Dict[str, str]:
     """
     Изменение пароля пользователя.
@@ -36,8 +36,8 @@ async def change_password(
 async def forgot_password(
     data: ForgotPasswordRequest,
     request: Request,
-    user_service: UserService = Depends(get_user_service),
-    email_service: EmailService = Depends(get_email_service)
+    user_service: Annotated[UserService, Depends(get_user_service)],
+    email_service: Annotated[EmailService, Depends(get_email_service)]
 ) -> Dict[str, str]:
     """
     Запрос на восстановление пароля.
@@ -59,7 +59,7 @@ async def forgot_password(
 async def confirm_reset_code(
     data: ResetCodeRequest,
     request: Request,
-    service: UserService = Depends(get_user_service)
+    service: Annotated[UserService, Depends(get_user_service)]
 ) -> Dict[str, str]:
     """
     Подтверждение кода восстановления пароля.
