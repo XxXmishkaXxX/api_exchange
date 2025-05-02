@@ -1,6 +1,7 @@
 import logging
+from core.config import settings 
 
-logging.basicConfig(level="INFO")
+logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger("orders_service")
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')

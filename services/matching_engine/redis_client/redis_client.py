@@ -5,21 +5,17 @@ from engine.order import Order
 
 
 class AsyncRedisOrderClient:
-    def __init__(self, redis_host='localhost', redis_port=6379, redis_db=0):
-        self.redis_host = redis_host
-        self.redis_port = redis_port
-        self.redis_db = redis_db
+    def __init__(self, redis_url: str):
+        self.redis_url = redis_url
         self.redis_client = None
 
     async def connect(self):
         """Подключаемся к Redis серверу асинхронно."""
-        self.redis_client = aioredis.Redis(host=self.redis_host, port=self.redis_port, db=self.redis_db)
-        print(f"Подключение к Redis на {self.redis_host}:{self.redis_port} установлено.")
+        self.redis_client = aioredis.from_url(self.redis_url)
 
     async def close(self):
         """Закрываем соединение с Redis."""
         await self.redis_client.close()
-        print("Соединение с Redis закрыто.")
 
     async def add_order(self, order):
         """

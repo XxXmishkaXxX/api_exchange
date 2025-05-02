@@ -1,9 +1,11 @@
 import asyncio
 from core.logger import logger
-from kafka.consumer import OrderConsumerService, MarketQuoteRequestConsumer
+from kafka.consumers.market_quote_consumer import MarketQuoteRequestConsumer
+from kafka.consumers.order_consumer import OrderConsumerService
 from kafka.producers import KafkaOrderProducer, KafkaWalletProducer, KafkaMarketQuoteResponseProducer, KafkaSendTransactionProducer
 from redis_client.redis_client import AsyncRedisOrderClient
 from messaging.producer_service import ProducerService
+from core.config import settings
 from engine.matching_engine import MatchingEngine
 
 
@@ -27,7 +29,7 @@ async def create_producers():
 async def create_redis_client():
     """Создаёт асинхронное подключение к Redis."""
     try:
-        redis_client = AsyncRedisOrderClient("redis_me")
+        redis_client = AsyncRedisOrderClient(settings.REDIS_URL)
         await redis_client.connect()
         await redis_client.redis_client.ping()
         logger.info(f"✅ Подключение к Redis установлено.")
@@ -53,8 +55,13 @@ async def create_matching_engine(redis_client, messaging_service: ProducerServic
 async def start_consumers_services(engine):
     """Запускает Kafka consumer service в отдельных задачах."""
     try:
-        order_consumer_service = OrderConsumerService(engine)
-        market_quote_request_consumer_service = MarketQuoteRequestConsumer(engine)
+        order_consumer_service = OrderConsumerService(engine, topic=settings.ORDERS_TOPIC,
+                                    bootstrap_servers=settings.BOOTSTRAP_SERVERS,
+                                    group_id="orders_engine")
+        market_quote_request_consumer_service = MarketQuoteRequestConsumer(engine,
+                                    topic=settings.MARKET_QUOTE_REQUEST_TOPIC,
+                                    bootstrap_servers=settings.BOOTSTRAP_SERVERS,
+                                    group_id="market_quote_engine")
 
         order_task = asyncio.create_task(order_consumer_service.start())
         quote_task = asyncio.create_task(market_quote_request_consumer_service.start())
