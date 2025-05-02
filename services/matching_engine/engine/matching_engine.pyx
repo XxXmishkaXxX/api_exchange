@@ -1,67 +1,23 @@
-import logging
 import asyncio
-import json
+from core.logger import logger
+from messaging.producer_service import ProducerService
 from engine.order cimport Order
 from engine.order_book cimport OrderBook
 from engine.price_level cimport PriceLevel
 from redis_client.redis_client import AsyncRedisOrderClient
 
 
-logging.basicConfig(
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    level=logging.INFO
-)
-logger = logging.getLogger(__name__)
-
 
 cdef class MatchingEngine:
     cdef:
         dict order_books
-        object change_order_status_prod
-        object post_wallet_transfer_prod
-        object prod_market_quote
-        object prod_transaction
+        object messaging
         object redis
     
-    def __init__(self, change_order_status_prod, post_wallet_transfer_prod, prod_market_quote,
-        prod_transaction, redis: AsyncRedisOrderClient):
+    def __init__(self, messaging_service: ProducerService, redis: AsyncRedisOrderClient):
         self.order_books = {}
-        self.post_wallet_transfer_prod = post_wallet_transfer_prod
-        self.change_order_status_prod = change_order_status_prod
-        self.prod_market_quote = prod_market_quote
-        self.prod_transaction = prod_transaction
+        self.messaging = messaging_service
         self.redis = redis
-
-    async def send_transaction(self, order_asset_id: int, payment_asset_id: int, from_user_id: str, 
-                                to_user_id: str, price: int, amount: int):
-        
-        transaction = {
-            "order_asset_id": order_asset_id,
-            "payment_asset_id":payment_asset_id,
-            "from_user_id": from_user_id,
-            "to_user_id":to_user_id,
-            "price": price,
-            "amount": amount
-            }
-        
-        await self.prod_transaction.send_transaction(transaction)
-
-    async def send_order_status(self, order_id: str, user_id: str, filled: int, status: str):
-        if self.change_order_status_prod:
-            message = {"order_id": order_id, "user_id": user_id, "filled": filled, "status": status}
-            await self.change_order_status_prod.send_order_update(message)
-            logger.info(f"📤 SENT ORDER STATUS: {message}")
-
-    async def send_wallet_transfer(self, from_user, to_user: str, ticker: str, amount: int):
-        if self.post_wallet_transfer_prod:
-            transfer = {
-                "from_user": from_user,
-                "to_user": to_user,
-                "ticker": ticker,
-                "amount": amount
-            }
-            await self.post_wallet_transfer_prod.send_wallet_update(transfer)
-            logger.info(f"💸 WALLET TRANSFER: {transfer}")
 
     async def update_market_data_in_redis(self, order_book: OrderBook, ticker_pair):
         bid_levels = self.aggregate_orders(order_book.buy_orders, reverse=True)[:5]
@@ -71,9 +27,6 @@ cdef class MatchingEngine:
         ask_levels_dict = self.convert_to_dict(ask_levels)
 
         await self.redis.set_market_data(ticker_pair, bid_levels_dict, ask_levels_dict)
-   
-    async def send_market_quote(self, response: dict):
-        await self.prod_market_quote.send_market_quote_response(response)
 
     async def restore_order_books_from_redis(self):
         """Загружает все ордера из Redis в память MatchingEngine."""
@@ -126,7 +79,7 @@ cdef class MatchingEngine:
             response["reason"] = "invalid_direction"
             response["details"] = "Direction must be 'buy' or 'sell'."
 
-        asyncio.create_task(self.send_market_quote(response=response))
+        asyncio.create_task(self.messaging.send_market_quote(response=response))
 
     cpdef void add_order(self, Order order):
         cdef OrderBook order_book
@@ -138,6 +91,7 @@ cdef class MatchingEngine:
         order_book = self.order_books[ticker_pair]
         order_book.add_order(order)
         
+        asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, order.filled, status="pending"))
         asyncio.create_task(self.redis.add_order(order))
         asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
         
@@ -164,14 +118,14 @@ cdef class MatchingEngine:
 
         if direction == "buy":
             refund_amount = remaining_qty * order.price
-            asyncio.create_task(self.send_wallet_transfer(
+            asyncio.create_task(self.messaging.send_wallet_transfer(
                 from_user=None,
                 to_user=order.user_id,
                 ticker=order.payment_ticker,
                 amount=refund_amount
             ))
         else:
-            asyncio.create_task(self.send_wallet_transfer(
+            asyncio.create_task(self.messaging.send_wallet_transfer(
                 from_user=None,
                 to_user=order.user_id,
                 ticker=order.order_ticker,
@@ -181,7 +135,7 @@ cdef class MatchingEngine:
         order_book.remove_order(order_id, direction)
         
         asyncio.create_task(self.redis.remove_order(order_id, ticker_pair, direction))
-        asyncio.create_task(self.send_order_status(order.order_id, order.user_id, order.filled, status="cancelled"))
+        asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, order.filled, status="cancelled"))
         asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
 
         logger.info(f"🚫 CANCELLED ORDER {order_id}, returned unspent: {remaining_qty} ({'qty' if direction == 'sell' else 'value'})")
@@ -213,20 +167,20 @@ cdef class MatchingEngine:
 
             logger.info(f"🔄 TRADE EXECUTED: {trade_qty} {best_buy.order_ticker} @ {best_sell.price} {best_buy.payment_ticker}")
 
-            asyncio.create_task(self.send_wallet_transfer(
+            asyncio.create_task(self.messaging.send_wallet_transfer(
                 from_user=best_buy.user_id,
                 to_user=best_sell.user_id,
                 ticker=best_buy.payment_ticker,
                 amount=trade_value
             ))
-            asyncio.create_task(self.send_wallet_transfer(
+            asyncio.create_task(self.messaging.send_wallet_transfer(
                 from_user=best_sell.user_id,
                 to_user=best_buy.user_id,
                 ticker=best_buy.order_ticker,
                 amount=trade_qty
             ))
 
-            asyncio.create_task(self.send_transaction(
+            asyncio.create_task(self.messaging.send_transaction(
                 order_asset_id=best_buy.order_asset_id,
                 payment_asset_id=best_sell.payment_asset_id,
                 from_user_id=best_buy.user_id,
@@ -236,20 +190,20 @@ cdef class MatchingEngine:
             ))
 
             if best_buy.qty == 0:
-                asyncio.create_task(self.send_order_status(best_buy.order_id, best_buy.user_id, best_buy.filled, "filled"))
+                asyncio.create_task(self.messaging.send_order_status(best_buy.order_id, best_buy.user_id, best_buy.filled, "filled"))
                 
                 order_book.remove_order(best_buy.order_id, best_buy.direction)
                 asyncio.create_task(self.redis.remove_order(best_buy.order_id, ticker_pair, best_buy.direction))
             else:
-                asyncio.create_task(self.send_order_status(best_buy.order_id, best_buy.user_id, best_buy.filled, "partially_filled"))
+                asyncio.create_task(self.messaging.send_order_status(best_buy.order_id, best_buy.user_id, best_buy.filled, "partially_filled"))
 
             if best_sell.qty == 0:
-                asyncio.create_task(self.send_order_status(best_sell.order_id, best_sell.user_id, best_sell.filled, "filled"))
+                asyncio.create_task(self.messaging.send_order_status(best_sell.order_id, best_sell.user_id, best_sell.filled, "filled"))
                 
                 order_book.remove_order(best_sell.order_id, best_sell.direction)
                 asyncio.create_task(self.redis.remove_order(best_sell.order_id, ticker_pair, best_sell.direction))
             else:
-                asyncio.create_task(self.send_order_status(best_sell.order_id, best_sell.user_id, best_sell.filled, "partially_filled"))
+                asyncio.create_task(self.messaging.send_order_status(best_sell.order_id, best_sell.user_id, best_sell.filled, "partially_filled"))
 
         if traded:
             asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
@@ -266,7 +220,7 @@ cdef class MatchingEngine:
 
         if ticker_pair not in self.order_books:
             logger.warning(f"❌ No order book found for {ticker_pair}. Cancelling market order.")
-            asyncio.create_task(self.send_order_status(order.order_id, order.user_id, 0, "cancelled"))
+            asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, 0, "cancelled"))
             return
 
         order_book = self.order_books[ticker_pair]
@@ -274,7 +228,7 @@ cdef class MatchingEngine:
 
         if not orders:
             logger.warning(f"❌ No counter orders in book for market order {order.order_id}. Cancelling.")
-            asyncio.create_task(self.send_order_status(order.order_id, order.user_id, 0, "cancelled"))
+            asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, 0, "cancelled"))
             return
 
         # 🔍 Dry-run: проверяем, хватит ли объёма
@@ -285,7 +239,7 @@ cdef class MatchingEngine:
 
         if available_qty < order.qty:
             logger.warning(f"⚠️ Not enough liquidity to fill market order {order.order_id}. Cancelling.")
-            asyncio.create_task(self.send_order_status(order.order_id, order.user_id, 0, "cancelled"))
+            asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, 0, "cancelled"))
             return
 
         # ✅ Полное исполнение — ликвидность есть
@@ -309,10 +263,10 @@ cdef class MatchingEngine:
             )
 
             if order.direction == "buy":
-                asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset_ticker, trade_value))
-                asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, base_asset_ticker, trade_qty))
+                asyncio.create_task(self.messaging.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset_ticker, trade_value))
+                asyncio.create_task(self.messaging.send_wallet_transfer(best_order.user_id, order.user_id, base_asset_ticker, trade_qty))
 
-                asyncio.create_task(self.send_transaction(
+                asyncio.create_task(self.messaging.send_transaction(
                     from_user_id=order.user_id,
                     to_user_id=best_order.user_id,
                     order_asset_id=order.order_asset_id,
@@ -322,10 +276,10 @@ cdef class MatchingEngine:
                 ))
 
             else:
-                asyncio.create_task(self.send_wallet_transfer(order.user_id, best_order.user_id, base_asset_ticker, trade_qty))
-                asyncio.create_task(self.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset_ticker, trade_value))
+                asyncio.create_task(self.messaging.send_wallet_transfer(order.user_id, best_order.user_id, base_asset_ticker, trade_qty))
+                asyncio.create_task(self.messaging.send_wallet_transfer(best_order.user_id, order.user_id, quote_asset_ticker, trade_value))
 
-                asyncio.create_task(self.send_transaction(
+                asyncio.create_task(self.messaging.send_transaction(
                     from_user_id=order.user_id,
                     to_user_id=best_order.user_id,
                     order_asset_id=order.order_asset_id,
@@ -335,15 +289,15 @@ cdef class MatchingEngine:
                 ))
 
             if best_order.qty == 0:
-                asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "filled"))
+                asyncio.create_task(self.messaging.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "filled"))
                 
                 orders.pop(0)
                 asyncio.create_task(self.redis.remove_order(best_order.order_id, ticker_pair, best_order.direction))
                 
             else:
-                asyncio.create_task(self.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "partially_filled"))
+                asyncio.create_task(self.messaging.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "partially_filled"))
 
-        asyncio.create_task(self.send_order_status(order.order_id, order.user_id, order.filled, "filled"))
+        asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, order.filled, "filled"))
         asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
     
     cdef list aggregate_orders(self, list orders, bint reverse=True):
