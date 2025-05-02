@@ -1,13 +1,12 @@
 import asyncio
-import logging
+from core.logger import logger
 from kafka.consumer import OrderConsumerService, MarketQuoteRequestConsumer
 from kafka.producers import KafkaOrderProducer, KafkaWalletProducer, KafkaMarketQuoteResponseProducer, KafkaSendTransactionProducer
 from redis_client.redis_client import AsyncRedisOrderClient
+from messaging.producer_service import ProducerService
 from engine.matching_engine import MatchingEngine
 
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 async def create_producers():
     """Создаёт и запускает все Kafka продюсеры."""
@@ -37,15 +36,12 @@ async def create_redis_client():
         logger.error(f"❌ Error connecting to Redis: {e}")
         raise
 
-async def create_matching_engine(prod_order, prod_wallet, prod_market_quote, prod_transaction, redis_client):
+async def create_matching_engine(redis_client, messaging_service: ProducerService):
     """Создаёт экземпляр MatchingEngine и восстанавливает ордербуки из Redis."""
     try:
         engine = MatchingEngine(
-            change_order_status_prod=prod_order, 
-            post_wallet_transfer_prod=prod_wallet, 
-            prod_market_quote=prod_market_quote,
-            prod_transaction=prod_transaction,
-            redis=redis_client
+            messaging_service,
+            redis_client
         )
         logger.info("Движок создан")
         await engine.restore_order_books_from_redis()
@@ -73,16 +69,14 @@ async def start_consumers_services(engine):
 async def main():
     """Основной асинхронный процесс приложения."""
     try:
-        # Создаём продюсеров
         prod_order, prod_wallet, prod_market_quote, prod_transaction = await create_producers()
         
-        # Создаём Redis клиент
         redis_client = await create_redis_client()
         
-        # Создаём MatchingEngine с подключением к Redis
-        engine = await create_matching_engine(prod_order, prod_wallet, prod_market_quote, prod_transaction, redis_client)
+        messaging_service = ProducerService(prod_order, prod_wallet, prod_market_quote, prod_transaction)
+
+        engine = await create_matching_engine(redis_client, messaging_service)
         
-        # Запускаем сервисы потребителей Kafka
         await start_consumers_services(engine)
     except Exception as e:
         logger.error(f"❌ Application error: {e}")
