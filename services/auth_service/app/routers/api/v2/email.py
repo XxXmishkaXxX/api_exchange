@@ -10,7 +10,7 @@ from app.core.limiter import limiter
 router = APIRouter()
 
 
-@router.post("/verify_email", response_model=Dict[str, str])
+@router.post("/verify-email", response_model=Dict[str, str])
 @limiter.limit("3/15minutes")
 async def verify_email(
     request: Request,
@@ -33,7 +33,7 @@ async def verify_email(
     return resp
 
 
-@router.post("/resend_verification_code", response_model=Dict[str, str])
+@router.post("/resend-verification-code", response_model=Dict[str, str])
 @limiter.limit("3/15minutes")
 async def resend_verification_code(
     data: ResendVerificationRequest,
