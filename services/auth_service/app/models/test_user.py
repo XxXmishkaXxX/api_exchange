@@ -1,19 +1,20 @@
 import uuid
-from sqlalchemy import Column, String, Boolean, DateTime, func, Enum
-from sqlalchemy.dialects.postgresql import UUID
-from app.db.database import Base
 from enum import Enum as PyEnum
+
+from sqlalchemy import String, Enum
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+from app.db.database import Base
 
 class TestRole(str, PyEnum):
     USER = "USER"
     ADMIN = "ADMIN"
 
-
 class UserTest(Base):
     """Модель для тестов"""
     __tablename__ = "users_test"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, index=True)
-    name = Column(String, nullable=False)
-    role = Column(Enum(TestRole), default=TestRole.USER)
-    api_key = Column(String, nullable=True, unique=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, index=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    role: Mapped[TestRole] = mapped_column(Enum(TestRole), default=TestRole.USER)
+    api_key: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
