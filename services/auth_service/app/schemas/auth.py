@@ -1,17 +1,20 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
 import re
-
-
-from pydantic import BaseModel
+from typing import Annotated
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 class TestRegisterRequest(BaseModel):
-    name: str
-
+    name: Annotated[str, Field()]
 
 class RegisterRequest(BaseModel):
-    email: EmailStr
-    name: str = Field(..., min_length=2, max_length=50, pattern=r"^[A-Za-zА-Яа-яЁё]+$")
-    password: str = Field(..., min_length=8, max_length=128)
+    email: Annotated[EmailStr, Field()]
+    name: Annotated[
+        str,
+        Field(min_length=2, max_length=50, pattern=r"^[A-Za-zА-Яа-яЁё]+$")
+    ]
+    password: Annotated[
+        str,
+        Field(min_length=8, max_length=128)
+    ]
 
     @field_validator("password")
     def validate_password(cls, value: str) -> str:
@@ -26,8 +29,11 @@ class RegisterRequest(BaseModel):
         return value
 
 class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str = Field(..., min_length=8, max_length=128)
+    email: Annotated[EmailStr, Field()]
+    password: Annotated[
+        str,
+        Field(min_length=8, max_length=128)
+    ]
 
 class Token(BaseModel):
-    access_token: str
+    access_token: Annotated[str, Field()]

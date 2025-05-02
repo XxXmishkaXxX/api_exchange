@@ -1,9 +1,9 @@
-from pydantic import BaseModel, EmailStr
+from typing import Annotated
+from pydantic import BaseModel, EmailStr, Field
 
 class VerificationRequest(BaseModel):
-    email: EmailStr 
-    verification_code: str
-
+    email: Annotated[EmailStr, Field()]
+    verification_code: Annotated[str, Field()]
 
 class ResendVerificationRequest(BaseModel):
-    email: EmailStr
+    email: Annotated[EmailStr, Field()]
