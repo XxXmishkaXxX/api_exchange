@@ -2,12 +2,14 @@
 
 ## **Запуск проекта**
 
-Клонировать репозиторий проекта:
+1. Клонировать репозиторий проекта:
 ```bash
 git clone https://github.com/XxXmishkaXxX/api_exchange.git
 cd api_exchange
 ```
-Запустить проект через Docker Compose:
+2. Создайте .env во всех сервисах со своими данными или уберите .example из имени env'ов и добавьте свои данные
+
+3. Запустить проект через Docker Compose:
 ```bash
 docker-compose up --build
 ```
