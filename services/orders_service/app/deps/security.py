@@ -20,7 +20,7 @@ def get_token(authorization: Optional[str] = Header(None)) -> str:
 
 def get_user_from_token(token: str = Depends(get_token)) -> UUID:
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITM])
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id: UUID = UUID(payload.get("sub"))
         role: str = payload.get("role")
         

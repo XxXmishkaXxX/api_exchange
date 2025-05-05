@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     # Секретный ключ для подписания JWT токенов
     SECRET_KEY: str 
     SESSION_KEY: str
-    ALGORITM: str
+    ALGORITHM: str
 
     #kafka
     BOOTSTRAP_SERVERS: str
