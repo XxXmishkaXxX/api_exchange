@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.post("/instrument")
 async def create_instrument(
-    asset: Annotated[AssetSchema, Depends()],
+    asset: AssetSchema,
     admin_required: Annotated[None, Depends(admin_required)],
     service: Annotated[AssetsService, Depends(get_assets_service)]
 ):
