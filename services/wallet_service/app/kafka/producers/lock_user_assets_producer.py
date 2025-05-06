@@ -1,6 +1,4 @@
 import json
-from aiokafka import AIOKafkaProducer
-from typing import AsyncGenerator
 
 from app.core.config import settings
 from app.core.logger import logger

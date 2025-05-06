@@ -1,6 +1,4 @@
-import json
 from uuid import UUID
-from aiokafka import AIOKafkaProducer
 from typing import AsyncGenerator
 
 from app.core.config import settings

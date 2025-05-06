@@ -38,7 +38,7 @@ class OrderStatusConsumerService(BaseKafkaConsumerService):
 
     async def update_order(self, order_id: UUID, user_id: UUID, status: str, filled: int):
         """Обновляет статус и количество заполненных позиций для ордера."""
-        async for session in get_db():
+        async with get_db() as session:
             order_repo = OrderRepository(session)
             order = await order_repo.get(order_id, user_id)
 
@@ -51,7 +51,6 @@ class OrderStatusConsumerService(BaseKafkaConsumerService):
                 
                 if updates:
                     await order_repo.update(order, updates)
-
 
 
 order_status_consumer = OrderStatusConsumerService(

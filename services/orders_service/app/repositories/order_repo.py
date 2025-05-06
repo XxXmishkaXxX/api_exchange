@@ -36,8 +36,6 @@ class OrderRepository:
 
     async def create(self, order: Order) -> Order:
         self.db.add(order)
-        await self.db.commit()
-        await self.db.refresh(order)
         return order
 
     async def update(self, order: Order, updated_data: dict) -> Optional[Order]:
@@ -49,8 +47,6 @@ class OrderRepository:
 
         if changes_made:
             self.db.add(order)
-            await self.db.commit()
-            await self.db.refresh(order)
             return order
         return None
 
@@ -64,5 +60,4 @@ class OrderRepository:
         order = result.scalars().first()
         if order and order.status in ["new", "pending"]:
             await self.db.delete(order)
-            await self.db.commit()
         return order

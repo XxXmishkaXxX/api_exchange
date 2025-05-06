@@ -42,19 +42,12 @@ class AssetRepository:
         return asset_id
 
     async def create(self, asset: Asset):
-        try:
-            self.session.add(asset)
-            await self.session.commit()
-            await self.session.refresh(asset)
-            return asset 
-        except IntegrityError:
-            await self.session.rollback()
-            raise ValueError(f"Такой тикер уже существует")
+        self.session.add(asset)
+        return asset 
         
     async def delete(self, ticker: str) -> Optional[Asset]:
         result = await self.session.execute(select(Asset).filter(Asset.ticker == ticker))
         db_ticker = result.scalars().first()
         if db_ticker:
             await self.session.delete(db_ticker)
-            await self.session.commit()
         return db_ticker

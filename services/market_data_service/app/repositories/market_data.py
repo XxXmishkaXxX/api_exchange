@@ -16,8 +16,6 @@ class MarketDataRepository:
 
     async def add_transaction(self, transaction: Transaction):
         self.session.add(transaction)
-        await self.session.commit()
-        await self.session.refresh(transaction)
         return transaction
 
     async def get_all_transaction_by_pair(self, asset1_id: int, asset2_id: int, limit: int, offset: int):

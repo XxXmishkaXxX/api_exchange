@@ -39,11 +39,10 @@ class TransactionsConsumer(BaseKafkaConsumerService):
     
     async def add_transaction(self, transaction: Transaction):
 
-        async for session in get_db():
+        async with get_db() as session:
             repo = MarketDataRepository(session=session)
             await repo.add_transaction(transaction)
             await self.log_message("Транзакция добавлена", **transaction.__dict__)
-            break
 
 
 transaction_consumer = TransactionsConsumer(topic=settings.TRANSACTIONS_TOPIC,
