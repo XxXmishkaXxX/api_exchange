@@ -7,7 +7,6 @@ from contextlib import asynccontextmanager
 
 from app.routers.api.v1 import auth as auth_v1
 from app.routers.api.v1 import admin as admin_v1
-from app.routers.api.v2 import auth, oauth2, email, user, admin
 from app.utils.create_admin import create_first_admin
 from app.core.config import settings
 from app.core.limiter import limiter
@@ -47,15 +46,19 @@ async def rate_limit_handler(request, exc):
 
 app.add_middleware(SessionMiddleware, secret_key=settings.SESSION_KEY)
 
-app.include_router(auth_v1.router, prefix="/api/v1/public", tags=["test"])
-app.include_router(admin_v1.router, prefix="/api/v1/admin", tags=["test"])
+app.include_router(auth_v1.router, prefix="/api/v1/public", tags=["auth"])
+app.include_router(admin_v1.router, prefix="/api/v1/admin", tags=["auth"])
 
-
-app.include_router(auth.router, prefix="/api/v2/auth", tags=["auth"])
-app.include_router(oauth2.router, prefix="/api/v2/oauth", tags=["oauth"])
-app.include_router(email.router, prefix="/api/v2/mail", tags=["mail"])
-app.include_router(user.router, prefix="/api/v2/user", tags=["user"])
-app.include_router(admin.router, prefix="/api/v2/admin", tags=["admin"])
+if settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
+    from app.routers.api.v2 import auth, oauth2, email, user, admin
+    app.include_router(auth.router, prefix="/api/v2/auth", tags=["auth"])
+    app.include_router(email.router, prefix="/api/v2/mail", tags=["mail"])
+    app.include_router(user.router, prefix="/api/v2/user", tags=["user"])
+    app.include_router(admin.router, prefix="/api/v2/admin", tags=["admin"])
+    
+    if settings.OAUTH2_CLIENT_ID and settings.OAUTH2_CLIENT_SECRET:
+        from app.routers.api.v2 import oauth2
+        app.include_router(oauth2.router, prefix="/api/v2/oauth", tags=["oauth"])
 
 if __name__ == "__main__":
     import uvicorn
