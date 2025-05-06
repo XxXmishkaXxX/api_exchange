@@ -6,6 +6,7 @@ from app.services.auth import AuthService
 from app.services.email import EmailService
 from app.services.user import UserService
 from app.services.test_service import Service
+from app.kafka.producers.send_wallet_event_producer import get_wallet_event_producer, SendWalletEventProducerService
 
 from app.repositories import user_repository, email_repository, test_repo
 
@@ -49,6 +50,7 @@ def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
     return UserService(user_repo)
 
 
-def get_service(db: AsyncSession = Depends(get_db)) -> Service:
+def get_service(db: AsyncSession = Depends(get_db),
+                prod: SendWalletEventProducerService = Depends(get_wallet_event_producer)) -> Service:
     repo = test_repo.TestUserRepository(db)
-    return Service(repo)
+    return Service(repo, prod)
