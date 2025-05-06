@@ -12,6 +12,7 @@ from app.utils.create_admin import create_first_admin
 from app.core.config import settings
 from app.core.limiter import limiter
 from app.core.logger import logger
+from app.kafka.producers.send_wallet_event_producer import wallet_event_producer
 
 
 @asynccontextmanager
@@ -20,8 +21,14 @@ async def lifespan(app: FastAPI):
         await create_first_admin()
     except Exception as e:
         logger.error(f"⚠️ {e}")
+    
+    await wallet_event_producer.start()
+    logger.info("Wallet Event Producer Started")
 
     yield
+
+    await wallet_event_producer.stop()
+    logger.info("Wallet Event Producer Stopped")
 
 
 app = FastAPI(title="Auth Service", lifespan=lifespan)
