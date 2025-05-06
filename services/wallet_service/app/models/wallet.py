@@ -1,19 +1,19 @@
-from sqlalchemy import Integer, ForeignKey, Index
+from typing import List
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Index
 from sqlalchemy.orm import mapped_column, Mapped, relationship
-from app.models.asset import Asset
+from app.models.wallet_asset import WalletAssetBalance
 from app.db.database import Base
 import uuid
 
-class UserAssetBalance(Base):
-    __tablename__ = "user_asset_balances"
+
+class Wallet(Base):
+    __tablename__ = "wallets"
     __table_args__ = (
-        Index("idx_user_assets_user_asset", "user_id", "asset_id"),
+        Index("idx_wallet_user_id", "user_id"),
     )
 
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID, primary_key=True, nullable=False)
-    asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id"), primary_key=True, nullable=False)
-    amount: Mapped[int] = mapped_column(Integer, default=0)
-    locked: Mapped[int] = mapped_column(Integer, default=0)
+    id: Mapped[uuid.UUID] = mapped_column(UUID, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID, index=True, nullable=False)
 
-    asset: Mapped["Asset"] = relationship(back_populates="user_asset_balances")
+    asset_balances: Mapped[List["WalletAssetBalance"]] = relationship(back_populates="wallet", cascade="all, delete-orphan")
