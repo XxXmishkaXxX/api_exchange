@@ -25,12 +25,12 @@ class ProducerService:
             await self.change_order_status_prod.send_order_update(message)
             logger.info(f"📤 SENT ORDER STATUS: {message}")
 
-    async def send_wallet_transfer(self, from_user, to_user, ticker, amount):
+    async def send_wallet_transfer(self, from_user, to_user, asset_id, amount):
         if self.post_wallet_transfer_prod:
             transfer = {
                 "from_user": from_user,
                 "to_user": to_user,
-                "ticker": ticker,
+                "asset_id": asset_id,
                 "amount": amount
             }
             await self.post_wallet_transfer_prod.send_wallet_update(transfer)

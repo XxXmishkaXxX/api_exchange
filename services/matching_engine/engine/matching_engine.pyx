@@ -121,14 +121,14 @@ cdef class MatchingEngine:
             asyncio.create_task(self.messaging.send_wallet_transfer(
                 from_user=None,
                 to_user=order.user_id,
-                ticker=order.payment_ticker,
+                asset_id=order.payment_asset_id,
                 amount=refund_amount
             ))
         else:
             asyncio.create_task(self.messaging.send_wallet_transfer(
                 from_user=None,
                 to_user=order.user_id,
-                ticker=order.order_ticker,
+                asset_id=order.order_asset_id,
                 amount=remaining_qty
             ))
 
@@ -170,13 +170,13 @@ cdef class MatchingEngine:
             asyncio.create_task(self.messaging.send_wallet_transfer(
                 from_user=best_buy.user_id,
                 to_user=best_sell.user_id,
-                ticker=best_buy.payment_ticker,
+                asset_id=best_buy.payment_asset_id,
                 amount=trade_value
             ))
             asyncio.create_task(self.messaging.send_wallet_transfer(
                 from_user=best_sell.user_id,
                 to_user=best_buy.user_id,
-                ticker=best_buy.order_ticker,
+                asset_id=best_buy.order_asset_id,
                 amount=trade_qty
             ))
 
@@ -243,8 +243,8 @@ cdef class MatchingEngine:
             return
 
         # ✅ Полное исполнение — ликвидность есть
-        base_asset_ticker = order.order_ticker
-        quote_asset_ticker = order.payment_ticker
+        base_asset_ticker = order.order_asset_id
+        quote_asset_ticker = order.payment_asset_id
 
         while order.qty > 0 and orders:
             best_order = orders[0]
@@ -308,7 +308,6 @@ cdef class MatchingEngine:
         cdef PriceLevel level
         cdef int price
 
-        # Агрегируем ордера по цене
         for order in orders:
             price = order.price
             if price in price_to_qty:
@@ -317,10 +316,8 @@ cdef class MatchingEngine:
                 price_to_qty[price] = order.qty
                 prices.append(price)
 
-        # Сортируем по цене
         prices.sort(reverse=reverse)
-
-        # Наполняем список PriceLevel
+        
         for price in prices:
             level = PriceLevel(price=price, qty=price_to_qty[price])
             result.append(level)
