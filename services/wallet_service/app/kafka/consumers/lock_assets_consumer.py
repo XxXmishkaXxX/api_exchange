@@ -20,48 +20,39 @@ class LockAssetsConsumer(BaseKafkaConsumerService):
         correlation_id = data.get("correlation_id")
         user_id = data.get("user_id")
         asset_id = data.get("asset_id")
-        ticker = data.get("ticker")
         lock = int(data.get("amount"))
 
-        logger.info(f"Received lock request: user={user_id}, asset={ticker}, amount={lock}, correlation_id={correlation_id}")
+        logger.info(f"Received lock request: user={user_id}, asset_id={asset_id}, amount={lock}, correlation_id={correlation_id}")
 
         try:
-            success = await self.handle_assets(user_id, asset_id, ticker, lock)
+            success = await self.handle_assets(user_id, asset_id, lock)
         except Exception as e:
-            logger.exception(f"Error handling lock for user {user_id}, asset {ticker}: {e}")
+            logger.exception(f"Error handling lock for user {user_id}, asset_id {asset_id}: {e}")
             success = False
 
         if correlation_id:
             await self.prod.send_response(correlation_id, success)
 
-    async def handle_assets(self, user_id: str, asset_id: int, ticker: str, lock_amount: int) -> bool:
+    async def handle_assets(self, user_id: str, asset_id: int, lock_amount: int) -> bool:
         """
         Обрабатывает блокировку активов для пользователя.
 
         Аргументы:
             user_id (str): Идентификатор пользователя.
             asset_id (int): Идентификатор актива.
-            ticker (str): Тикер актива.
             lock_amount (int): Количество средств для блокировки.
 
         Возвращает:
             bool: Успешность операции блокировки.
         """
-        async for session in get_db():
+        async with get_db() as session:
             repo = WalletRepository(session)
-            user_asset = await repo.get(user_id, asset_id)
-
-            if not user_asset:
-                logger.warning(f"User asset not found for user {user_id}, asset {ticker}")
-                return False
-
-            available = user_asset.amount - user_asset.locked
-            if available >= lock_amount:
-                await repo.lock(user_asset, lock_amount)
-                logger.info(f"Assets locked for user {user_id}, asset {ticker}, amount {lock_amount}")
+            try:
+                await repo.lock(user_id=user_id, asset_id=asset_id, lock=lock_amount)
+                logger.info(f"Assets locked for user {user_id}, asset_id {asset_id}, amount {lock_amount}")
                 return True
-            else:
-                logger.warning(f"Insufficient funds to lock for user {user_id}, asset {ticker}, required {lock_amount}, available {available}")
+            except Exception as e:
+                logger.warning(f"error {e}, user_id={user_id}, asset_id={asset_id}")
                 return False
             
 
