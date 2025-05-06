@@ -52,6 +52,8 @@ class WalletService:
         
         except HTTPException as e:
             raise e
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=f"{e}")
         except SQLAlchemyError as e:
             logger.error(f"Database error during withdrawal for user {data.user_id} and ticker {data.ticker}: {e}")
             raise HTTPException(status_code=500, detail="Ошибка при снятии активов")

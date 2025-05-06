@@ -95,13 +95,12 @@ class WalletRepository:
                                        locked=0)
             self.session.add(asset)
 
-
         await self._update_redis_balance(user_id, asset_id, asset.amount, asset.locked)
 
     async def withdraw(self, user_id: UUID, asset_id: int, amount: int = 0):
         _, asset = await self.get(user_id=user_id, asset_id=asset_id)
         if asset is None:
-            raise ValueError(f"Asset {asset_id} not found for user {user_id}")
+            raise ValueError(f"Актив {asset_id} не найден у пользователя {user_id}")
         if asset.amount - asset.locked < amount:
             raise HTTPException(status_code=400, detail="Недостаточно средств для вывода")
         asset.amount -= amount
