@@ -8,17 +8,15 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from app.core.config import settings
 from app.db.database import Base
-from app.models.wallet import UserAssetBalance
+from app.models.wallet import Wallet
+from app.models.wallet_asset import WalletAssetBalance
 from app.models.asset import Asset
 
-# Get the Alembic Config object, which provides access to the values in the .ini file
 config = context.config
 
-# Interpret the config file for Python logging.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Set the sqlalchemy.url dynamically using the environment variable
 database_url = settings.DATABASE_URL
 if database_url:
     config.set_section_option('alembic', 'sqlalchemy.url', database_url)
@@ -27,10 +25,6 @@ else:
 
 
 target_metadata = Base.metadata
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
 
 
 def run_migrations_offline() -> None:

@@ -11,6 +11,8 @@ from app.kafka.producers.lock_user_assets_producer import lock_uab_resp_producer
 from app.kafka.consumers.assets_consumer import assets_consumer 
 from app.kafka.consumers.lock_assets_consumer import  lock_asset_amount_consumer
 from app.kafka.consumers.change_balance_consumer import change_balance_consumer
+from app.kafka.consumers.wallet_event_consumer import wallet_event_consumer
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,6 +22,10 @@ async def lifespan(app: FastAPI):
         
         await lock_uab_resp_producer.start()
         logger.info("✅ Kafka Producer started.")
+
+        await wallet_event_consumer.start()
+        asyncio.create_task(wallet_event_consumer.consume_messages())
+        logger.info("✅ WalletEvent Consumer started.")
 
         await change_balance_consumer.start()
         asyncio.create_task(change_balance_consumer.consume_messages())
