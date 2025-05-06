@@ -26,6 +26,8 @@ class AssetRepository:
 
     async def create(self, asset: Asset):
         self.session.add(asset)
+        await self.session.commit()
+        await self.session.refresh(asset)
         return asset 
         
     async def delete(self, ticker: str) -> Optional[Asset]:
@@ -33,4 +35,5 @@ class AssetRepository:
         db_ticker = result.scalars().first()
         if db_ticker:
             await self.session.delete(db_ticker)
+            await self.session.commit()
         return db_ticker

@@ -4,6 +4,7 @@ from app.schemas.asset import AssetSchema
 from app.repositories.asset_repo import AssetRepository
 from app.kafka.producers.assets_producer import AssetsKafkaProducerService
 from app.models.asset import Asset
+from app.core.logger import logger
 
 class AssetsService:
 
@@ -30,7 +31,6 @@ class AssetsService:
         try:
             asset_data = asset.model_dump()
             asset = await self.repo.create(Asset(**asset_data) )
-            
             data = {
                 "action": "ADD",
                 "asset_id": asset.id,
@@ -41,7 +41,7 @@ class AssetsService:
 
             return {"success": True}
         except Exception as e:
-            return {"error": str(e)}
+            raise HTTPException(status_code=401, detail=f"Такой тикер уже существует")
         
     async def remove_asset(self, asset_ticker: str) -> dict:
 
