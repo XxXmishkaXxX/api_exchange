@@ -34,7 +34,7 @@ class AssetConsumer(BaseKafkaConsumerService):
             await redis.hset(asset_key, mapping={"asset_id": asset_id, "name": name})
             await self.log_message("Добавлен актив в Redis", ticker=ticker, name=name)
 
-        async for session in get_db():
+        async with get_db() as session:
             repo = AssetRepository(session)
             asset = Asset(id=asset_id, name=name, ticker=ticker)
             await repo.create(asset)
@@ -46,7 +46,7 @@ class AssetConsumer(BaseKafkaConsumerService):
             await redis.delete(asset_key)
             await self.log_message("Удалён актив из Redis", ticker=ticker)
 
-        async for session in get_db():
+        async with get_db() as session:
             repo = AssetRepository(session)
             await repo.delete(ticker)
             await self.log_message("Удалён актив из DB", ticker=ticker)

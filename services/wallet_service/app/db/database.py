@@ -2,10 +2,9 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 from contextlib import asynccontextmanager
 from redis import asyncio as aioredis
-
+from typing import AsyncGenerator
 
 from app.core.config import settings
-from app.core.logger import logger
 
 
 engine = create_async_engine(
@@ -24,10 +23,24 @@ AsyncSessionLocal = sessionmaker(
 
 Base = declarative_base()
 
+async def get_db_for_deps():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+@asynccontextmanager
 async def get_db():
     async with AsyncSessionLocal() as session:
-        yield session
-
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
 
 
 class RedisConnectionPool:

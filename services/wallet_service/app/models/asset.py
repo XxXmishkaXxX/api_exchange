@@ -10,7 +10,7 @@ class Asset(Base):
     ticker: Mapped[str] = mapped_column(String(10), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
 
-    user_asset_balances: Mapped[List["UserAssetBalance"]] = relationship(
+    wallet_asset_balances : Mapped[List["WalletAssetBalance"]] = relationship(
         back_populates="asset"
     )
 
