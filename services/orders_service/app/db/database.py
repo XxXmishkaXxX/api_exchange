@@ -23,10 +23,24 @@ AsyncSessionLocal = sessionmaker(
 
 Base = declarative_base()
 
+async def get_db_for_deps():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+@asynccontextmanager
 async def get_db():
     async with AsyncSessionLocal() as session:
-        yield session
-
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
 
 
 class RedisConnectionPool:
