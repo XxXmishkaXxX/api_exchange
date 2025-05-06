@@ -1,13 +1,11 @@
-import json
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import update, delete
+from sqlalchemy import delete
 from uuid import UUID
 
-
-from app.models.wallet import UserAssetBalance
+from app.models.wallet import Wallet
+from app.models.wallet_asset import WalletAssetBalance
 from app.models.asset import Asset
 from app.core.logger import logger
 from app.db.database import redis_pool
@@ -33,7 +31,7 @@ class WalletRepository:
 
         async with redis_pool.connection() as redis:
             cursor = b"0"
-            while cursor != b"0":
+            while cursor != 0:
                 cursor, keys = await redis.scan(cursor=cursor, match=redis_pattern)
                 for key in keys:
                     asset_data = await redis.hgetall(key)
@@ -45,7 +43,7 @@ class WalletRepository:
                         }
 
             if not data:
-                stmt_balances = select(UserAssetBalance.amount, UserAssetBalance.asset_id, UserAssetBalance.locked).where(UserAssetBalance.user_id == user_id)
+                stmt_balances = select(WalletAssetBalance.amount, WalletAssetBalance.asset_id, WalletAssetBalance.locked).join(Wallet).where(Wallet.user_id == user_id)
                 result_balances = await self.session.execute(stmt_balances)
                 balances = {row.asset_id: {"amount": row.amount, "locked": row.locked} for row in result_balances.all()}
 
@@ -62,68 +60,75 @@ class WalletRepository:
 
         return {ticker: values["amount"] for ticker, values in data.items()}
 
-    async def get(self, user_id: UUID, asset_id: int) -> UserAssetBalance | None:
-        stmt = select(UserAssetBalance).where(
-            UserAssetBalance.user_id == user_id,
-            UserAssetBalance.asset_id == asset_id
+    async def get(self, user_id: UUID, asset_id: int) -> tuple[Wallet | None, WalletAssetBalance | None]:
+        
+        stmt = select(Wallet).where(
+            Wallet.user_id == user_id,
         )
         result = await self.session.execute(stmt)
-        return result.scalars().first()
-    
+        
+        wallet = result.scalars().first()
+        
+        if not wallet:
+            raise ValueError(f"Кошелек пользователя {user_id} не найден")
+        
+        stmt = select(WalletAssetBalance).where(
+            WalletAssetBalance.wallet_id == wallet.id,
+            WalletAssetBalance.asset_id == asset_id)
+        
+        result = await self.session.execute(stmt)
+        asset = result.scalars().first()
 
-    async def get_hash(self, user_id: UUID, ticker: str) -> dict[str, int] | None:
-        redis_key = f"user:{str(user_id)}:asset:{ticker}"
-        async with redis_pool.connection() as redis:
-            asset_data = await redis.hgetall(redis_key)
-            if asset_data:
-                return {
-                    "amount": int(asset_data.get(b"amount", b"0")),
-                    "locked": int(asset_data.get(b"locked", b"0")),
-                }
-        return None
+        return wallet, asset
 
-    async def create(self, user_id: UUID, asset_id: int, amount: int = 0):
-        asset = UserAssetBalance(user_id=user_id, asset_id=asset_id, amount=amount, locked=0)
-        self.session.add(asset)
-        try:
-            await self.session.commit()
-            await self._update_redis_balance(user_id, asset_id, amount, 0)
-        except IntegrityError:
-            await self.session.rollback()
-            raise ValueError("Запись с таким user_id и тикером уже существует")
+    async def create(self, user_id: UUID) -> None:
+        wallet = Wallet(user_id=user_id)
+        self.session.add(wallet)
 
-    async def deposit(self, asset: UserAssetBalance, amount: int = 0):
-        asset.amount += amount
-        await self.session.commit()
-        await self._update_redis_balance(asset.user_id, asset.asset_id, asset.amount, asset.locked)
+    async def deposit(self, user_id: UUID, asset_id: int, amount: int = 0):
+        wallet, asset = await self.get(user_id=user_id, asset_id=asset_id)
+        
+        if asset:
+            asset.amount += amount
+        else:
+            asset = WalletAssetBalance(wallet_id=wallet.id, asset_id=asset_id, amount=amount,
+                                       locked=0)
+            self.session.add(asset)
 
 
-    async def withdraw(self, asset: UserAssetBalance, amount: int = 0):
-        if asset.amount < amount:
+        await self._update_redis_balance(user_id, asset_id, asset.amount, asset.locked)
+
+    async def withdraw(self, user_id: UUID, asset_id: int, amount: int = 0):
+        _, asset = await self.get(user_id=user_id, asset_id=asset_id)
+        if asset is None:
+            raise ValueError(f"Asset {asset_id} not found for user {user_id}")
+        if asset.amount - asset.locked < amount:
             raise HTTPException(status_code=400, detail="Недостаточно средств для вывода")
         asset.amount -= amount
-        await self.session.commit()
-        await self._update_redis_balance(asset.user_id, asset.asset_id, asset.amount, asset.locked)
 
+        await self._update_redis_balance(user_id, asset_id, asset.amount, asset.locked)
 
-    async def lock(self, asset: UserAssetBalance, lock: int = 0):
-        if asset.amount < lock:
+    async def lock(self, user_id: UUID, asset_id: int, lock: int = 0):
+        _, asset = await self.get(user_id=user_id, asset_id=asset_id)
+        if asset is None:
+            raise ValueError(f"Asset {asset_id} not found for user {user_id}")
+        if asset.amount - asset.locked < lock:
             raise ValueError("Недостаточно свободных средств для блокировки")
         asset.locked += lock
-        await self.session.commit()
-        await self.session.refresh(asset)
-        await self._update_redis_balance(asset.user_id, asset.asset_id, asset.amount, asset.locked)
 
-    async def unlock(self, asset: UserAssetBalance, unlock: int = 0):
+        await self._update_redis_balance(user_id, asset_id, asset.amount, asset.locked)
+
+    async def unlock(self, user_id: UUID, asset_id: int, unlock: int = 0):
+        _, asset = await self.get(user_id=user_id, asset_id=asset_id)
+        if asset is None:
+            raise ValueError(f"Asset {asset_id} not found for user {user_id}")
         asset.locked -= unlock
-        await self.session.commit()
-        await self.session.refresh(asset)
-        await self._update_redis_balance(asset.user_id, asset.asset_id, asset.amount, asset.locked)
+
+        await self._update_redis_balance(user_id, asset_id, asset.amount, asset.locked)
 
     async def delete_all_assets_user(self, user_id: UUID):
-        stmt = delete(UserAssetBalance).where(UserAssetBalance.user_id == user_id)
+        stmt = delete(Wallet).where(Wallet.user_id == user_id)
         await self.session.execute(stmt)
-        await self.session.commit()
 
         redis_pattern = f"user:{str(user_id)}:asset:*"
         async with redis_pool.connection() as redis:
