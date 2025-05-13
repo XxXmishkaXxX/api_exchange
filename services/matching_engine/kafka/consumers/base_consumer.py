@@ -1,6 +1,6 @@
 from aiokafka import AIOKafkaConsumer
 
-from core.logger import logger
+from core.loggers.system_logger import logger
 
 
 class BaseKafkaConsumer:

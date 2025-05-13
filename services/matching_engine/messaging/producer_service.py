@@ -1,4 +1,4 @@
-from core.logger import logger
+from core.loggers.system_logger import logger
 
 class ProducerService:
     def __init__(self, change_order_status_prod, post_wallet_transfer_prod, 
