@@ -11,3 +11,6 @@ cdef class Order:
     cdef public int price
     cdef public int qty
     cdef public int filled
+    cpdef dict to_dict(self)
+    @staticmethod
+    cdef Order from_dict(dict d)
