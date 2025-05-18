@@ -88,7 +88,6 @@ cdef class MatchingEngine:
                                     "action": "add",
                                     "order": order.to_dict(),
                                 }))
-        asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, order.filled, status="pending"))
         asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
         
         self.match_orders(order_book)
@@ -137,7 +136,7 @@ cdef class MatchingEngine:
                                     "direction": direction
                                 }))
         
-        asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, order.filled, status="cancelled"))
+        asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, order.filled, status="CANCELLED"))
         asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
 
         logger.info(f"🚫 CANCELLED ORDER {order_id}, returned unspent: {remaining_qty} ({'qty' if direction == 'sell' else 'value'})")
@@ -193,7 +192,7 @@ cdef class MatchingEngine:
             ))
 
             if best_buy.qty == 0:
-                asyncio.create_task(self.messaging.send_order_status(best_buy.order_id, best_buy.user_id, best_buy.filled, "filled"))
+                asyncio.create_task(self.messaging.send_order_status(best_buy.order_id, best_buy.user_id, best_buy.filled, "EXECUTED"))
                 
                 order_book.remove_order(best_buy.order_id, best_buy.direction)
                 orders_action_logger.info(json.dumps({
@@ -203,14 +202,14 @@ cdef class MatchingEngine:
                                     "direction": best_buy.direction
                                 }))
             else:
-                asyncio.create_task(self.messaging.send_order_status(best_buy.order_id, best_buy.user_id, best_buy.filled, "partially_filled"))
+                asyncio.create_task(self.messaging.send_order_status(best_buy.order_id, best_buy.user_id, best_buy.filled, "PARTIALLY_EXECUTED"))
                 orders_action_logger.info(json.dumps({
                                     "timestamp": int(time.time()),
                                     "action": "update",
                                     "order_id": best_buy.to_dict(),
                                 }))
             if best_sell.qty == 0:
-                asyncio.create_task(self.messaging.send_order_status(best_sell.order_id, best_sell.user_id, best_sell.filled, "filled"))
+                asyncio.create_task(self.messaging.send_order_status(best_sell.order_id, best_sell.user_id, best_sell.filled, "EXECUTED"))
                 
                 order_book.remove_order(best_sell.order_id, best_sell.direction)
                 orders_action_logger.info(json.dumps({
@@ -220,7 +219,7 @@ cdef class MatchingEngine:
                                     "direction": best_sell.direction
                                 }))
             else:
-                asyncio.create_task(self.messaging.send_order_status(best_sell.order_id, best_sell.user_id, best_sell.filled, "partially_filled"))
+                asyncio.create_task(self.messaging.send_order_status(best_sell.order_id, best_sell.user_id, best_sell.filled, "PARTIALLY_EXECUTED"))
                 orders_action_logger.info(json.dumps({
                                     "timestamp": int(time.time()),
                                     "action": "update",
@@ -241,7 +240,7 @@ cdef class MatchingEngine:
 
         if ticker_pair not in self.order_books:
             logger.warning(f"❌ No order book found for {ticker_pair}. Cancelling market order.")
-            asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, 0, "cancelled"))
+            asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, 0, "CANCELLED"))
             return
 
         order_book = self.order_books[ticker_pair]
@@ -249,7 +248,7 @@ cdef class MatchingEngine:
 
         if not orders:
             logger.warning(f"❌ No counter orders in book for market order {order.order_id}. Cancelling.")
-            asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, 0, "cancelled"))
+            asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, 0, "CANCELLED"))
             return
 
         # 🔍 Dry-run: проверяем, хватит ли объёма
@@ -260,7 +259,7 @@ cdef class MatchingEngine:
 
         if available_qty < order.qty:
             logger.warning(f"⚠️ Not enough liquidity to fill market order {order.order_id}. Cancelling.")
-            asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, 0, "cancelled"))
+            asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, 0, "CANCELLED"))
             return
 
         # ✅ Полное исполнение — ликвидность есть
@@ -310,7 +309,7 @@ cdef class MatchingEngine:
                 ))
 
             if best_order.qty == 0:
-                asyncio.create_task(self.messaging.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "filled"))
+                asyncio.create_task(self.messaging.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "EXECUTED"))
                 
                 orders.pop(0)
                 orders_action_logger.info(json.dumps({
@@ -321,13 +320,13 @@ cdef class MatchingEngine:
                                 }))
                 
             else:
-                asyncio.create_task(self.messaging.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "partially_filled"))
+                asyncio.create_task(self.messaging.send_order_status(best_order.order_id, best_order.user_id, best_order.filled, "PARTIALLY_EXECUTED"))
                 orders_action_logger.info(json.dumps({
                                     "timestamp": int(time.time()),
                                     "action": "update",
                                     "order_id": best_order.to_dict(),
                                 }))
-        asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, order.filled, "filled"))
+        asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, order.filled, "EXECUTED"))
         asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
 
     cdef list convert_to_dict(self, list price_levels):
