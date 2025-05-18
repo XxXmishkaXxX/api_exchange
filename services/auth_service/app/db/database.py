@@ -17,10 +17,3 @@ Base = declarative_base()
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
-
-
-
-
-redis_client = redis.Redis(host=settings.REDIS_HOST, 
-                           port=settings.REDIS_PORT, 
-                           db=0)
