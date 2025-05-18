@@ -25,6 +25,10 @@ class AssetsService:
             raise HTTPException(status_code=404, detail="One or both tickers not found")
 
         return asset1_id.id, asset2_id.id
+    
+    async def get_asset_by_ticker(self, ticker: str):
+        asset = await self.repo.get_asset_by_ticker(ticker)
+        return asset
 
     async def create_asset(self, asset: AssetSchema) -> dict:
 
