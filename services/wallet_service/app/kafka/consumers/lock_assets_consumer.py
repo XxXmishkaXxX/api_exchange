@@ -48,7 +48,7 @@ class LockAssetsConsumer(BaseKafkaConsumerService):
         async with get_db() as session:
             repo = WalletRepository(session)
             try:
-                await repo.lock(user_id=user_id, asset_id=asset_id, lock=lock_amount)
+                await repo.lock(user_id=user_id, asset_id=asset_id, lock=lock_amount, origin="api")
                 logger.info(f"Assets locked for user {user_id}, asset_id {asset_id}, amount {lock_amount}")
                 return True
             except Exception as e:

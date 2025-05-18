@@ -26,12 +26,12 @@ class WalletEventsConsumerService(BaseKafkaConsumerService):
                 if event == "create":
                     await repo.create(user_id=user_id)
                 else:
-                    await repo.delete_all_assets_user(user_id=user_id)
+                    await repo.deactivate_user_wallet(user_id=user_id)
             except Exception as e:
                 logger.error(e)
                 raise e
 
 
-wallet_event_consumer = WalletEventsConsumerService(topic=settings.WALLET_EVENTS_TOPIC,
+wallet_event_consumer = WalletEventsConsumerService(topic=settings.USER_EVENTS_TOPIC,
                                                     bootstrap_server=settings.BOOTSTRAP_SERVERS,
-                                                    group_id="wallet_events_group")
+                                                    group_id="wallet_user_group")
