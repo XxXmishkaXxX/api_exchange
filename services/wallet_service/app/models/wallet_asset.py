@@ -14,7 +14,7 @@ class WalletAssetBalance(Base):
         Index("idx_wallet_assets_wallet_asset", "wallet_id", "asset_id"),
     )
 
-    wallet_id: Mapped[uuid.UUID] = mapped_column(UUID, ForeignKey("wallets.id"), primary_key=True, nullable=False)
+    wallet_id: Mapped[uuid.UUID] = mapped_column(UUID, ForeignKey("wallets.id", ondelete="CASCADE"), primary_key=True, nullable=False)
     asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id"), primary_key=True, nullable=False)
     amount: Mapped[int] = mapped_column(Integer, default=0)
     locked: Mapped[int] = mapped_column(Integer, default=0)

@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     LOCK_ASSETS_REQUEST_TOPIC:  str
     ASSET_TOPIC: str
     POST_TRADE_PROCESSING_TOPIC: str
-    WALLET_EVENTS_TOPIC: str
+    USER_EVENTS_TOPIC: str
 
     SECRET_KEY: str 
     SESSION_KEY: str
