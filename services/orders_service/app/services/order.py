@@ -112,6 +112,21 @@ class OrderService:
             payment_ticker=order.payment_asset.ticker,
         )
         return OrderCancelResponse(success=True)
+    
+    async def cancel_all_orders(
+            self,
+            user_id: UUID,
+    ) -> None:
+        orders = await self.order_repo.get_list(user_id)
+
+        for order in orders:
+            await self.order_producer.cancel_order(
+            order_id=order.id,
+            direction=order.direction,
+            order_ticker=order.order_asset.ticker,
+            payment_ticker=order.payment_asset.ticker,
+        )
+
 
     async def _lock_assets(self, user_id, ticker, asset_id, amount):
         correlation_id = str(uuid.uuid4())

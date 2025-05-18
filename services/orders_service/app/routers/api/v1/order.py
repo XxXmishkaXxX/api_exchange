@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from uuid import UUID
 from typing import Annotated
 
-from app.deps.services import get_order_service
+from app.deps.services import get_order_service_in_deps
 from app.schemas.order import (OrderSchema, 
                                OrderCreateResponse, 
                                OrderListResponse, 
@@ -18,7 +18,7 @@ router = APIRouter()
 async def get_order(
     order_id: UUID,
     user_id: Annotated[UUID, Depends(get_user_from_token)],
-    service: Annotated[OrderService, Depends(get_order_service)]
+    service: Annotated[OrderService, Depends(get_order_service_in_deps)]
 ) -> OrderResponse:
     """
     Получить информацию о заказе по ID.
@@ -37,7 +37,7 @@ async def get_order(
 @router.get("/", response_model=OrderListResponse | None)
 async def get_orders_list(
     user_id: Annotated[UUID, Depends(get_user_from_token)],
-    service: Annotated[OrderService, Depends(get_order_service)]
+    service: Annotated[OrderService, Depends(get_order_service_in_deps)]
 ) -> OrderListResponse:
     """
     Получить список заказов пользователя.
@@ -56,7 +56,7 @@ async def get_orders_list(
 async def create_order(
     order: OrderSchema,
     user_id: Annotated[UUID, Depends(get_user_from_token)],
-    service: Annotated[OrderService, Depends(get_order_service)]
+    service: Annotated[OrderService, Depends(get_order_service_in_deps)]
 ) -> OrderCreateResponse:
     """
     Создать новый заказ.
@@ -76,7 +76,7 @@ async def create_order(
 async def cancel_order(
     order_id: UUID,
     user_id: Annotated[UUID, Depends(get_user_from_token)],
-    service: Annotated[OrderService, Depends(get_order_service)]
+    service: Annotated[OrderService, Depends(get_order_service_in_deps)]
 ) -> OrderCancelResponse:
     """
     Отменить заказ по ID.

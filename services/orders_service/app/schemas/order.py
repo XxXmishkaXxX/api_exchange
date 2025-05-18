@@ -13,11 +13,10 @@ class OrderType(str, Enum):
     LIMIT = "limit"
 
 class StatusOrder(str, Enum):
-    NEW = "new"
-    PENDING = "pending"
-    CANCELLED = "cancelled"
-    FILLED = "filled"
-    PARTIALLY_FILLED = "partially_filled"
+    NEW = "NEW"
+    EXECUTED = "EXECUTED"
+    CANCELLED = "CANCELLED"
+    PARTIALLY_EXECUTED = "PARTIALLY_EXECUTED"
 
 class OrderSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)

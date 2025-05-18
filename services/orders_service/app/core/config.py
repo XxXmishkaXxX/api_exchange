@@ -3,17 +3,13 @@ from pydantic_settings import BaseSettings
 from passlib.context import CryptContext
 
 class Settings(BaseSettings):
-    
-    # Конфигурация для подключения к базе данных
     DATABASE_URL: str 
     REDIS_URL: str
 
-    # Секретный ключ для подписания JWT токенов
     SECRET_KEY: str 
     SESSION_KEY: str
     ALGORITHM: str
 
-    #kafka
     BOOTSTRAP_SERVERS: str
     
     MARKET_QUOTE_RESPONSE_TOPIC: str
@@ -26,6 +22,8 @@ class Settings(BaseSettings):
     ORDERS_TOPIC: str
 
     ASSET_TOPIC: str
+
+    USER_EVENTS_TOPIC: str
 
     LOG_LEVEL: str = "INFO"
 

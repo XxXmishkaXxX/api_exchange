@@ -18,8 +18,8 @@ class OrderRepository:
             .options(selectinload(Order.order_asset))
             .options(selectinload(Order.payment_asset))
             .filter(Order.id == order_id,
-                     Order.user_id == user_id,
-                     Order.status != StatusOrder.CANCELLED)
+                    Order.user_id == user_id,
+                    Order.status != StatusOrder.CANCELLED)
         )
         return result.scalars().first()
 
