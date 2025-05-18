@@ -6,7 +6,7 @@ from app.services.assets import AssetsService
 from app.repositories.asset_repo import AssetRepository
 from app.db.database import get_db_for_deps, redis_pool
 from app.repositories.market_data import MarketDataRepository
-from app.kafka.producers.assets_producer import get_assets_producer, AssetsKafkaProducerService
+from app.kafka.producers.assets_producer import get_assets_producer, AssetsKafkaProducerService, assets_producer
 
 
 
@@ -16,10 +16,15 @@ def get_market_data_service(session: AsyncSession = Depends(get_db_for_deps)):
     return MarketDataService(repo)
 
 
-def get_assets_service(
+def get_assets_service_for_deps(
     session: AsyncSession = Depends(get_db_for_deps),
     producer: AssetsKafkaProducerService = Depends(get_assets_producer) 
     ):
 
     return AssetsService(asset_repo=AssetRepository(session),
                          prod=producer)
+
+def get_assets_service(session: AsyncSession):
+    
+    return AssetsService(asset_repo=AssetRepository(session),
+                         prod=assets_producer)
