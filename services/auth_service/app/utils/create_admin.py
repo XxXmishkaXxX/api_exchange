@@ -1,12 +1,13 @@
-import logging
 from sqlalchemy.future import select
-
+from uuid import UUID
 
 from app.models.user import User
-from app.core.config import settings, pwd_context
+from app.core.config import settings
 from app.db.database import get_db
 from app.models.user import Role
 from app.core.logger import logger
+from app.utils.create_jwt import create_api_key
+
 
 
 async def create_first_admin() -> None:
@@ -16,15 +17,17 @@ async def create_first_admin() -> None:
             superuser = result.scalars().first()
 
             if superuser is None:
-                hashed_password = pwd_context.hash(settings.ADMIN_PASSWORD)
                 new_superuser = User(
-                    email=settings.ADMIN_EMAIL,
-                    name=settings.ADMIN_NAME, 
-                    password=hashed_password, 
-                    role=Role.ADMIN, 
-                    is_verified=True
+                    name=settings.ADMIN_NAME,
+                    role=Role.ADMIN,
                 )
                 session.add(new_superuser)
+                await session.flush()
+
+                api_key = create_api_key(user_id=new_superuser.id, role=Role.ADMIN)
+                
+                new_superuser.api_key = api_key
+
                 await session.commit()
                 logger.info("Администратор успешно создан")
             else:

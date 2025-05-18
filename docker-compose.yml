@@ -96,6 +96,7 @@ services:
       - ./services/auth_service/.env
     depends_on:
       - auth_db
+      - kafka
     ports:
       - "8001:8001"
     volumes:
@@ -196,15 +197,6 @@ services:
     networks:
       - exchange
 
-  redis_celery:
-    image: redis:alpine
-    container_name: redis_celery
-    restart: always
-    ports:
-      - "6379:6379"
-    networks:
-      - exchange
-
   redis_orders:
     image: redis:alpine
     container_name: redis_orders
@@ -229,32 +221,6 @@ services:
     restart: always
     ports:
       - "6376:6379"
-    networks:
-      - exchange
-
-  celery_worker:
-    build:
-      context: ./services/auth_service
-    command: celery -A app.tasks.worker_config worker --loglevel=info
-    depends_on:
-      redis_celery:
-        condition: service_started
-    env_file:
-      - .env
-    volumes:
-      - ./services/auth_service:/auth_service
-    networks:
-      - exchange
-
-  celery_beat:
-    build:
-      context: ./services/auth_service
-    command: celery -A app.tasks.worker_config beat --loglevel=info
-    depends_on:
-      redis_celery:
-        condition: service_started
-    volumes:
-      - ./services/auth_service:/auth_service
     networks:
       - exchange
 

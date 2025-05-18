@@ -3,54 +3,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
 from app.services.auth import AuthService
-from app.services.email import EmailService
-from app.services.user import UserService
-from app.services.test_service import Service
-from app.kafka.producers.send_wallet_event_producer import get_wallet_event_producer, SendWalletEventProducerService
+from app.kafka.producers.send_user_event_producer import get_user_event_producer, SendUserEventProducerService
 
-from app.repositories import user_repository, email_repository, test_repo
-
-
-def get_auth_service(session: AsyncSession = Depends(get_db)) -> AuthService:
-    """Функция для получения экземпляра AuthService с зависимостями.
-    
-    Args:
-        session (AsyncSession, optional): Сессия базы данных. Defaults to Depends(get_db).
-    
-    Returns:
-        AuthService: Экземпляр сервиса аутентификации.
-    """
-    repository = user_repository.UserRepository(session)
-    return AuthService(repository)
-
-
-def get_email_service(session: AsyncSession = Depends(get_db)) -> EmailService:
-    """Функция для получения экземпляра VerificationEmailService с зависимостями.
-    
-    Аргументы:
-        session (AsyncSession, optional): Сессия базы данных. Defaults to Depends(get_db).
-    
-    Возвращает:
-        VerificationEmailService: Экземпляр сервиса подтверждения электронной почты.
-    """
-    email_repo = email_repository.EmailRepository(session)
-    return EmailService(email_repo)
-
-
-def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
-    """
-    Создает и возвращает сервис пользователя, инкапсулируя все зависимости, включая
-    доступ к базе данных и сервис подтверждения email.
-
-    :param db: Асинхронная сессия базы данных, автоматически передаваемая через Depends.
-    :return: Экземпляр UserService, готовый к использованию в обработчиках запросов.
-    """
-
-    user_repo = user_repository.UserRepository(db)
-    return UserService(user_repo)
+from app.repositories.user_repo import UserRepository
 
 
 def get_service(db: AsyncSession = Depends(get_db),
-                prod: SendWalletEventProducerService = Depends(get_wallet_event_producer)) -> Service:
-    repo = test_repo.TestUserRepository(db)
-    return Service(repo, prod)
+                prod: SendUserEventProducerService = Depends(get_user_event_producer)) -> AuthService:
+    repo = UserRepository(db)
+    return AuthService(repo, prod)
