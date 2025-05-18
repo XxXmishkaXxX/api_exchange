@@ -4,7 +4,7 @@ from uuid import UUID
 
 from app.services.assets import AssetsService
 from app.services.market_data import MarketDataService
-from app.deps.services import get_assets_service, get_market_data_service
+from app.deps.services import get_assets_service_for_deps, get_market_data_service
 from app.schemas.orderbook import OrderBookRequest, OrderBookResponse, OrderBookErrorResponse
 from app.schemas.transactions import Transaction
 
@@ -15,7 +15,7 @@ def get_offset(page: int, limit: int) -> int:
 
 @router.get("/instrument", response_model=List[dict])
 async def get_assets_list(
-    service: Annotated[AssetsService, Depends(get_assets_service)]
+    service: Annotated[AssetsService, Depends(get_assets_service_for_deps)]
 ):
     return await service.get_list_assets()
 
@@ -31,7 +31,7 @@ async def get_orderbook(
 
 @router.get("/transactions/{ticker}", response_model=List[Transaction])
 async def get_all_transactions_by_pair(
-    asset_service: Annotated[AssetsService, Depends(get_assets_service)],
+    asset_service: Annotated[AssetsService, Depends(get_assets_service_for_deps)],
     market_data_service: Annotated[MarketDataService, Depends(get_market_data_service)],
     ticker: Annotated[str, Path(description="Тикер актива (например BTC)")],
     pair: Annotated[str, Query(description="Пара актива, например USDT")] = "RUB",
@@ -47,7 +47,7 @@ async def get_all_transactions_by_pair(
 async def get_user_transactions_by_pair(
     user_id: Annotated[UUID, Path(description="ID пользователя")],
     ticker: Annotated[str, Path(description="Тикер актива (например BTC)")],
-    asset_service: Annotated[AssetsService, Depends(get_assets_service)],
+    asset_service: Annotated[AssetsService, Depends(get_assets_service_for_deps)],
     market_data_service: Annotated[MarketDataService, Depends(get_market_data_service)],
     pair: Annotated[str, Query(description="Пара актива, например USDT")] = "RUB",
     limit: Annotated[int, Query(ge=1, le=1000)] = 10,

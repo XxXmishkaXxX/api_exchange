@@ -9,12 +9,16 @@ from app.kafka.producers.assets_producer import assets_producer
 from app.db.database import redis_pool
 from app.kafka.consumers.transactions_consumer import transaction_consumer
 from app.core.logger import logger
+from app.utils.create_stable_coins import create_stable_coins_on_start
 
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
+
+        await create_stable_coins_on_start()
+        
         await redis_pool.start()
         logger.info("✅ Redis connected.")
 
