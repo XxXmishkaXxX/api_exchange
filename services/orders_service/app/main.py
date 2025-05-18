@@ -13,6 +13,7 @@ from app.kafka.consumers.lock_assets_consumer import lock_response_consumer
 from app.kafka.consumers.order_status_consumer import order_status_consumer
 from app.kafka.consumers.assets_consumer import asset_consumer
 from app.kafka.consumers.market_quote_consumer import market_quote_response_consumer
+from app.kafka.consumers.cancel_orders_consumer import cancel_user_orders_consumer
 from app.db.database import redis_pool
 
 
@@ -30,6 +31,8 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(lock_response_consumer.consume_messages())
         await market_quote_response_consumer.start()
         asyncio.create_task(market_quote_response_consumer.consume_messages())
+        await cancel_user_orders_consumer.start()
+        asyncio.create_task(cancel_user_orders_consumer.consume_messages())
         logger.info("✅ Kafka Consumers started.")
         
         await lock_assets_producer.start()
@@ -49,6 +52,7 @@ async def lifespan(app: FastAPI):
     await lock_assets_producer.stop()
     await market_quote_producer.stop()
     
+    await cancel_user_orders_consumer.stop()
     await market_quote_response_consumer.stop()
     await lock_response_consumer.stop()
     await order_status_consumer.stop()
