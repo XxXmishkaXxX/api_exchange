@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: faa5c8a625e7
+Revision ID: 779f4bdfd4c1
 Revises: 
-Create Date: 2025-05-05 18:53:12.588253
+Create Date: 2025-05-18 19:43:34.808231
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'faa5c8a625e7'
+revision: str = '779f4bdfd4c1'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -31,7 +31,7 @@ def upgrade() -> None:
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=False),
     sa.Column('type', sa.Enum('MARKET', 'LIMIT', name='ordertype'), nullable=False),
-    sa.Column('status', sa.Enum('NEW', 'PENDING', 'CANCELLED', 'FILLED', 'PARTIALLY_FILLED', name='statusorder'), nullable=False),
+    sa.Column('status', sa.Enum('NEW', 'EXECUTED', 'CANCELLED', 'PARTIALLY_EXECUTED', name='statusorder'), nullable=False),
     sa.Column('direction', sa.Enum('BUY', 'SELL', name='direction'), nullable=False),
     sa.Column('qty', sa.Integer(), nullable=False),
     sa.Column('price', sa.Integer(), nullable=True),
