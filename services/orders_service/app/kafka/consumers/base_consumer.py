@@ -7,14 +7,15 @@ class BaseKafkaConsumerService:
     Базовый класс для потребителей Kafka.
     """
 
-    def __init__(self, topic: str, bootstrap_servers: str, group_id: str):
+    def __init__(self, topic: str, bootstrap_servers: str, group_id: str, auto_offset_reset: str = "latest",
+                 enable_auto_commit: bool = True):
         self.topic = topic
         self.bootstrap_servers = bootstrap_servers
         self.consumer = AIOKafkaConsumer(self.topic, 
                                         bootstrap_servers=self.bootstrap_servers, 
                                         group_id=group_id,
-                                        auto_offset_reset="latest",
-                                        enable_auto_commit=True)
+                                        auto_offset_reset=auto_offset_reset,
+                                        enable_auto_commit=enable_auto_commit)
 
     async def start(self):
         """Запускает потребителя Kafka."""

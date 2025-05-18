@@ -9,7 +9,7 @@ wait_for_service() {
   until nc -z -v -w30 "$host" "$port"
   do
     echo "$name ($host:$port) пока недоступен, ждем..."
-    sleep 1
+    sleep 10
   done
 }
 
