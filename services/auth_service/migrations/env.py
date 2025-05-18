@@ -9,18 +9,12 @@ from alembic import context
 from app.core.config import settings
 from app.db.database import Base
 from app.models.user import User
-from app.models.email import EmailVerification
-from app.models.password_reset import PasswordResetCode
-from app.models.test_user import UserTest
 
-# Get the Alembic Config object, which provides access to the values in the .ini file
 config = context.config
 
-# Interpret the config file for Python logging.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Set the sqlalchemy.url dynamically using the environment variable
 database_url = settings.DATABASE_URL
 if database_url:
     config.set_section_option('alembic', 'sqlalchemy.url', database_url)
