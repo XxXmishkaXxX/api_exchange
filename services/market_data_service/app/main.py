@@ -16,8 +16,6 @@ from app.utils.create_stable_coins import create_stable_coins_on_start
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-
-        await create_stable_coins_on_start()
         
         await redis_pool.start()
         logger.info("✅ Redis connected.")
@@ -27,6 +25,8 @@ async def lifespan(app: FastAPI):
 
         await transaction_consumer.start()
         logger.info("✅ Kafka consumer started.")
+
+        await create_stable_coins_on_start()
 
         asyncio.create_task(transaction_consumer.consume_messages())
         logger.info("⏳ Kafka consumer message loop started.")

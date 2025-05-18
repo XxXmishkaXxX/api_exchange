@@ -54,5 +54,5 @@ class OrderStatusConsumerService(BaseKafkaConsumerService):
 
 
 order_status_consumer = OrderStatusConsumerService(
-    settings.OREDER_STATUS_TOPIC, settings.BOOTSTRAP_SERVERS, group_id="orders_group"
+    settings.ORDER_STATUS_TOPIC, settings.BOOTSTRAP_SERVERS, group_id="orders_group"
 )

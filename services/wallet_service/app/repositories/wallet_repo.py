@@ -33,7 +33,7 @@ class WalletRepository:
         stmt = select(Wallet).where(Wallet.user_id == user_id)
         result = await self.session.execute(stmt)
         wallet = result.scalars().first()
-
+        
         if not wallet or (wallet.status == "DEACTIVATE" and origin == "api"):
             raise ValueError(f"Кошелек пользователя {user_id} не найден или деактивирован")
 
@@ -136,8 +136,8 @@ class WalletRepository:
         asset.locked += lock
         await self._update_redis_wallet_data(user_id, asset_id, asset.amount, asset.locked)
 
-    async def unlock(self, user_id: UUID, asset_id: int, unlock: int = 0):
-        _, asset = await self.get(user_id, asset_id, origin="exchange")
+    async def unlock(self, user_id: UUID, asset_id: int, unlock: int = 0, origin="exchange"):
+        _, asset = await self.get(user_id, asset_id, origin=origin)
         if not asset:
             raise ValueError(f"Asset {asset_id} not found for user {user_id}")
 

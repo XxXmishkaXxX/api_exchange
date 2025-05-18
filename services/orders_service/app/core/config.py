@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     LOCK_ASSETS_RESPONSE_TOPIC: str
     LOCK_ASSETS_REQUEST_TOPIC: str
 
-    OREDER_STATUS_TOPIC: str
+    ORDER_STATUS_TOPIC: str
     ORDERS_TOPIC: str
 
     ASSET_TOPIC: str
