@@ -18,20 +18,10 @@ docker-compose up --build
 ## Сервисы и их URL
 
 ### 1. **Auth Service**
-| **Метод** | **API v1**       | **API v2**       | **Query Parameters / Request Body** |**Описание**|
+| **Метод** | **API v1**       | **Query Parameters / Request Body** |**Описание**|
 |-----------|------------------|------------------|-------------------------------------|-----------|
-| POST      | `/api/v1/public/register`|-| name | Регистрация нового пользователя.|
-| DELETE    | `/api/v1/admin/user/{user_id}`| `/api/v2/admin/user/{user_id}` | - |Удалить пользователя (только админ).|
-| POST      | -                      | `/api/v2/auth/register` | email, name, password| Регистрация нового пользователя (пользователь после рег не активирован, нужно подтвердить почту)|
-| POST      | - | `/api/v2/admin/register` | email, name, password | Регситрация нового админа (только админ)|
-| POST      | - | `/api/v2/auth/login` | email, password | Вход в аккаунт (получение jwt токенов)|
-| POST      | - | `/api/v2/auth/token/refresh/`| refresh token в куках | Обновление access token|
-| POST      | - | `api/v2/mail/verify-email`| email, verification_code | Подтверждение почты с помощью кода. |
-| POST      | - | `api/v2/mail/resend-verification-code`| email | Отправка кода для подтверждения почты (Еще раз). |
-| GET       | - | `api/v2/oauth/login/google` | - | Аутентификация с помощью google oauth. |
-| POST      | - | `api/v2/user/change-password`| old_passwor, new_password, new_password_confirm | Смена пароля |
-| POST      | - | `api/v2/user/forgot-password`| email | Сброс пароля |
-| POST      | - | `api/v2/user/confirm-reset-code`| code, new_password, new_password_confirm | Установка нового пароля |
+| POST      | `/api/v1/public/register`| name | Регистрация нового пользователя.|
+| DELETE    | `/api/v1/admin/user/{user_id}`| - |Удалить пользователя (только админ).|
 
 ---
 
