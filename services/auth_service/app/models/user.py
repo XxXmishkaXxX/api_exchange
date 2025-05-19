@@ -12,7 +12,7 @@ class Role(str, PyEnum):
 
 class User(Base):
     """Модель для тестов"""
-    __tablename__ = "users_test"
+    __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
