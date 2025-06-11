@@ -10,7 +10,7 @@ from kafka.producers import (
     KafkaMarketQuoteResponseProducer,
     KafkaSendTransactionProducer,
 )
-from redis_client.redis_client import AsyncRedisOrderClient
+from redis_client.redis_client import RedisOrderClient
 from messaging.producer_service import ProducerService
 from core.config import settings
 from engine.matching_engine import MatchingEngine
@@ -36,15 +36,14 @@ async def create_kafka_producers():
         raise
     return producers
 
-async def create_redis_client():
-    """Создаёт асинхронное подключение к Redis."""
-    redis_client = AsyncRedisOrderClient(settings.REDIS_URL)
+def create_redis_client():
+    """Создаёт синхронное подключение к Redis."""
+    redis_client = RedisOrderClient(settings.REDIS_URL)
     try:
-        await redis_client.connect()
-        await redis_client.redis_client.ping()
+        redis_client.redis_client.ping()
         logger.info("✅ Подключение к Redis установлено.")
     except Exception as e:
-        logger.error(f"❌ Error connecting to Redis: {e}")
+        logger.error(f"❌ Ошибка подключения к Redis: {e}")
         raise
     return redis_client
 
@@ -102,7 +101,7 @@ async def main():
         kafka_producers = await create_kafka_producers()
         prod_order, prod_wallet, prod_market_quote, prod_transaction = kafka_producers
 
-        redis_client = await create_redis_client()
+        redis_client = create_redis_client()
 
         messaging_service = ProducerService(prod_order, prod_wallet, prod_market_quote, prod_transaction)
 

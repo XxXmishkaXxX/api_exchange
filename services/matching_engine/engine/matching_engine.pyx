@@ -7,7 +7,7 @@ from messaging.producer_service import ProducerService
 from engine.order cimport Order
 from engine.order_book cimport OrderBook
 from engine.price_level cimport PriceLevel
-from redis_client.redis_client import AsyncRedisOrderClient
+from redis_client.redis_client import RedisOrderClient
 
 
 
@@ -17,20 +17,32 @@ cdef class MatchingEngine:
         object redis
         public dict order_books
 
-    def __init__(self, order_books: dict, messaging_service: ProducerService, redis: AsyncRedisOrderClient):
+    def __init__(self, order_books: dict, messaging_service: ProducerService, redis: RedisOrderClient):
         logger.info(order_books)
         self.order_books = order_books
         self.messaging = messaging_service
         self.redis = redis
 
-    async def update_market_data_in_redis(self, order_book: OrderBook, ticker_pair):
-        bid_levels = order_book.get_price_levels("buy")
-        ask_levels = order_book.get_price_levels("sell")
+    def update_market_data_in_redis(self, order_book: OrderBook, ticker_pair):
+        bid_levels = order_book.get_price_levels("BUY")
+        ask_levels = order_book.get_price_levels("SELL")
 
         bid_levels_dict = self.convert_to_dict(bid_levels)
         ask_levels_dict = self.convert_to_dict(ask_levels)
 
-        await self.redis.set_market_data(ticker_pair, bid_levels_dict, ask_levels_dict)
+        # ✅ Обновление Redis
+        self.redis.set_market_data(ticker_pair, bid_levels_dict, ask_levels_dict)
+
+        # 🪵 Логируем стакан
+        log_lines = []
+        log_lines.append("\n  🟥 ASK (Sell Orders)        🟩 BID (Buy Orders)")
+        for ask, bid in zip(ask_levels, bid_levels):
+            ask_str = f"{ask['price']:<8} | {ask['qty']:<6}"
+            bid_str = f"{bid['price']:<8} | {bid['qty']:<6}"
+            log_lines.append(f"  {ask_str}        {bid_str}")
+
+            logger.info("\n".join(log_lines))
+        
 
     cpdef void handle_market_quote_request(self, correlation_id, order_ticker, payment_ticker, direction, amount):
         cdef OrderBook order_book
@@ -44,7 +56,7 @@ cdef class MatchingEngine:
 
         order_book = self.order_books[ticker_pair]
 
-        if direction == "buy":
+        if direction == "BUY":
             available_liquidity = order_book.get_available_sell_liquidity()
 
             if available_liquidity < amount:
@@ -56,7 +68,7 @@ cdef class MatchingEngine:
                 response["status"] = "ok"
                 response["amount_to_pay"] = required_payment
 
-        elif direction == "sell":
+        elif direction == "SELL":
             available_liquidity = order_book.get_available_buy_liquidity()
 
             if available_liquidity < amount:
@@ -88,7 +100,7 @@ cdef class MatchingEngine:
                                     "action": "add",
                                     "order": order.to_dict(),
                                 }))
-        asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
+        self.update_market_data_in_redis(order_book, ticker_pair)
         
         self.match_orders(order_book)
 
@@ -111,7 +123,7 @@ cdef class MatchingEngine:
 
         remaining_qty = order.qty
 
-        if direction == "buy":
+        if direction == "BUY":
             refund_amount = remaining_qty * order.price
             asyncio.create_task(self.messaging.send_wallet_transfer(
                 from_user=None,
@@ -136,10 +148,10 @@ cdef class MatchingEngine:
                                     "direction": direction
                                 }))
         
+        self.update_market_data_in_redis(order_book, ticker_pair)
         asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, order.filled, status="CANCELLED"))
-        asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
 
-        logger.info(f"🚫 CANCELLED ORDER {order_id}, returned unspent: {remaining_qty} ({'qty' if direction == 'sell' else 'value'})")
+        logger.info(f"🚫 CANCELLED ORDER {order_id}, returned unspent: {remaining_qty} ({'qty' if direction == 'SELL' else 'value'})")
 
     cdef void match_orders(self, OrderBook order_book):
         cdef Order best_buy
@@ -183,8 +195,8 @@ cdef class MatchingEngine:
             ))
 
             asyncio.create_task(self.messaging.send_transaction(
-                order_asset_id=best_buy.order_asset_id,
-                payment_asset_id=best_sell.payment_asset_id,
+                order_ticker=best_buy.order_ticker,
+                payment_ticker=best_sell.payment_ticker,
                 from_user_id=best_buy.user_id,
                 to_user_id=best_sell.user_id,
                 price=best_sell.price,
@@ -226,7 +238,7 @@ cdef class MatchingEngine:
                                     "order_id": best_sell.to_dict(),
                                 }))
         if traded:
-            asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
+            self.update_market_data_in_redis(order_book, ticker_pair)
 
     cpdef void execute_market_order(self, Order order):
         cdef OrderBook order_book
@@ -244,7 +256,7 @@ cdef class MatchingEngine:
             return
 
         order_book = self.order_books[ticker_pair]
-        orders = order_book.sell_orders if order.direction == "buy" else order_book.buy_orders
+        orders = order_book.sell_orders if order.direction == "BUY" else order_book.buy_orders
 
         if not orders:
             logger.warning(f"❌ No counter orders in book for market order {order.order_id}. Cancelling.")
@@ -282,15 +294,15 @@ cdef class MatchingEngine:
                 f"[order_id={order.order_id} ⇄ {best_order.order_id}]"
             )
 
-            if order.direction == "buy":
+            if order.direction == "BUY":
                 asyncio.create_task(self.messaging.send_wallet_transfer(order.user_id, best_order.user_id, quote_asset_ticker, trade_value))
                 asyncio.create_task(self.messaging.send_wallet_transfer(best_order.user_id, order.user_id, base_asset_ticker, trade_qty))
 
                 asyncio.create_task(self.messaging.send_transaction(
                     from_user_id=order.user_id,
                     to_user_id=best_order.user_id,
-                    order_asset_id=order.order_asset_id,
-                    payment_asset_id=best_order.payment_asset_id,
+                    order_ticker=order.order_ticker,
+                    payment_ticker=best_order.payment_ticker,
                     price=best_order.price,
                     amount=trade_qty
                 ))
@@ -302,8 +314,8 @@ cdef class MatchingEngine:
                 asyncio.create_task(self.messaging.send_transaction(
                     from_user_id=order.user_id,
                     to_user_id=best_order.user_id,
-                    order_asset_id=order.order_asset_id,
-                    payment_asset_id=best_order.payment_asset_id,
+                    order_ticker=order.order_ticker,
+                    payment_ticker=best_order.payment_ticker,
                     price=best_order.price,
                     amount=trade_value
                 ))
@@ -326,8 +338,8 @@ cdef class MatchingEngine:
                                     "action": "update",
                                     "order_id": best_order.to_dict(),
                                 }))
+        self.update_market_data_in_redis(order_book, ticker_pair)
         asyncio.create_task(self.messaging.send_order_status(order.order_id, order.user_id, order.filled, "EXECUTED"))
-        asyncio.create_task(self.update_market_data_in_redis(order_book, ticker_pair))
 
     cdef list convert_to_dict(self, list price_levels):
         cdef list result = []

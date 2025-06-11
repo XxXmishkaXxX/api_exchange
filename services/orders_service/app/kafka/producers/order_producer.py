@@ -16,7 +16,6 @@ class OrderKafkaProducerService(BaseKafkaProducerService):
             "order_id": str(order.id),
             "user_id": str(order.user_id),
             "status": order.status,
-            "type": order.type,
             "direction": order.direction,
             "order_asset_id": order.order_asset_id,
             "payment_asset_id": order.payment_asset_id,

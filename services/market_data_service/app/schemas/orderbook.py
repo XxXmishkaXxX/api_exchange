@@ -3,14 +3,14 @@ from typing import List, Optional, Annotated
 
 class Order(BaseModel):
     price: Annotated[int, Field(description="Цена заявки")]
-    amount: Annotated[int, Field(description="Количество в заявке")]
+    qty: Annotated[int, Field(description="Количество в заявке")]
 
 class OrderBookErrorResponse(BaseModel):
     detail: Annotated[str, Field(description="Описание ошибки")]
 
 class OrderBookResponse(BaseModel):
-    bids: Annotated[List[Order], Field(description="Список заявок на покупку")]
-    asks: Annotated[List[Order], Field(description="Список заявок на продажу")]
+    bid_levels: Annotated[List[Order], Field(description="Список заявок на покупку")]
+    ask_levels: Annotated[List[Order], Field(description="Список заявок на продажу")]
 
 class OrderBookRequest(BaseModel):
     ticker: Annotated[str, Field(description="Базовый тикер, например BTC")]

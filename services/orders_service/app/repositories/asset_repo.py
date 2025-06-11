@@ -16,6 +16,24 @@ class AssetRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
     
+    async def get_asset_by_id(self, asset_id: int):
+        asset_obj = await self.session.execute(
+                    select(Asset).where(Asset.id == asset_id)
+                )
+        asset = asset_obj.scalars().first()
+        return asset
+    
+    async def change_status(self, asset: Asset, status: str):
+        asset.status = status
+        await self.session.commit()
+
+    async def get_asset_by_ticker_db(self, ticker: str):
+        asset_obj = await self.session.execute(
+                    select(Asset).where(Asset.ticker == ticker)
+                )
+        asset = asset_obj.scalars().first()
+        return asset
+
     async def get_asset_by_ticker(self, ticker: str) -> int:
         asset_key = f"asset:{ticker}"
 
@@ -23,18 +41,16 @@ class AssetRepository:
         async with redis_pool.connection() as redis:
             asset = await redis.hgetall(asset_key)
             
-            logger.info(asset)
-            
-            if not asset:
+            if not asset or asset.get("status") == "DEACTIVATE":
                 asset_obj = await self.session.execute(
                     select(Asset).where(Asset.ticker == ticker)
                 )
                 asset_obj = asset_obj.scalars().first()
 
-                if asset_obj is None:
+                if asset_obj is None or asset_obj.status == "DEACTIVATE":
                     raise HTTPException(status_code=404, detail=f"Актив с тикером {ticker} не найден")
                 
-                await redis.hset(asset_key, mapping={"asset_id": asset_obj.id, "name": asset_obj.name})
+                await redis.hset(asset_key, mapping={"asset_id": asset_obj.id, "name": asset_obj.name, "status":"ACTIVATE"})
                 asset_id = asset_obj.id
             else:
                 asset_id = int(asset["asset_id"])

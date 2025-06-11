@@ -8,10 +8,10 @@ class ProducerService:
         self.prod_market_quote = prod_market_quote
         self.prod_transaction = prod_transaction
 
-    async def send_transaction(self, order_asset_id, payment_asset_id, from_user_id, to_user_id, price, amount):
+    async def send_transaction(self, order_ticker, payment_ticker, from_user_id, to_user_id, price, amount):
         transaction = {
-            "order_asset_id": order_asset_id,
-            "payment_asset_id": payment_asset_id,
+            "order_ticker": order_ticker,
+            "payment_ticker": payment_ticker,
             "from_user_id": from_user_id,
             "to_user_id": to_user_id,
             "price": price,

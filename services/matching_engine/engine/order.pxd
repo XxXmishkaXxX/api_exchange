@@ -2,7 +2,6 @@ cdef class Order:
     cdef public str order_id
     cdef public str user_id
     cdef public str status
-    cdef public str type
     cdef public str direction
     cdef public int order_asset_id
     cdef public int payment_asset_id

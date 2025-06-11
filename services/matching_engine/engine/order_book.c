@@ -1521,7 +1521,6 @@ struct __pyx_obj_6engine_5order_Order {
   PyObject *order_id;
   PyObject *user_id;
   PyObject *status;
-  PyObject *type;
   PyObject *direction;
   int order_asset_id;
   int payment_asset_id;
@@ -2431,8 +2430,8 @@ static PyObject *__pyx_builtin_sorted;
 static const char __pyx_k_o[] = "o";
 static const char __pyx_k__2[] = ".";
 static const char __pyx_k_gc[] = "gc";
+static const char __pyx_k_BUY[] = "BUY";
 static const char __pyx_k__13[] = "?";
-static const char __pyx_k_buy[] = "buy";
 static const char __pyx_k_key[] = "key";
 static const char __pyx_k_new[] = "__new__";
 static const char __pyx_k_qty[] = "qty";
@@ -2541,6 +2540,7 @@ typedef struct {
   PyObject *__pyx_type_6engine_10order_book_OrderBook;
   #endif
   PyTypeObject *__pyx_ptype_6engine_10order_book_OrderBook;
+  PyObject *__pyx_n_u_BUY;
   PyObject *__pyx_kp_s_Incompatible_checksums_0x_x_vs_0;
   PyObject *__pyx_n_s_OrderBook;
   PyObject *__pyx_n_s_OrderBook___reduce_cython;
@@ -2552,7 +2552,6 @@ typedef struct {
   PyObject *__pyx_n_s__13;
   PyObject *__pyx_kp_u__2;
   PyObject *__pyx_n_s_asyncio_coroutines;
-  PyObject *__pyx_n_u_buy;
   PyObject *__pyx_n_u_buy_orders;
   PyObject *__pyx_n_s_cline_in_traceback;
   PyObject *__pyx_n_s_dict;
@@ -2665,6 +2664,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_ptype_6engine_5order_Order);
   Py_CLEAR(clear_module_state->__pyx_ptype_6engine_10order_book_OrderBook);
   Py_CLEAR(clear_module_state->__pyx_type_6engine_10order_book_OrderBook);
+  Py_CLEAR(clear_module_state->__pyx_n_u_BUY);
   Py_CLEAR(clear_module_state->__pyx_kp_s_Incompatible_checksums_0x_x_vs_0);
   Py_CLEAR(clear_module_state->__pyx_n_s_OrderBook);
   Py_CLEAR(clear_module_state->__pyx_n_s_OrderBook___reduce_cython);
@@ -2676,7 +2676,6 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s__13);
   Py_CLEAR(clear_module_state->__pyx_kp_u__2);
   Py_CLEAR(clear_module_state->__pyx_n_s_asyncio_coroutines);
-  Py_CLEAR(clear_module_state->__pyx_n_u_buy);
   Py_CLEAR(clear_module_state->__pyx_n_u_buy_orders);
   Py_CLEAR(clear_module_state->__pyx_n_s_cline_in_traceback);
   Py_CLEAR(clear_module_state->__pyx_n_s_dict);
@@ -2767,6 +2766,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_ptype_6engine_5order_Order);
   Py_VISIT(traverse_module_state->__pyx_ptype_6engine_10order_book_OrderBook);
   Py_VISIT(traverse_module_state->__pyx_type_6engine_10order_book_OrderBook);
+  Py_VISIT(traverse_module_state->__pyx_n_u_BUY);
   Py_VISIT(traverse_module_state->__pyx_kp_s_Incompatible_checksums_0x_x_vs_0);
   Py_VISIT(traverse_module_state->__pyx_n_s_OrderBook);
   Py_VISIT(traverse_module_state->__pyx_n_s_OrderBook___reduce_cython);
@@ -2778,7 +2778,6 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s__13);
   Py_VISIT(traverse_module_state->__pyx_kp_u__2);
   Py_VISIT(traverse_module_state->__pyx_n_s_asyncio_coroutines);
-  Py_VISIT(traverse_module_state->__pyx_n_u_buy);
   Py_VISIT(traverse_module_state->__pyx_n_u_buy_orders);
   Py_VISIT(traverse_module_state->__pyx_n_s_cline_in_traceback);
   Py_VISIT(traverse_module_state->__pyx_n_s_dict);
@@ -2885,6 +2884,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_type_6engine_10order_book_OrderBook __pyx_mstate_global->__pyx_type_6engine_10order_book_OrderBook
 #endif
 #define __pyx_ptype_6engine_10order_book_OrderBook __pyx_mstate_global->__pyx_ptype_6engine_10order_book_OrderBook
+#define __pyx_n_u_BUY __pyx_mstate_global->__pyx_n_u_BUY
 #define __pyx_kp_s_Incompatible_checksums_0x_x_vs_0 __pyx_mstate_global->__pyx_kp_s_Incompatible_checksums_0x_x_vs_0
 #define __pyx_n_s_OrderBook __pyx_mstate_global->__pyx_n_s_OrderBook
 #define __pyx_n_s_OrderBook___reduce_cython __pyx_mstate_global->__pyx_n_s_OrderBook___reduce_cython
@@ -2896,7 +2896,6 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s__13 __pyx_mstate_global->__pyx_n_s__13
 #define __pyx_kp_u__2 __pyx_mstate_global->__pyx_kp_u__2
 #define __pyx_n_s_asyncio_coroutines __pyx_mstate_global->__pyx_n_s_asyncio_coroutines
-#define __pyx_n_u_buy __pyx_mstate_global->__pyx_n_u_buy
 #define __pyx_n_u_buy_orders __pyx_mstate_global->__pyx_n_u_buy_orders
 #define __pyx_n_s_cline_in_traceback __pyx_mstate_global->__pyx_n_s_cline_in_traceback
 #define __pyx_n_s_dict __pyx_mstate_global->__pyx_n_s_dict
@@ -3164,7 +3163,7 @@ static int __pyx_pf_6engine_10order_book_9OrderBook___init__(struct __pyx_obj_6e
  *         self.sell_price_levels = {}
  * 
  *     cdef Order get_order(self, str order_id, str direction):             # <<<<<<<<<<<<<<
- *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
+ *         cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders
  *         for order in orders:
  */
 
@@ -3185,11 +3184,11 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
   /* "engine/order_book.pyx":14
  * 
  *     cdef Order get_order(self, str order_id, str direction):
- *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders             # <<<<<<<<<<<<<<
+ *         cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders             # <<<<<<<<<<<<<<
  *         for order in orders:
  *             if order.order_id == order_id:
  */
-  __pyx_t_2 = (__Pyx_PyUnicode_Equals(__pyx_v_direction, __pyx_n_u_buy, Py_EQ)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 14, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyUnicode_Equals(__pyx_v_direction, __pyx_n_u_BUY, Py_EQ)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 14, __pyx_L1_error)
   if (__pyx_t_2) {
     __Pyx_INCREF(__pyx_v_self->buy_orders);
     __pyx_t_1 = __pyx_v_self->buy_orders;
@@ -3202,7 +3201,7 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
 
   /* "engine/order_book.pyx":15
  *     cdef Order get_order(self, str order_id, str direction):
- *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
+ *         cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders
  *         for order in orders:             # <<<<<<<<<<<<<<
  *             if order.order_id == order_id:
  *                 return order
@@ -3231,7 +3230,7 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
     __pyx_t_4 = 0;
 
     /* "engine/order_book.pyx":16
- *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
+ *         cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders
  *         for order in orders:
  *             if order.order_id == order_id:             # <<<<<<<<<<<<<<
  *                 return order
@@ -3258,7 +3257,7 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
       goto __pyx_L0;
 
       /* "engine/order_book.pyx":16
- *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
+ *         cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders
  *         for order in orders:
  *             if order.order_id == order_id:             # <<<<<<<<<<<<<<
  *                 return order
@@ -3268,7 +3267,7 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
 
     /* "engine/order_book.pyx":15
  *     cdef Order get_order(self, str order_id, str direction):
- *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
+ *         cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders
  *         for order in orders:             # <<<<<<<<<<<<<<
  *             if order.order_id == order_id:
  *                 return order
@@ -3291,7 +3290,7 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
  *         self.sell_price_levels = {}
  * 
  *     cdef Order get_order(self, str order_id, str direction):             # <<<<<<<<<<<<<<
- *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
+ *         cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders
  *         for order in orders:
  */
 
@@ -3313,7 +3312,7 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
  *         return None
  * 
  *     cdef void _update_price_levels(self, str direction, int price, int qty_delta):             # <<<<<<<<<<<<<<
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
  *         if price in levels:
  */
 
@@ -3334,11 +3333,11 @@ static void __pyx_f_6engine_10order_book_9OrderBook__update_price_levels(struct 
   /* "engine/order_book.pyx":21
  * 
  *     cdef void _update_price_levels(self, str direction, int price, int qty_delta):
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels             # <<<<<<<<<<<<<<
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels             # <<<<<<<<<<<<<<
  *         if price in levels:
  *             levels[price] += qty_delta
  */
-  __pyx_t_2 = (__Pyx_PyUnicode_Equals(__pyx_v_direction, __pyx_n_u_buy, Py_EQ)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyUnicode_Equals(__pyx_v_direction, __pyx_n_u_BUY, Py_EQ)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 21, __pyx_L1_error)
   if (__pyx_t_2) {
     __Pyx_INCREF(__pyx_v_self->buy_price_levels);
     __pyx_t_1 = __pyx_v_self->buy_price_levels;
@@ -3351,7 +3350,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook__update_price_levels(struct 
 
   /* "engine/order_book.pyx":22
  *     cdef void _update_price_levels(self, str direction, int price, int qty_delta):
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
  *         if price in levels:             # <<<<<<<<<<<<<<
  *             levels[price] += qty_delta
  *             if levels[price] <= 0:
@@ -3367,7 +3366,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook__update_price_levels(struct 
   if (__pyx_t_2) {
 
     /* "engine/order_book.pyx":23
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
  *         if price in levels:
  *             levels[price] += qty_delta             # <<<<<<<<<<<<<<
  *             if levels[price] <= 0:
@@ -3451,7 +3450,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook__update_price_levels(struct 
 
     /* "engine/order_book.pyx":22
  *     cdef void _update_price_levels(self, str direction, int price, int qty_delta):
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
  *         if price in levels:             # <<<<<<<<<<<<<<
  *             levels[price] += qty_delta
  *             if levels[price] <= 0:
@@ -3502,7 +3501,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook__update_price_levels(struct 
  *         return None
  * 
  *     cdef void _update_price_levels(self, str direction, int price, int qty_delta):             # <<<<<<<<<<<<<<
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
  *         if price in levels:
  */
 
@@ -3521,7 +3520,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook__update_price_levels(struct 
 }
 
 /* "engine/order_book.pyx":33
- *         if order.direction == "buy":
+ *         if order.direction == "BUY":
  *             self.buy_orders.append(order)
  *             self.buy_orders.sort(key=lambda o: -o.price)             # <<<<<<<<<<<<<<
  *         else:
@@ -3790,7 +3789,7 @@ static PyObject *__pyx_lambda_funcdef_lambda1(CYTHON_UNUSED PyObject *__pyx_self
  * 
  *     cdef void add_order(self, Order order):             # <<<<<<<<<<<<<<
  *         """        ."""
- *         if order.direction == "buy":
+ *         if order.direction == "BUY":
  */
 
 static void __pyx_f_6engine_10order_book_9OrderBook_add_order(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, struct __pyx_obj_6engine_5order_Order *__pyx_v_order) {
@@ -3808,16 +3807,16 @@ static void __pyx_f_6engine_10order_book_9OrderBook_add_order(struct __pyx_obj_6
   /* "engine/order_book.pyx":31
  *     cdef void add_order(self, Order order):
  *         """        ."""
- *         if order.direction == "buy":             # <<<<<<<<<<<<<<
+ *         if order.direction == "BUY":             # <<<<<<<<<<<<<<
  *             self.buy_orders.append(order)
  *             self.buy_orders.sort(key=lambda o: -o.price)
  */
-  __pyx_t_1 = (__Pyx_PyUnicode_Equals(__pyx_v_order->direction, __pyx_n_u_buy, Py_EQ)); if (unlikely((__pyx_t_1 < 0))) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_1 = (__Pyx_PyUnicode_Equals(__pyx_v_order->direction, __pyx_n_u_BUY, Py_EQ)); if (unlikely((__pyx_t_1 < 0))) __PYX_ERR(0, 31, __pyx_L1_error)
   if (__pyx_t_1) {
 
     /* "engine/order_book.pyx":32
  *         """        ."""
- *         if order.direction == "buy":
+ *         if order.direction == "BUY":
  *             self.buy_orders.append(order)             # <<<<<<<<<<<<<<
  *             self.buy_orders.sort(key=lambda o: -o.price)
  *         else:
@@ -3829,7 +3828,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_add_order(struct __pyx_obj_6
     __pyx_t_2 = __Pyx_PyList_Append(__pyx_v_self->buy_orders, ((PyObject *)__pyx_v_order)); if (unlikely(__pyx_t_2 == ((int)-1))) __PYX_ERR(0, 32, __pyx_L1_error)
 
     /* "engine/order_book.pyx":33
- *         if order.direction == "buy":
+ *         if order.direction == "BUY":
  *             self.buy_orders.append(order)
  *             self.buy_orders.sort(key=lambda o: -o.price)             # <<<<<<<<<<<<<<
  *         else:
@@ -3852,7 +3851,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_add_order(struct __pyx_obj_6
     /* "engine/order_book.pyx":31
  *     cdef void add_order(self, Order order):
  *         """        ."""
- *         if order.direction == "buy":             # <<<<<<<<<<<<<<
+ *         if order.direction == "BUY":             # <<<<<<<<<<<<<<
  *             self.buy_orders.append(order)
  *             self.buy_orders.sort(key=lambda o: -o.price)
  */
@@ -3913,7 +3912,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_add_order(struct __pyx_obj_6
  * 
  *     cdef void add_order(self, Order order):             # <<<<<<<<<<<<<<
  *         """        ."""
- *         if order.direction == "buy":
+ *         if order.direction == "BUY":
  */
 
   /* function exit code */
@@ -3932,7 +3931,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_add_order(struct __pyx_obj_6
  * 
  *     cdef void remove_order(self, str order_id, str direction):             # <<<<<<<<<<<<<<
  *         """        ."""
- *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
+ *         cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders
  */
 
 static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_obj_6engine_10order_book_OrderBook *__pyx_v_self, PyObject *__pyx_v_order_id, PyObject *__pyx_v_direction) {
@@ -3953,11 +3952,11 @@ static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_ob
   /* "engine/order_book.pyx":42
  *     cdef void remove_order(self, str order_id, str direction):
  *         """        ."""
- *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders             # <<<<<<<<<<<<<<
+ *         cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders             # <<<<<<<<<<<<<<
  *         cdef list remaining_orders = []
  *         cdef Order o
  */
-  __pyx_t_2 = (__Pyx_PyUnicode_Equals(__pyx_v_direction, __pyx_n_u_buy, Py_EQ)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyUnicode_Equals(__pyx_v_direction, __pyx_n_u_BUY, Py_EQ)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 42, __pyx_L1_error)
   if (__pyx_t_2) {
     __Pyx_INCREF(__pyx_v_self->buy_orders);
     __pyx_t_1 = __pyx_v_self->buy_orders;
@@ -3970,7 +3969,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_ob
 
   /* "engine/order_book.pyx":43
  *         """        ."""
- *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
+ *         cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders
  *         cdef list remaining_orders = []             # <<<<<<<<<<<<<<
  *         cdef Order o
  *         for o in orders:
@@ -4035,7 +4034,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_ob
  *                 self._update_price_levels(direction, o.price, -o.qty)
  *                 continue             # <<<<<<<<<<<<<<
  *             remaining_orders.append(o)
- *         if direction == "buy":
+ *         if direction == "BUY":
  */
       goto __pyx_L3_continue;
 
@@ -4052,7 +4051,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_ob
  *                 self._update_price_levels(direction, o.price, -o.qty)
  *                 continue
  *             remaining_orders.append(o)             # <<<<<<<<<<<<<<
- *         if direction == "buy":
+ *         if direction == "BUY":
  *             self.buy_orders = remaining_orders
  */
     __pyx_t_5 = __Pyx_PyList_Append(__pyx_v_remaining_orders, ((PyObject *)__pyx_v_o)); if (unlikely(__pyx_t_5 == ((int)-1))) __PYX_ERR(0, 49, __pyx_L1_error)
@@ -4071,16 +4070,16 @@ static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_ob
   /* "engine/order_book.pyx":50
  *                 continue
  *             remaining_orders.append(o)
- *         if direction == "buy":             # <<<<<<<<<<<<<<
+ *         if direction == "BUY":             # <<<<<<<<<<<<<<
  *             self.buy_orders = remaining_orders
  *         else:
  */
-  __pyx_t_2 = (__Pyx_PyUnicode_Equals(__pyx_v_direction, __pyx_n_u_buy, Py_EQ)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 50, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PyUnicode_Equals(__pyx_v_direction, __pyx_n_u_BUY, Py_EQ)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(0, 50, __pyx_L1_error)
   if (__pyx_t_2) {
 
     /* "engine/order_book.pyx":51
  *             remaining_orders.append(o)
- *         if direction == "buy":
+ *         if direction == "BUY":
  *             self.buy_orders = remaining_orders             # <<<<<<<<<<<<<<
  *         else:
  *             self.sell_orders = remaining_orders
@@ -4094,7 +4093,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_ob
     /* "engine/order_book.pyx":50
  *                 continue
  *             remaining_orders.append(o)
- *         if direction == "buy":             # <<<<<<<<<<<<<<
+ *         if direction == "BUY":             # <<<<<<<<<<<<<<
  *             self.buy_orders = remaining_orders
  *         else:
  */
@@ -4122,7 +4121,7 @@ static void __pyx_f_6engine_10order_book_9OrderBook_remove_order(struct __pyx_ob
  * 
  *     cdef void remove_order(self, str order_id, str direction):             # <<<<<<<<<<<<<<
  *         """        ."""
- *         cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
+ *         cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders
  */
 
   /* function exit code */
@@ -4395,8 +4394,8 @@ static struct __pyx_obj_6engine_5order_Order *__pyx_f_6engine_10order_book_9Orde
  *         return self.sell_orders[0] if self.sell_orders else None
  * 
  *     cpdef list get_price_levels(self, str direction):             # <<<<<<<<<<<<<<
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
- *         cdef list prices = sorted(levels.keys(), reverse=(direction == "buy"))
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
+ *         cdef list prices = sorted(levels.keys(), reverse=(direction == "BUY"))
  */
 
 static PyObject *__pyx_pw_6engine_10order_book_9OrderBook_3get_price_levels(PyObject *__pyx_v_self, 
@@ -4484,11 +4483,11 @@ static PyObject *__pyx_f_6engine_10order_book_9OrderBook_get_price_levels(struct
   /* "engine/order_book.pyx":71
  * 
  *     cpdef list get_price_levels(self, str direction):
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels             # <<<<<<<<<<<<<<
- *         cdef list prices = sorted(levels.keys(), reverse=(direction == "buy"))
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels             # <<<<<<<<<<<<<<
+ *         cdef list prices = sorted(levels.keys(), reverse=(direction == "BUY"))
  *         cdef list result = []
  */
-  __pyx_t_6 = (__Pyx_PyUnicode_Equals(__pyx_v_direction, __pyx_n_u_buy, Py_EQ)); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 71, __pyx_L1_error)
+  __pyx_t_6 = (__Pyx_PyUnicode_Equals(__pyx_v_direction, __pyx_n_u_BUY, Py_EQ)); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 71, __pyx_L1_error)
   if (__pyx_t_6) {
     __Pyx_INCREF(__pyx_v_self->buy_price_levels);
     __pyx_t_1 = __pyx_v_self->buy_price_levels;
@@ -4501,8 +4500,8 @@ static PyObject *__pyx_f_6engine_10order_book_9OrderBook_get_price_levels(struct
 
   /* "engine/order_book.pyx":72
  *     cpdef list get_price_levels(self, str direction):
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
- *         cdef list prices = sorted(levels.keys(), reverse=(direction == "buy"))             # <<<<<<<<<<<<<<
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
+ *         cdef list prices = sorted(levels.keys(), reverse=(direction == "BUY"))             # <<<<<<<<<<<<<<
  *         cdef list result = []
  *         cdef int price
  */
@@ -4519,7 +4518,7 @@ static PyObject *__pyx_f_6engine_10order_book_9OrderBook_get_price_levels(struct
   __pyx_t_1 = 0;
   __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = (__Pyx_PyUnicode_Equals(__pyx_v_direction, __pyx_n_u_buy, Py_EQ)); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_t_6 = (__Pyx_PyUnicode_Equals(__pyx_v_direction, __pyx_n_u_BUY, Py_EQ)); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(0, 72, __pyx_L1_error)
   __pyx_t_3 = __Pyx_PyBool_FromLong(__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_reverse, __pyx_t_3) < 0) __PYX_ERR(0, 72, __pyx_L1_error)
@@ -4533,8 +4532,8 @@ static PyObject *__pyx_f_6engine_10order_book_9OrderBook_get_price_levels(struct
   __pyx_t_3 = 0;
 
   /* "engine/order_book.pyx":73
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
- *         cdef list prices = sorted(levels.keys(), reverse=(direction == "buy"))
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
+ *         cdef list prices = sorted(levels.keys(), reverse=(direction == "BUY"))
  *         cdef list result = []             # <<<<<<<<<<<<<<
  *         cdef int price
  * 
@@ -4632,8 +4631,8 @@ static PyObject *__pyx_f_6engine_10order_book_9OrderBook_get_price_levels(struct
  *         return self.sell_orders[0] if self.sell_orders else None
  * 
  *     cpdef list get_price_levels(self, str direction):             # <<<<<<<<<<<<<<
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
- *         cdef list prices = sorted(levels.keys(), reverse=(direction == "buy"))
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
+ *         cdef list prices = sorted(levels.keys(), reverse=(direction == "BUY"))
  */
 
   /* function exit code */
@@ -6699,6 +6698,7 @@ static PyMethodDef __pyx_methods[] = {
 
 static int __Pyx_CreateStringTabAndInitStrings(void) {
   __Pyx_StringTabEntry __pyx_string_tab[] = {
+    {&__pyx_n_u_BUY, __pyx_k_BUY, sizeof(__pyx_k_BUY), 0, 1, 0, 1},
     {&__pyx_kp_s_Incompatible_checksums_0x_x_vs_0, __pyx_k_Incompatible_checksums_0x_x_vs_0, sizeof(__pyx_k_Incompatible_checksums_0x_x_vs_0), 0, 0, 1, 0},
     {&__pyx_n_s_OrderBook, __pyx_k_OrderBook, sizeof(__pyx_k_OrderBook), 0, 0, 1, 1},
     {&__pyx_n_s_OrderBook___reduce_cython, __pyx_k_OrderBook___reduce_cython, sizeof(__pyx_k_OrderBook___reduce_cython), 0, 0, 1, 1},
@@ -6710,7 +6710,6 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s__13, __pyx_k__13, sizeof(__pyx_k__13), 0, 0, 1, 1},
     {&__pyx_kp_u__2, __pyx_k__2, sizeof(__pyx_k__2), 0, 1, 0, 0},
     {&__pyx_n_s_asyncio_coroutines, __pyx_k_asyncio_coroutines, sizeof(__pyx_k_asyncio_coroutines), 0, 0, 1, 1},
-    {&__pyx_n_u_buy, __pyx_k_buy, sizeof(__pyx_k_buy), 0, 1, 0, 1},
     {&__pyx_n_u_buy_orders, __pyx_k_buy_orders, sizeof(__pyx_k_buy_orders), 0, 1, 0, 1},
     {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
     {&__pyx_n_s_dict, __pyx_k_dict, sizeof(__pyx_k_dict), 0, 0, 1, 1},
@@ -6795,8 +6794,8 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *         return self.sell_orders[0] if self.sell_orders else None
  * 
  *     cpdef list get_price_levels(self, str direction):             # <<<<<<<<<<<<<<
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
- *         cdef list prices = sorted(levels.keys(), reverse=(direction == "buy"))
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
+ *         cdef list prices = sorted(levels.keys(), reverse=(direction == "BUY"))
  */
   __pyx_tuple__3 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_direction); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
@@ -7277,8 +7276,8 @@ if (!__Pyx_RefNanny) {
  *         return self.sell_orders[0] if self.sell_orders else None
  * 
  *     cpdef list get_price_levels(self, str direction):             # <<<<<<<<<<<<<<
- *         cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
- *         cdef list prices = sorted(levels.keys(), reverse=(direction == "buy"))
+ *         cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
+ *         cdef list prices = sorted(levels.keys(), reverse=(direction == "BUY"))
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_6engine_10order_book_9OrderBook_3get_price_levels, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_OrderBook_get_price_levels, NULL, __pyx_n_s_engine_order_book, __pyx_d, ((PyObject *)__pyx_codeobj__4)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);

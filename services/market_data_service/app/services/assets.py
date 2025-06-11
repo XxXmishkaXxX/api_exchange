@@ -54,7 +54,8 @@ class AssetsService:
 
             data = {
                 "action": "REMOVE",
-                "ticker": asset.ticker
+                "ticker": asset.ticker,
+                "asset_id": asset.id
             }
             await self.prod.send_asset(data)
 

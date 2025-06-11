@@ -11,14 +11,14 @@ cdef class OrderBook:
         self.sell_price_levels = {}
 
     cdef Order get_order(self, str order_id, str direction):
-        cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
+        cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders
         for order in orders:
             if order.order_id == order_id:
                 return order
         return None
 
     cdef void _update_price_levels(self, str direction, int price, int qty_delta):
-        cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
+        cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
         if price in levels:
             levels[price] += qty_delta
             if levels[price] <= 0:
@@ -28,7 +28,7 @@ cdef class OrderBook:
 
     cdef void add_order(self, Order order):
         """Добавляет ордер в книгу заявок и обновляет агрегированный уровень."""
-        if order.direction == "buy":
+        if order.direction == "BUY":
             self.buy_orders.append(order)
             self.buy_orders.sort(key=lambda o: -o.price)
         else:
@@ -39,7 +39,7 @@ cdef class OrderBook:
 
     cdef void remove_order(self, str order_id, str direction):
         """Удаляет ордер из книги заявок и обновляет агрегированный уровень."""
-        cdef list orders = self.buy_orders if direction == "buy" else self.sell_orders
+        cdef list orders = self.buy_orders if direction == "BUY" else self.sell_orders
         cdef list remaining_orders = []
         cdef Order o
         for o in orders:
@@ -47,7 +47,7 @@ cdef class OrderBook:
                 self._update_price_levels(direction, o.price, -o.qty)
                 continue
             remaining_orders.append(o)
-        if direction == "buy":
+        if direction == "BUY":
             self.buy_orders = remaining_orders
         else:
             self.sell_orders = remaining_orders
@@ -68,8 +68,8 @@ cdef class OrderBook:
         return self.sell_orders[0] if self.sell_orders else None
 
     cpdef list get_price_levels(self, str direction):
-        cdef dict levels = self.buy_price_levels if direction == "buy" else self.sell_price_levels
-        cdef list prices = sorted(levels.keys(), reverse=(direction == "buy"))
+        cdef dict levels = self.buy_price_levels if direction == "BUY" else self.sell_price_levels
+        cdef list prices = sorted(levels.keys(), reverse=(direction == "BUY"))
         cdef list result = []
         cdef int price
 

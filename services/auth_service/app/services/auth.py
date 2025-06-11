@@ -1,3 +1,4 @@
+import asyncio
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -32,7 +33,7 @@ class AuthService:
 
         await self.prod.send_event(user_id=user.id, event="create")
 
-        return UserSchema(user_id=user.id, name=user.name, role=user.role, api_key=user.api_key)
+        return UserSchema(id=user.id, name=user.name, role=user.role, api_key=user.api_key)
     
     async def delete_user(self, user_id: UUID) -> UserSchema:
 
@@ -43,4 +44,6 @@ class AuthService:
         
         await self.prod.send_event(user_id=user.id, event="delete")
 
-        return UserSchema(user_id=user.id, name=user.name, role=user.role, api_key=user.api_key)
+        asyncio.sleep(0.8)
+
+        return UserSchema(id=user.id, name=user.name, role=user.role, api_key=user.api_key)

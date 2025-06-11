@@ -1,16 +1,12 @@
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, RootModel, Field, ConfigDict, field_validator
 from typing import Optional, List, Annotated
 from enum import Enum
 from uuid import UUID
 from datetime import datetime
 
 class Direction(str, Enum):
-    BUY = "buy"
-    SELL = "sell"
-
-class OrderType(str, Enum):
-    MARKET = "market"
-    LIMIT = "limit"
+    BUY = "BUY"
+    SELL = "SELL"
 
 class StatusOrder(str, Enum):
     NEW = "NEW"
@@ -19,21 +15,13 @@ class StatusOrder(str, Enum):
     PARTIALLY_EXECUTED = "PARTIALLY_EXECUTED"
 
 class OrderSchema(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, extra='forbid')
 
-    type: Annotated[OrderType, Field(description="Тип ордера: 'market' или 'limit'")]
     direction: Annotated[Direction, Field(description="Направление ордера: 'buy' или 'sell'")]
     ticker: Annotated[str, Field(description="Тикер актива для покупки/продажи")]
     payment_ticker: Annotated[Optional[str], Field(default="RUB", description="Тикер актива для расчета (по умолчанию 'RUB')")]
     qty: Annotated[int, Field(gt=0, description="Количество должно быть положительным числом")]
     price: Annotated[Optional[int], Field(default=None, gt=0, description="Цена для лимитного ордера (должна быть положительной)")]
-
-    @field_validator("price", mode="before")
-    @classmethod
-    def price_required_for_limit_orders(cls, value, info):
-        if info.data.get("type") == OrderType.LIMIT and value is None:
-            raise ValueError("Цена обязательна для лимитных ордеров")
-        return value
 
     @field_validator("payment_ticker", mode="before")
     @classmethod
@@ -55,15 +43,40 @@ class OrderCreateResponse(BaseModel):
 class OrderCancelResponse(BaseModel):
     success: Annotated[bool, Field(description="Успешность отмены заявки")]
 
-class OrderResponse(BaseModel):
+class LimitOrderSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    order_id: Annotated[UUID, Field(description="id ордера")]
+    direction: Annotated[Direction, Field(description="Направление ордера: 'BUY' или 'SELL'")]
+    ticker: Annotated[str, Field(description="Тикер актива для покупки/продажи")]
+    qty: Annotated[int, Field(gt=0, description="Количество должно быть положительным числом")]
+    price: Annotated[Optional[int], Field(default=None, gt=0, description="Цена для лимитного ордера (должна быть положительной)")]
+
+
+class MarketOrderSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    direction: Annotated[Direction, Field(description="Направление ордера: 'BUY' или 'SELL'")]
+    ticker: Annotated[str, Field(description="Тикер актива для покупки/продажи")]
+    qty: Annotated[int, Field(gt=0, description="Количество должно быть положительным числом")]
+
+
+
+class OrderResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, extra='forbid', populate_by_name=True, json_encoders={}, exclude_none=True  # можно оставить как есть
+                              )
+
+    id: Annotated[UUID, Field(description="id ордера")]
     user_id: Annotated[UUID, Field(description="id пользователя")]
     status: Annotated[StatusOrder, Field(description="Статус ордера")]
     timestamp: Annotated[datetime, Field(description="Дата и время создания ордера в формате ISO 8601")]
-    body: OrderSchema
+    body: LimitOrderSchema | MarketOrderSchema
     filled: Annotated[int, Field(description="Количество ордера, которое было выполнено.")]
 
-class OrderListResponse(BaseModel):
-    orders: Annotated[List[OrderResponse], Field(description="Список ордеров пользователя")]
+class LimitOrderResponse(OrderResponse):
+    filled: Annotated[int, Field(description="Количество ордера, которое было выполнено.")]
+
+class MarketOrderResponse(OrderResponse):
+    pass
+
+class OrderListResponse(RootModel[List[LimitOrderResponse | MarketOrderResponse| OrderResponse]]):
+    pass

@@ -10,7 +10,7 @@ StringField = Annotated[str, Field()]
 
 class User(BaseModel):
     """Схема пользователя"""
-    user_id: UUIDField
+    id: UUIDField
     name: StringField
     role: StringField
     api_key: StringField

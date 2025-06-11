@@ -4,7 +4,6 @@ cdef class Order:
                  str order_id,
                  str user_id,
                  str status,
-                 str type,
                  str direction,
                  int order_asset_id,
                  int payment_asset_id,
@@ -16,7 +15,6 @@ cdef class Order:
         self.order_id = order_id
         self.user_id = user_id
         self.status = status
-        self.type = type
         self.direction = direction
         self.order_asset_id = order_asset_id
         self.payment_asset_id = payment_asset_id
@@ -32,7 +30,6 @@ cdef class Order:
             d.get("order_id", ""),
             d.get("user_id", ""),
             d.get("status", ""),
-            d.get("type", ""),
             d.get("direction", ""),
             d.get("order_asset_id", 0),
             d.get("payment_asset_id", 0),
@@ -48,7 +45,6 @@ cdef class Order:
             "order_id": self.order_id,
             "user_id": self.user_id,
             "status": self.status,
-            "type": self.type,
             "direction": self.direction,
             "order_asset_id": self.order_asset_id,
             "payment_asset_id": self.payment_asset_id,

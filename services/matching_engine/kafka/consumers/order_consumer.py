@@ -20,7 +20,6 @@ class OrderConsumerService(BaseKafkaConsumer):
                     order_id=data["order_id"],
                     user_id=data["user_id"],
                     status=data["status"],
-                    type=data["type"],
                     direction=data["direction"],
                     order_asset_id=int(data["order_asset_id"]),
                     order_ticker=str(data["order_ticker"]),
@@ -31,7 +30,7 @@ class OrderConsumerService(BaseKafkaConsumer):
                     filled=int(data["filled"])
                 )
 
-                if order.type == "market":
+                if order.price == 0:
                     logger.info(f"📈 MARKET ORDER DETECTED: {order}")
                     self.engine.execute_market_order(order)
                 else:

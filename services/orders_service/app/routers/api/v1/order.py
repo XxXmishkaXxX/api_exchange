@@ -34,7 +34,7 @@ async def get_order(
     return await service.get_order(user_id, order_id)
 
 
-@router.get("/", response_model=OrderListResponse | None)
+@router.get("", response_model=OrderListResponse | None)
 async def get_orders_list(
     user_id: Annotated[UUID, Depends(get_user_from_token)],
     service: Annotated[OrderService, Depends(get_order_service_in_deps)]
@@ -52,7 +52,7 @@ async def get_orders_list(
     return await service.get_list_order(user_id)
 
 
-@router.post("/", response_model=OrderCreateResponse)
+@router.post("", response_model=OrderCreateResponse)
 async def create_order(
     order: OrderSchema,
     user_id: Annotated[UUID, Depends(get_user_from_token)],
