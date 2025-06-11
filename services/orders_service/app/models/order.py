@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.db.database import Base
-from app.schemas.order import StatusOrder, Direction, OrderType
+from app.schemas.order import StatusOrder, Direction
 from app.models.asset import Asset
 
 class Order(Base):
@@ -14,7 +14,6 @@ class Order(Base):
     id: Mapped[PG_UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[PG_UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False)
 
-    type: Mapped[OrderType] = mapped_column(Enum(OrderType), nullable=False)
     status: Mapped[StatusOrder] = mapped_column(Enum(StatusOrder), nullable=False, default=StatusOrder.NEW)
     direction: Mapped[Direction] = mapped_column(Enum(Direction), nullable=False)
 

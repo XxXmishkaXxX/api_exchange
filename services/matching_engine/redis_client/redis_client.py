@@ -1,28 +1,20 @@
-from redis import asyncio as aioredis
+from redis import Redis
 import json
 from engine.order import Order
 
 
-
-class AsyncRedisOrderClient:
+class RedisOrderClient:
     def __init__(self, redis_url: str):
         self.redis_url = redis_url
-        self.redis_client = None
+        self.redis_client = Redis.from_url(self.redis_url, decode_responses=True)
 
-    async def connect(self):
-        """Подключаемся к Redis серверу асинхронно."""
-        self.redis_client = aioredis.from_url(self.redis_url)
-
-    async def close(self):
+    def close(self):
         """Закрываем соединение с Redis."""
-        await self.redis_client.close()
+        self.redis_client.close()
 
-    async def add_order(self, order):
+    def add_order(self, order: Order):
         """
-        Добавляет ордер в Redis асинхронно.
-        :param order_id: Идентификатор ордера.
-        :param order_data: Данные ордера (обычно в формате словаря).
-        :param ticker_pair: Название торговой пары (например, 'BTC/USD').
+        Добавляет ордер в Redis синхронно.
         """
         key = f"orderbook:{order.order_ticker}/{order.payment_ticker}"
         field = f"{order.direction}:{order.order_id}"
@@ -40,36 +32,36 @@ class AsyncRedisOrderClient:
             "qty": order.qty,
             "filled": order.filled,
         }
-        await self.redis_client.hset(key, field, json.dumps(value))
+        self.redis_client.hset(key, field, json.dumps(value))
 
-    async def remove_order(self, order_id, ticker_pair, direction):
+    def remove_order(self, order_id: str, ticker_pair: str, direction: str):
         """
-        Удаляет ордер из Redis асинхронно.
-        :param order_id: Идентификатор ордера.
-        :param ticker_pair: Название торговой пары (например, 'BTC/USD').
+        Удаляет ордер из Redis синхронно.
         """
         key = f"orderbook:{ticker_pair}"
         field = f"{direction}:{order_id}"
-        await self.redis_client.hdel(key, field)
+        self.redis_client.hdel(key, field)
 
-    async def set_market_data(self, ticker_pair: str, bid_levels: dict, ask_levels: dict):
+    def set_market_data(self, ticker_pair: str, bid_levels: dict, ask_levels: dict):
+        """
+        Сохраняет рыночные данные в Redis.
+        """
         key = f"market_snapshot:{ticker_pair}"
         mapping = {
             "bid_levels": json.dumps(bid_levels),
             "ask_levels": json.dumps(ask_levels)
         }
-        await self.redis_client.hset(key, mapping=mapping)
-        
-    async def get_all_order_books(self) -> dict[str, dict[str, dict]]:
-        """Возвращает все ордербуки из Redis в формате: {ticker_pair: {order_id: order_data}}"""
+        self.redis_client.hset(key, mapping=mapping)
+
+    def get_all_order_books(self) -> dict[str, dict[str, dict]]:
+        """
+        Возвращает все ордербуки из Redis.
+        """
         result = {}
-        keys = await self.redis_client.keys("orderbook:*")
-        for raw_key in keys:
-            key = raw_key.decode("utf-8")
+        keys = self.redis_client.keys("orderbook:*")
+        for key in keys:
             ticker_pair = key.replace("orderbook:", "")
-            orders = await self.redis_client.hgetall(key)
-            parsed_orders = {field.decode(): json.loads(val) for field, val in orders.items()}
+            orders = self.redis_client.hgetall(key)
+            parsed_orders = {field: json.loads(val) for field, val in orders.items()}
             result[ticker_pair] = parsed_orders
         return result
-
-

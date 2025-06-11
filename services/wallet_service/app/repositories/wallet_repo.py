@@ -57,7 +57,7 @@ class WalletRepository:
                     raise HTTPException(status_code=400, detail="Кошелек деактивирован")
                 return {ticker: asset["amount"] for ticker, asset in wallet_data.get("assets", {}).items()}
 
-        wallet = await self._get_wallet(user_id=user_id)
+        wallet = await self._get_wallet(user_id=user_id, origin="api")
 
         if not wallet or wallet.status == "DEACTIVATE":
             raise HTTPException(status_code=400, detail="Кошелек не найден или деактивирован")

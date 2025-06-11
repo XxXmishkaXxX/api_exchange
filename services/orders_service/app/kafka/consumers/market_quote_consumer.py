@@ -11,8 +11,6 @@ class MarketQuoteResponseKafkaConsumerServcie(BaseKafkaConsumerService):
             correlation_id = value.get("correlation_id")
             status = value.get("status", "error")
 
-            await self.log_message("Получен маркет-респонс", correlation_id=correlation_id, status=status)
-
             if correlation_id and correlation_id in market_quote_futures:
                     future = market_quote_futures.pop(correlation_id)
                     future.set_result(value)

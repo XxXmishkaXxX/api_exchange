@@ -1,6 +1,8 @@
 from fastapi import HTTPException
 from typing import List
 from uuid import UUID
+from datetime import timezone
+
 
 from app.repositories.market_data import MarketDataRepository
 from app.schemas.orderbook import OrderBookRequest, OrderBookResponse, OrderBookErrorResponse, Order
@@ -28,8 +30,8 @@ class MarketDataService:
             orderbook_data['asks'] = orderbook_data['asks'][:data.limit]
 
         return OrderBookResponse(
-            bids=[Order(price=int(order["price"]), amount=int(order["qty"])) for order in orderbook_data["bids"]],
-            asks=[Order(price=int(order["price"]), amount=int(order["qty"])) for order in orderbook_data["asks"]],
+            bid_levels=[Order(price=int(order["price"]), qty=int(order["qty"])) for order in orderbook_data["bids"]],
+            ask_levels=[Order(price=int(order["price"]), qty=int(order["qty"])) for order in orderbook_data["asks"]],
         )
 
     async def get_transactions(self, asset1_id: int, asset2_id: int, limit: int, offset: int):
@@ -55,7 +57,7 @@ class MarketDataService:
                 ticker=transaction.order_asset.ticker,
                 amount=transaction.amount,
                 price=transaction.price,
-                timestamp=transaction.created_at.isoformat(),
+                timestamp=transaction.created_at.replace(tzinfo=timezone.utc),
             )
             for transaction in transactions
         ]

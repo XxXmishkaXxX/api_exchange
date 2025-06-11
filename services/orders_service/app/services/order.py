@@ -13,6 +13,10 @@ from app.schemas.order import (
     OrderResponse,
     OrderListResponse,
     StatusOrder,
+    MarketOrderSchema,
+    LimitOrderSchema,
+    LimitOrderResponse,
+    MarketOrderResponse
 )
 from app.models.order import Order
 from app.services.response_listeners import lock_futures, market_quote_futures
@@ -46,7 +50,7 @@ class OrderService:
 
     async def get_list_order(self, user_id: UUID) -> OrderListResponse:
         orders = await self.order_repo.get_list(user_id)
-        return OrderListResponse(orders=[self._build_order_response(o) for o in orders])
+        return OrderListResponse([self._build_order_response(o) for o in orders])
 
     async def create_order(
         self,
@@ -64,21 +68,20 @@ class OrderService:
                 missing.append(f"payment asset '{order.payment_ticker}'")
             raise HTTPException(status_code=404, detail=f"Asset(s) not found: {', '.join(missing)}")
 
-        if order.type == "market":
+        if order.price:
+            ticker, asset_id, amount = self._prepare_lock_params(
+                order, order.price, order_asset_id, payment_asset_id
+            )
+        else:
             price = await self._get_market_quote(order)
             ticker, asset_id, amount = self._prepare_lock_params(
                 order, price, order_asset_id, payment_asset_id, is_total_price=True
-            )
-        else:
-            ticker, asset_id, amount = self._prepare_lock_params(
-                order, order.price, order_asset_id, payment_asset_id
             )
 
         await self._lock_assets(user_id, ticker, asset_id, amount)
 
         order_entity = Order(
             user_id=user_id,
-            type=order.type,
             status=StatusOrder.NEW,
             direction=order.direction,
             qty=order.qty,
@@ -92,7 +95,7 @@ class OrderService:
             await self.order_producer.send_order(order.ticker, order.payment_ticker, order=order_entity)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Ошибка отправки ордера в Matching Engine: {e}")
-
+        await asyncio.sleep(0.5)
         return OrderCreateResponse(success=True, order_id=order_entity.id)
 
     async def cancel_order(
@@ -105,27 +108,31 @@ class OrderService:
         if not order:
             raise HTTPException(status_code=404, detail="Такого ордера не существует")
 
+        if order.status == "EXECUTED":
+            raise HTTPException(status_code=404, detail="Ордера уже исполнен")
+        logger.info(f"orders status - {order.status}")
         await self.order_producer.cancel_order(
             order_id=order_id,
             direction=order.direction,
             order_ticker=order.order_asset.ticker,
             payment_ticker=order.payment_asset.ticker,
         )
+        await asyncio.sleep(0.5)
         return OrderCancelResponse(success=True)
     
     async def cancel_all_orders(
-            self,
-            user_id: UUID,
+        self,
+        user_id: UUID,
     ) -> None:
         orders = await self.order_repo.get_list(user_id)
 
         for order in orders:
-            await self.order_producer.cancel_order(
-            order_id=order.id,
-            direction=order.direction,
-            order_ticker=order.order_asset.ticker,
-            payment_ticker=order.payment_asset.ticker,
-        )
+            if order.status not in ("EXECUTED", "CANCELLED"):
+                await self.order_producer.cancel_order(
+                    order_id=order.id,
+                    direction=order.direction,
+                    order_ticker=order.order_asset.ticker,
+                    payment_ticker=order.payment_asset.ticker)
 
 
     async def _lock_assets(self, user_id, ticker, asset_id, amount):
@@ -162,12 +169,12 @@ class OrderService:
         result = await self._wait_for_market_quote(correlation_id)
         if result.get("status") != "ok":
             raise HTTPException(status_code=400, detail=result.get("reason", "Не удалось получить цену"))
-        if order.direction == "buy":
+        if order.direction == "BUY":
             return int(result["amount_to_pay"])
         return int(order.qty)
 
     def _prepare_lock_params(self, order, price, order_asset_id, payment_asset_id, is_total_price=False):
-        is_buy = order.direction == "buy"
+        is_buy = order.direction == "BUY"
         ticker = order.payment_ticker if is_buy else order.ticker
         asset_id = payment_asset_id if is_buy else order_asset_id
         amount = int(price) if is_total_price and is_buy else (int(order.qty * price) if is_buy else int(order.qty))
@@ -194,18 +201,33 @@ class OrderService:
             raise
 
     def _build_order_response(self, order: Order) -> OrderResponse:
-        return OrderResponse(
-            order_id=order.id,
-            user_id=order.user_id,
-            status=order.status,
-            timestamp=order.updated_at.isoformat(),
-            body=OrderSchema(
-                type=order.type,
+        from datetime import timezone
+
+        timestamp = order.updated_at
+        if timestamp.tzinfo is None:
+            timestamp = timestamp.replace(tzinfo=timezone.utc)
+
+        common_data = {
+            "id": order.id,
+            "user_id": order.user_id,
+            "status": order.status,
+            "timestamp": timestamp.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+    	}
+
+        if order.price is not None:
+            body = LimitOrderSchema(
                 direction=order.direction,
                 ticker=order.order_asset.ticker,
-                payment_order_ticker=order.payment_asset.ticker,
                 qty=order.qty,
                 price=order.price,
-            ),
-            filled=order.filled,
-        )
+            )
+            return LimitOrderResponse(**common_data, body=body, filled=order.filled)
+
+        else:
+            body = MarketOrderSchema(
+                direction=order.direction,
+                ticker=order.order_asset.ticker,
+                qty=order.qty,
+            )
+
+            return OrderResponse(**common_data, body=body, filled=order.filled)

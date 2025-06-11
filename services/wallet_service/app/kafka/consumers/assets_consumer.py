@@ -29,35 +29,42 @@ class AssetConsumerService(BaseKafkaConsumerService):
 
     async def add_asset_to_redis_and_db(self, asset_id: int, ticker: str, name: str):
         try:
-            async with redis_pool.connection() as redis:
-                asset_key = f"asset:{ticker}"
-                await redis.hset(asset_key, mapping={"asset_id": asset_id, "name": name})
-                await self.log_message("Добавлен актив в Redis", ticker=ticker, name=name)
-
             async with get_db() as session:
                 repo = AssetRepository(session)
-                asset = Asset(id=asset_id, name=name, ticker=ticker)
-                await repo.create(asset)
-                await self.log_message("Добавлен актив в DB", ticker=ticker, name=name)
-        except:
-            await self.log_message("Актив уже в DB/redis", ticker=ticker, name=name)
+                asset = await repo.get_asset_by_ticker_db(ticker)
+                if asset:
+                    await repo.change_status(asset, status="ACTIVATE")
+                    await self.log_message(f"Актив {ticker} активирован")
+                else:
+                    asset = Asset(id=asset_id, name=name, ticker=ticker, status="ACTIVATE")
+                    asset = await repo.create(asset)
+                    await self.log_message("Добавлен актив в DB", ticker=ticker, name=name)
+
+            async with redis_pool.connection() as redis:
+                asset_key = f"asset:{ticker}"
+                await redis.hset(asset_key, mapping={"asset_id": asset.id, "name": name, "status": "ACTIVATE"})
+                await self.log_message("Добавлен актив в Redis", ticker=ticker, name=name)
+
+        except Exception as e:
+            await self.log_message(f"Ошибка - {e}")
 
     async def remove_asset_from_redis_and_db(self, ticker: str):
         try:
             async with redis_pool.connection() as redis:
                 asset_key = f"asset:{ticker}"
-                await redis.delete(asset_key)
-                await self.log_message("Удалён актив из Redis", ticker=ticker)
+                await redis.hset(asset_key, mapping={"status": "DEACTIVATE"})
+                await self.log_message("Актив деактивирован в Redis", ticker=ticker)
 
             async with get_db() as session:
                 repo = AssetRepository(session)
-                await repo.delete(ticker)
-                await self.log_message("Удалён актив из DB", ticker=ticker)
-        except:
-            await self.log_message("Актив уже удален из DB/redis", ticker=ticker)
+                asset = await repo.get_asset_by_ticker_db(ticker)
+                await repo.change_status(asset=asset, status="DEACTIVATE")
+                await self.log_message("Актив деактивирован в DB", ticker=ticker)
+        except Exception as e:
+            await self.log_message(f"Ошибка - {e}")
 
 
 assets_consumer = AssetConsumerService(
-    settings.ASSET_TOPIC, settings.BOOTSTRAP_SERVERS, group_id="wallet_assets_group1",
+    settings.ASSET_TOPIC, settings.BOOTSTRAP_SERVERS, group_id="wallet_assets_group2",
     auto_offset_reset="earliest", enable_auto_commit=False
 )

@@ -13,15 +13,19 @@ class Asset(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
 
     order_transactions: Mapped[list["Transaction"]] = relationship(
-        "Transaction",
-        back_populates="order_asset",
-        foreign_keys="[Transaction.order_asset_id]"
-    )
+    	"Transaction",
+    	back_populates="order_asset",
+    	foreign_keys="[Transaction.order_asset_id]",
+    	cascade="all, delete",
+    	passive_deletes=True
+	)
     payment_transactions: Mapped[list["Transaction"]] = relationship(
-        "Transaction",
-        back_populates="payment_asset",
-        foreign_keys="[Transaction.payment_asset_id]"
-    )
+    	"Transaction",
+    	back_populates="payment_asset",
+    	foreign_keys="[Transaction.payment_asset_id]",
+    	cascade="all, delete",
+    	passive_deletes=True
+	)
 
     def __repr__(self) -> str:
         return f"<Asset(id={self.id}, ticker={self.ticker}, name={self.name})>"

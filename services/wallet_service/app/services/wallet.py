@@ -18,7 +18,12 @@ class WalletService:
         self.asset_repo = asset_repo
 
     async def get_all_assets_balance(self, user_id: UUID):
-        return await self.wallet_repo.get_all(user_id)
+    	try:
+        	assets = await self.wallet_repo.get_all(user_id)
+        	return assets
+    	except Exception as e:
+        	raise HTTPException(status_code=404, detail=f"{e}")
+
 
     async def deposit_assets_user(self, data: DepositAssetsSchema) -> dict:
         """Пополнение баланса пользователя активом."""

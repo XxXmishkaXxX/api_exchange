@@ -11,20 +11,25 @@ class Transaction(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
-    order_asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id"), nullable=False)
+    order_asset_id: Mapped[int] = mapped_column(
+    	ForeignKey("assets.id", ondelete="CASCADE"),
+    	nullable=False
+	)
     order_asset: Mapped["Asset"] = relationship(
-        "Asset",
-        back_populates="order_transactions",
-        foreign_keys=[order_asset_id]
-    )
+    	"Asset",
+    	back_populates="order_transactions",
+    	foreign_keys=[order_asset_id]
+	)
 
-    payment_asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id"), nullable=False)
+    payment_asset_id: Mapped[int] = mapped_column(
+    	ForeignKey("assets.id", ondelete="CASCADE"),
+    	nullable=False
+	)
     payment_asset: Mapped["Asset"] = relationship(
-        "Asset",
-        back_populates="payment_transactions",
-        foreign_keys=[payment_asset_id]
-    )
-
+    	"Asset",
+    	back_populates="payment_transactions",
+    	foreign_keys=[payment_asset_id]
+	)
     from_user_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False)
     to_user_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False)
 

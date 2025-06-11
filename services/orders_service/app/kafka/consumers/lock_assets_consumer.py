@@ -15,8 +15,6 @@ class LockResponseKafkaConsumerService(BaseKafkaConsumerService):
             correlation_id = value.get("correlation_id")
             success = value.get("success", False)
 
-            await self.log_message("Получен ответ от wallet", correlation_id=correlation_id, success=success)
-
             if correlation_id and correlation_id in lock_futures:
                 future = lock_futures.pop(correlation_id)
                 future.set_result(success)

@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 38c1d85f1166
+Revision ID: b631b32f5af0
 Revises: 
-Create Date: 2025-05-17 14:36:28.729928
+Create Date: 2025-05-20 12:05:31.977976
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '38c1d85f1166'
+revision: str = 'b631b32f5af0'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,6 +24,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('ticker', sa.String(length=10), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('status', sa.Enum('ACTIVATE', 'DEACTIVATE', name='assetstatus'), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('ticker')
     )
@@ -41,7 +42,7 @@ def upgrade() -> None:
     sa.Column('amount', sa.Integer(), nullable=False),
     sa.Column('locked', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['asset_id'], ['assets.id'], ),
-    sa.ForeignKeyConstraint(['wallet_id'], ['wallets.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['wallet_id'], ['wallets.id'], ),
     sa.PrimaryKeyConstraint('wallet_id', 'asset_id')
     )
     op.create_index('idx_wallet_assets_wallet_asset', 'wallet_asset_balances', ['wallet_id', 'asset_id'], unique=False)
